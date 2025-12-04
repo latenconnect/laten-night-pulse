@@ -5,9 +5,22 @@ import { Search, Filter, X, Flame, MapPin, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EventCard from '@/components/EventCard';
 import BottomNav from '@/components/BottomNav';
+import Map from '@/components/Map';
 import { mockEvents } from '@/data/mockEvents';
 import { useApp } from '@/context/AppContext';
 import { cn } from '@/lib/utils';
+
+// City coordinates for Hungary
+const CITY_COORDS: Record<string, [number, number]> = {
+  'Budapest': [19.0402, 47.4979],
+  'Debrecen': [21.6273, 47.5316],
+  'Szeged': [20.1414, 46.2530],
+  'Pécs': [18.2232, 46.0727],
+  'Győr': [17.6504, 47.6875],
+  'Siófok': [18.0486, 46.9086],
+  'Miskolc': [20.7784, 48.1035],
+  'Eger': [20.3772, 47.9025],
+};
 
 const MapView: React.FC = () => {
   const navigate = useNavigate();
@@ -26,84 +39,13 @@ const MapView: React.FC = () => {
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Map Container */}
       <div className="flex-1 relative">
-        {/* Simulated Map Background */}
-        <div className="absolute inset-0 bg-[#0a0a12]">
-          {/* Grid Pattern */}
-          <div 
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(139, 92, 246, 0.3) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(139, 92, 246, 0.3) 1px, transparent 1px)
-              `,
-              backgroundSize: '50px 50px',
-            }}
-          />
-          
-          {/* Glowing City Center */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="w-64 h-64 rounded-full bg-primary/10 blur-[100px]" />
-          </div>
-
-          {/* Event Markers */}
-          {cityEvents.map((event, index) => {
-            const randomX = 20 + (index * 15) % 60;
-            const randomY = 25 + (index * 20) % 50;
-            
-            return (
-              <motion.button
-                key={event.id}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: index * 0.1, type: 'spring' }}
-                onClick={() => setSelectedEvent(event.id)}
-                className={cn(
-                  'absolute z-10 group',
-                  selectedEvent === event.id && 'z-20'
-                )}
-                style={{ left: `${randomX}%`, top: `${randomY}%` }}
-              >
-                <div className={cn(
-                  'relative transition-all duration-300',
-                  selectedEvent === event.id && 'scale-125'
-                )}>
-                  {/* Pulse Ring */}
-                  <div className={cn(
-                    'absolute inset-0 rounded-full animate-ping',
-                    event.isFeatured ? 'bg-primary/40' : 'bg-secondary/40'
-                  )} />
-                  
-                  {/* Marker */}
-                  <div className={cn(
-                    'relative w-4 h-4 rounded-full flex items-center justify-center',
-                    event.isFeatured 
-                      ? 'bg-primary shadow-[0_0_20px_hsla(270,91%,65%,0.6)]'
-                      : 'bg-secondary shadow-[0_0_20px_hsla(180,100%,50%,0.6)]'
-                  )}>
-                    {event.isFeatured && (
-                      <Flame className="w-2 h-2 text-primary-foreground" />
-                    )}
-                  </div>
-
-                  {/* Label */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={cn(
-                      'absolute left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap',
-                      'px-2 py-1 rounded-lg bg-card/90 backdrop-blur-sm text-xs font-medium',
-                      'border border-border/50 shadow-lg',
-                      'opacity-0 group-hover:opacity-100 transition-opacity',
-                      selectedEvent === event.id && 'opacity-100'
-                    )}
-                  >
-                    {event.name}
-                  </motion.div>
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
+        {/* Mapbox Map */}
+        <Map
+          events={cityEvents}
+          selectedEventId={selectedEvent}
+          onEventSelect={setSelectedEvent}
+          center={CITY_COORDS[selectedCity] || CITY_COORDS['Budapest']}
+        />
 
         {/* Top Overlay */}
         <div className="absolute top-0 left-0 right-0 z-30 p-4 bg-gradient-to-b from-background via-background/80 to-transparent">
