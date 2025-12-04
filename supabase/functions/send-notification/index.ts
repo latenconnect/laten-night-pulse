@@ -24,10 +24,11 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const fcmServerKey = Deno.env.get("FCM_SERVER_KEY");
+    const oneSignalAppId = Deno.env.get("ONESIGNAL_APP_ID");
+    const oneSignalApiKey = Deno.env.get("ONESIGNAL_REST_API_KEY");
 
-    if (!fcmServerKey) {
-      console.log("FCM_SERVER_KEY not configured - notifications disabled");
+    if (!oneSignalAppId || !oneSignalApiKey) {
+      console.log("OneSignal credentials not configured - notifications disabled");
       return new Response(
         JSON.stringify({ success: false, message: "Push notifications not configured" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
@@ -38,6 +39,8 @@ serve(async (req) => {
     const payload: NotificationPayload = await req.json();
 
     const { type, userIds, eventId, title, body, data } = payload;
+
+    console.log("Notification request:", { type, userIds, eventId, title });
 
     // Get push tokens for the specified users
     let query = supabase
@@ -57,71 +60,83 @@ serve(async (req) => {
     }
 
     if (!tokens || tokens.length === 0) {
+      console.log("No active tokens found for users:", userIds);
       return new Response(
         JSON.stringify({ success: true, sent: 0, message: "No active tokens found" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Send notifications via FCM
-    const notificationPromises = tokens.map(async (tokenData) => {
-      const fcmPayload = {
-        to: tokenData.token,
-        notification: {
-          title,
-          body,
-          sound: "default",
-          badge: 1,
-        },
-        data: {
-          type,
-          eventId: eventId || "",
-          ...data,
-        },
-        // iOS specific
-        content_available: true,
-        // Android specific
-        priority: "high",
-      };
+    console.log(`Found ${tokens.length} active tokens`);
 
-      try {
-        const response = await fetch("https://fcm.googleapis.com/fcm/send", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `key=${fcmServerKey}`,
-          },
-          body: JSON.stringify(fcmPayload),
-        });
+    // Prepare notification data
+    const notificationData: Record<string, string> = {
+      type,
+      ...(eventId && { eventId }),
+      ...data,
+    };
 
-        const result = await response.json();
-        
-        // Handle invalid tokens
-        if (result.failure && result.results?.[0]?.error === "NotRegistered") {
-          // Mark token as inactive
-          await supabase
-            .from("push_tokens")
-            .update({ is_active: false })
-            .eq("token", tokenData.token);
-          
-          return { success: false, reason: "token_invalid" };
-        }
+    // Send via OneSignal REST API using player IDs (tokens)
+    const playerIds = tokens.map(t => t.token);
 
-        return { success: result.success === 1, result };
-      } catch (error) {
-        console.error("FCM send error:", error);
-        return { success: false, error };
-      }
+    const oneSignalPayload = {
+      app_id: oneSignalAppId,
+      include_player_ids: playerIds,
+      headings: { en: title },
+      contents: { en: body },
+      data: notificationData,
+      // iOS specific
+      ios_badgeType: "Increase",
+      ios_badgeCount: 1,
+      // Android specific
+      android_channel_id: "default",
+      priority: 10,
+    };
+
+    console.log("Sending to OneSignal with", playerIds.length, "player IDs");
+
+    const oneSignalResponse = await fetch("https://onesignal.com/api/v1/notifications", {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${oneSignalApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(oneSignalPayload),
     });
 
-    const results = await Promise.all(notificationPromises);
-    const successCount = results.filter((r) => r.success).length;
+    const oneSignalResult = await oneSignalResponse.json();
+    console.log("OneSignal response:", JSON.stringify(oneSignalResult));
+
+    if (!oneSignalResponse.ok) {
+      // Handle invalid player IDs by marking them inactive
+      if (oneSignalResult.errors?.invalid_player_ids) {
+        const invalidIds = oneSignalResult.errors.invalid_player_ids;
+        console.log("Marking invalid tokens as inactive:", invalidIds.length);
+        
+        await supabase
+          .from("push_tokens")
+          .update({ is_active: false })
+          .in("token", invalidIds);
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "OneSignal API error", 
+          details: oneSignalResult 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+
+    const successCount = oneSignalResult.recipients || playerIds.length;
 
     return new Response(
       JSON.stringify({
         success: true,
         sent: successCount,
         total: tokens.length,
+        notificationId: oneSignalResult.id,
         message: `Sent ${successCount} of ${tokens.length} notifications`,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

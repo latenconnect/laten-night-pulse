@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
+import { useEffect, useState, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,95 +13,22 @@ const getPlatform = () => {
   return Capacitor.getPlatform(); // 'ios', 'android', or 'web'
 };
 
+// OneSignal will be available on window after plugin initialization
+declare global {
+  interface Window {
+    plugins?: {
+      OneSignal?: any;
+    };
+  }
+}
+
 export const usePushNotifications = () => {
   const { user } = useAuth();
   const [permissionStatus, setPermissionStatus] = useState<'prompt' | 'granted' | 'denied'>('prompt');
-  const [fcmToken, setFcmToken] = useState<string | null>(null);
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => {
-    if (!isNative()) return;
-
-    const initPushNotifications = async () => {
-      try {
-        const permStatus = await PushNotifications.checkPermissions();
-        setPermissionStatus(permStatus.receive as 'prompt' | 'granted' | 'denied');
-
-        if (permStatus.receive === 'granted') {
-          await registerPushNotifications();
-        }
-      } catch (error) {
-        console.log('Push notifications not available:', error);
-      }
-    };
-
-    initPushNotifications();
-  }, []);
-
-  const requestPermission = async (): Promise<boolean> => {
-    if (!isNative()) {
-      console.log('Push notifications only available on native platforms');
-      return false;
-    }
-
-    try {
-      const permStatus = await PushNotifications.requestPermissions();
-      setPermissionStatus(permStatus.receive as 'prompt' | 'granted' | 'denied');
-
-      if (permStatus.receive === 'granted') {
-        await registerPushNotifications();
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Error requesting push permission:', error);
-      return false;
-    }
-  };
-
-  const registerPushNotifications = async () => {
-    try {
-      await PushNotifications.register();
-
-      PushNotifications.addListener('registration', async (token: Token) => {
-        console.log('Push registration success, token:', token.value);
-        setFcmToken(token.value);
-
-        if (user) {
-          await saveTokenToDatabase(token.value);
-        }
-      });
-
-      PushNotifications.addListener('registrationError', (error) => {
-        console.error('Push registration error:', error);
-      });
-
-      PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-        console.log('Push notification received:', notification);
-        toast(notification.title || 'New Notification', {
-          description: notification.body,
-        });
-      });
-
-      PushNotifications.addListener('pushNotificationActionPerformed', (action: ActionPerformed) => {
-        console.log('Push notification action performed:', action);
-        
-        const data = action.notification.data;
-        
-        if (data?.type === 'event_reminder' && data?.eventId) {
-          window.location.href = `/event/${data.eventId}`;
-        } else if (data?.type === 'rsvp_update' && data?.eventId) {
-          window.location.href = `/event/${data.eventId}`;
-        } else if (data?.type === 'new_event') {
-          window.location.href = '/explore';
-        }
-      });
-    } catch (error) {
-      console.error('Error registering push notifications:', error);
-    }
-  };
-
-  const saveTokenToDatabase = async (token: string) => {
+  const saveTokenToDatabase = useCallback(async (token: string) => {
     if (!user) return;
 
     try {
@@ -129,17 +55,129 @@ export const usePushNotifications = () => {
     } catch (error) {
       console.error('Error saving push token:', error);
     }
+  }, [user]);
+
+  const initOneSignal = useCallback(async () => {
+    if (!isNative() || isInitialized) return;
+
+    try {
+      // OneSignal App ID from environment or hardcoded for native apps
+      const oneSignalAppId = import.meta.env.VITE_ONESIGNAL_APP_ID;
+      
+      if (!oneSignalAppId) {
+        console.log('OneSignal App ID not configured');
+        return;
+      }
+
+      // Wait for Cordova/Capacitor to be ready
+      document.addEventListener('deviceready', () => {
+        const OneSignal = window.plugins?.OneSignal;
+        
+        if (!OneSignal) {
+          console.log('OneSignal plugin not available');
+          return;
+        }
+
+        // Initialize OneSignal
+        OneSignal.initialize(oneSignalAppId);
+
+        // Handle notification received while app is in foreground
+        OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event: any) => {
+          console.log('Notification received:', event.notification);
+          const notification = event.notification;
+          toast(notification.title || 'New Notification', {
+            description: notification.body,
+          });
+          // Allow notification to display
+          event.preventDefault();
+          event.notification.display();
+        });
+
+        // Handle notification clicked
+        OneSignal.Notifications.addEventListener('click', (event: any) => {
+          console.log('Notification clicked:', event);
+          const data = event.notification.additionalData;
+          
+          if (data?.type === 'event_reminder' && data?.eventId) {
+            window.location.href = `/event/${data.eventId}`;
+          } else if (data?.type === 'rsvp_update' && data?.eventId) {
+            window.location.href = `/event/${data.eventId}`;
+          } else if (data?.type === 'new_event') {
+            window.location.href = '/explore';
+          }
+        });
+
+        // Check permission status
+        OneSignal.Notifications.getPermissionAsync().then((granted: boolean) => {
+          setPermissionStatus(granted ? 'granted' : 'prompt');
+        });
+
+        // Get player ID (subscription ID)
+        OneSignal.User.getOnesignalId().then((id: string | null) => {
+          if (id) {
+            console.log('OneSignal Player ID:', id);
+            setPlayerId(id);
+          }
+        });
+
+        setIsInitialized(true);
+      }, false);
+
+    } catch (error) {
+      console.log('OneSignal initialization error:', error);
+    }
+  }, [isInitialized]);
+
+  useEffect(() => {
+    if (isNative()) {
+      initOneSignal();
+    }
+  }, [initOneSignal]);
+
+  const requestPermission = async (): Promise<boolean> => {
+    if (!isNative()) {
+      console.log('Push notifications only available on native platforms');
+      return false;
+    }
+
+    try {
+      const OneSignal = window.plugins?.OneSignal;
+      
+      if (!OneSignal) {
+        console.log('OneSignal not initialized');
+        return false;
+      }
+
+      // Request permission
+      const granted = await OneSignal.Notifications.requestPermission(true);
+      setPermissionStatus(granted ? 'granted' : 'denied');
+
+      if (granted) {
+        // Get player ID after permission granted
+        const id = await OneSignal.User.getOnesignalId();
+        if (id) {
+          setPlayerId(id);
+          await saveTokenToDatabase(id);
+        }
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error requesting push permission:', error);
+      return false;
+    }
   };
 
   const removeToken = async () => {
-    if (!user || !fcmToken) return;
+    if (!user || !playerId) return;
 
     try {
       const { error } = await supabase
         .from('push_tokens')
         .update({ is_active: false })
         .eq('user_id', user.id)
-        .eq('token', fcmToken);
+        .eq('token', playerId);
 
       if (error) {
         console.error('Error deactivating push token:', error);
@@ -149,16 +187,17 @@ export const usePushNotifications = () => {
     }
   };
 
-  // Save token when user logs in
+  // Save token when user logs in and we have a player ID
   useEffect(() => {
-    if (user && fcmToken) {
-      saveTokenToDatabase(fcmToken);
+    if (user && playerId) {
+      saveTokenToDatabase(playerId);
     }
-  }, [user, fcmToken]);
+  }, [user, playerId, saveTokenToDatabase]);
 
   return {
     permissionStatus,
-    fcmToken,
+    playerId,
+    fcmToken: playerId, // Alias for backward compatibility
     requestPermission,
     removeToken,
     isNative: isNative(),
