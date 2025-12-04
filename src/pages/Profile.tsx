@@ -1,0 +1,163 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Settings, ChevronRight, Calendar, Heart, MapPin, 
+  Bell, Shield, LogOut, Sparkles, User as UserIcon
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import BottomNav from '@/components/BottomNav';
+import { useApp } from '@/context/AppContext';
+
+const Profile: React.FC = () => {
+  const { selectedCity, interests } = useApp();
+
+  const menuItems = [
+    { icon: Calendar, label: 'My Events', count: 3 },
+    { icon: Heart, label: 'Saved Events', count: 12 },
+    { icon: Bell, label: 'Notifications' },
+    { icon: MapPin, label: 'Change Location', value: selectedCity },
+    { icon: Sparkles, label: 'Edit Interests' },
+    { icon: Shield, label: 'Safety & Privacy' },
+    { icon: Settings, label: 'Settings' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background pb-24">
+      {/* Header */}
+      <header className="relative">
+        {/* Background Gradient */}
+        <div className="h-40 bg-gradient-to-br from-primary/30 via-neon-pink/20 to-secondary/30" />
+        
+        {/* Profile Card */}
+        <div className="px-4 -mt-16 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card p-6"
+          >
+            <div className="flex items-start gap-4">
+              {/* Avatar */}
+              <div className="relative">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-secondary p-0.5">
+                  <div className="w-full h-full rounded-2xl bg-card flex items-center justify-center">
+                    <UserIcon className="w-10 h-10 text-muted-foreground" />
+                  </div>
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-secondary flex items-center justify-center border-2 border-card">
+                  <span className="text-xs">✓</span>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="flex-1">
+                <h1 className="font-display font-bold text-xl mb-1">Guest User</h1>
+                <p className="text-sm text-muted-foreground mb-3">Sign in to unlock all features</p>
+                <Button variant="outline" size="sm">
+                  Sign In
+                </Button>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-border">
+              <div className="text-center">
+                <p className="font-display font-bold text-2xl text-primary">0</p>
+                <p className="text-xs text-muted-foreground">Events Attended</p>
+              </div>
+              <div className="text-center">
+                <p className="font-display font-bold text-2xl text-secondary">12</p>
+                <p className="text-xs text-muted-foreground">Saved</p>
+              </div>
+              <div className="text-center">
+                <p className="font-display font-bold text-2xl text-neon-pink">3</p>
+                <p className="text-xs text-muted-foreground">Upcoming</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </header>
+
+      {/* Interests */}
+      <section className="px-4 mt-6">
+        <h2 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">
+          Your Interests
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          {interests.length > 0 ? (
+            interests.map((interest) => (
+              <span
+                key={interest}
+                className="px-3 py-1.5 rounded-full bg-primary/20 text-primary text-sm"
+              >
+                {interest}
+              </span>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">No interests selected</p>
+          )}
+        </div>
+      </section>
+
+      {/* Menu */}
+      <section className="px-4 mt-6">
+        <div className="glass-card overflow-hidden">
+          {menuItems.map((item, index) => (
+            <motion.button
+              key={item.label}
+              whileHover={{ backgroundColor: 'hsla(240, 15%, 15%, 0.5)' }}
+              className="w-full flex items-center gap-4 p-4 border-b border-border/50 last:border-0"
+            >
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <item.icon className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.count !== undefined && (
+                <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-semibold">
+                  {item.count}
+                </span>
+              )}
+              {item.value && (
+                <span className="text-sm text-muted-foreground">{item.value}</span>
+              )}
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </motion.button>
+          ))}
+        </div>
+      </section>
+
+      {/* Host CTA */}
+      <section className="px-4 mt-6">
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="relative overflow-hidden rounded-2xl p-6 cursor-pointer"
+          style={{
+            background: 'linear-gradient(135deg, hsl(270 91% 65% / 0.2) 0%, hsl(330 100% 65% / 0.2) 100%)',
+          }}
+        >
+          <div className="absolute inset-0 border border-primary/30 rounded-2xl" />
+          <div className="relative z-10">
+            <h3 className="font-display font-bold text-lg mb-2">Become a Host</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Create and manage your own events. Reach thousands of party-goers.
+            </p>
+            <Button variant="neon" size="sm">
+              Apply Now
+            </Button>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Sign Out */}
+      <section className="px-4 mt-6">
+        <Button variant="ghost" className="w-full text-destructive hover:text-destructive gap-2">
+          <LogOut className="w-5 h-5" />
+          Sign Out
+        </Button>
+      </section>
+
+      <BottomNav />
+    </div>
+  );
+};
+
+export default Profile;
