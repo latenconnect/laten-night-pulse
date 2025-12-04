@@ -220,8 +220,8 @@ const Onboarding: React.FC = () => {
                 <p className="text-muted-foreground">Select your city</p>
               </div>
 
-              <div className="max-h-64 overflow-y-auto no-scrollbar space-y-2 max-w-sm mx-auto">
-                {HUNGARIAN_CITIES.slice(0, 10).map((c) => (
+              <div className="max-h-72 overflow-y-auto no-scrollbar space-y-2 max-w-sm mx-auto">
+                {HUNGARIAN_CITIES.map((c) => (
                   <motion.button
                     key={c.name}
                     onClick={() => setCity(c.name)}
