@@ -102,7 +102,7 @@ const Onboarding: React.FC = () => {
                 <img 
                   src={latenLogo} 
                   alt="Laten" 
-                  className="w-24 h-24 mx-auto object-contain mb-6"
+                  className="w-32 h-32 mx-auto object-contain mb-6 drop-shadow-[0_0_25px_hsla(270,91%,65%,0.6)]"
                 />
                 <h1 className="text-4xl font-display font-bold mb-3">
                   Welcome to <span className="text-gradient">Laten</span>
