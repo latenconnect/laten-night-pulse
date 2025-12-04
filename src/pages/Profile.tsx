@@ -6,7 +6,7 @@ import {
   Bell, Shield, LogOut, Sparkles, User as UserIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import BottomNav from '@/components/BottomNav';
+import MobileLayout from '@/components/layouts/MobileLayout';
 import HostApplicationCard from '@/components/HostApplicationCard';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
@@ -67,11 +67,11 @@ const Profile: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <MobileLayout>
       {/* Header */}
       <header className="relative">
         {/* Background Gradient */}
-        <div className="h-40 bg-gradient-to-br from-primary/30 via-neon-pink/20 to-secondary/30" />
+        <div className="h-40 bg-gradient-to-br from-primary/30 via-neon-pink/20 to-secondary/30 safe-top" />
         
         {/* Profile Card */}
         <div className="px-4 -mt-16 relative z-10">
@@ -168,8 +168,8 @@ const Profile: React.FC = () => {
             <motion.button
               key={item.label}
               onClick={() => item.path && navigate(item.path)}
-              whileHover={{ backgroundColor: 'hsla(240, 15%, 15%, 0.5)' }}
-              className="w-full flex items-center gap-4 p-4 border-b border-border/50 last:border-0"
+              whileTap={{ scale: 0.98 }}
+              className="w-full flex items-center gap-4 p-4 border-b border-border/50 last:border-0 touch-highlight touch-target no-select"
             >
               <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
                 <item.icon className="w-5 h-5 text-muted-foreground" />
@@ -196,10 +196,10 @@ const Profile: React.FC = () => {
 
       {/* Sign Out */}
       {user && (
-        <section className="px-4 mt-6">
+        <section className="px-4 mt-6 mb-4">
           <Button 
             variant="ghost" 
-            className="w-full text-destructive hover:text-destructive gap-2"
+            className="w-full text-destructive hover:text-destructive gap-2 touch-target"
             onClick={handleSignOut}
           >
             <LogOut className="w-5 h-5" />
@@ -207,9 +207,7 @@ const Profile: React.FC = () => {
           </Button>
         </section>
       )}
-
-      <BottomNav />
-    </div>
+    </MobileLayout>
   );
 };
 
