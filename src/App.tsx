@@ -9,6 +9,7 @@ import { AppProvider } from "@/context/AppContext";
 import { AuthProvider } from "@/context/AuthContext";
 import SplashScreen from "@/components/SplashScreen";
 import CookieConsent from "@/components/CookieConsent";
+import NotificationPrompt from "@/components/NotificationPrompt";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
@@ -71,6 +72,7 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <CookieConsent />
+              <NotificationPrompt />
             </BrowserRouter>
           </TooltipProvider>
         </AppProvider>

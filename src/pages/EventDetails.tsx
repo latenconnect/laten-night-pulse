@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { getEventById } from '@/data/mockEvents';
 import { useSavedEvents, useEventRsvp, useReportEvent } from '@/hooks/useEvents';
 import { useAuth } from '@/context/AuthContext';
+import { useHaptics } from '@/hooks/useHaptics';
 import { EVENT_TYPES } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -37,6 +38,7 @@ const EventDetails: React.FC = () => {
   const { isEventSaved, saveEvent, unsaveEvent } = useSavedEvents();
   const { hasRsvped, rsvpToEvent, cancelRsvp } = useEventRsvp();
   const { reportEvent } = useReportEvent();
+  const { lightTap, mediumTap, successNotification, warningNotification } = useHaptics();
   
   const [isLiked, setIsLiked] = useState(false);
   const [isGoing, setIsGoing] = useState(false);
@@ -66,6 +68,7 @@ const EventDetails: React.FC = () => {
   const attendancePercentage = Math.round((event.currentRSVP / event.expectedAttendance) * 100);
 
   const handleLike = async () => {
+    await lightTap();
     if (!user) {
       toast.error('Please sign in to save events');
       navigate('/auth');
@@ -78,10 +81,12 @@ const EventDetails: React.FC = () => {
     } else {
       await saveEvent(event.id);
       setIsLiked(true);
+      await successNotification();
     }
   };
 
   const handleRSVP = async () => {
+    await mediumTap();
     if (!user) {
       toast.error('Please sign in to RSVP');
       navigate('/auth');
@@ -94,6 +99,7 @@ const EventDetails: React.FC = () => {
     } else {
       await rsvpToEvent(event.id);
       setIsGoing(true);
+      await successNotification();
     }
   };
 

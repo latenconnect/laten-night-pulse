@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Map, Compass, Plus, Heart, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useHaptics } from '@/hooks/useHaptics';
 
 const navItems = [
   { icon: Map, label: 'Map', path: '/map' },
@@ -15,6 +16,16 @@ const navItems = [
 const BottomNav: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { lightTap, mediumTap } = useHaptics();
+
+  const handleNavPress = async (path: string, isSpecial: boolean = false) => {
+    if (isSpecial) {
+      await mediumTap();
+    } else {
+      await lightTap();
+    }
+    navigate(path);
+  };
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 safe-left safe-right">
@@ -28,7 +39,7 @@ const BottomNav: React.FC = () => {
               return (
                 <motion.button
                   key={item.path}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => handleNavPress(item.path, true)}
                   whileTap={{ scale: 0.9 }}
                   className="relative -mt-8 touch-target no-select"
                 >
@@ -42,7 +53,7 @@ const BottomNav: React.FC = () => {
             return (
               <motion.button
                 key={item.path}
-                onClick={() => navigate(item.path)}
+                onClick={() => handleNavPress(item.path)}
                 whileTap={{ scale: 0.9 }}
                 className={cn(
                   'flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-colors touch-target no-select',

@@ -11,11 +11,15 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2500,
+      launchAutoHide: true,
       backgroundColor: '#0a0a0f',
-      showSpinner: false,
+      androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
       splashFullScreen: true,
-      splashImmersive: true
+      splashImmersive: true,
+      layoutName: 'launch_screen',
+      useDialog: true
     },
     StatusBar: {
       style: 'DARK',
@@ -24,14 +28,19 @@ const config: CapacitorConfig = {
     Keyboard: {
       resize: 'body',
       resizeOnFullScreen: true
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
     }
   },
   ios: {
     contentInset: 'automatic',
-    preferredContentMode: 'mobile'
+    preferredContentMode: 'mobile',
+    scheme: 'laten'
   },
   android: {
-    backgroundColor: '#0a0a0f'
+    backgroundColor: '#0a0a0f',
+    allowMixedContent: true
   }
 };
 
