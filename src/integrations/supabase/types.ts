@@ -14,16 +14,313 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      event_rsvps: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          actual_rsvp: number | null
+          age_limit: number | null
+          city: string
+          country: string | null
+          cover_image: string | null
+          created_at: string | null
+          description: string | null
+          end_time: string | null
+          expected_attendance: number | null
+          host_id: string
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
+          location_name: string
+          max_attendees: number | null
+          name: string
+          photos: string[] | null
+          price: number | null
+          report_count: number | null
+          safety_rules: string | null
+          start_time: string
+          type: Database["public"]["Enums"]["event_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          actual_rsvp?: number | null
+          age_limit?: number | null
+          city?: string
+          country?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_time?: string | null
+          expected_attendance?: number | null
+          host_id: string
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          location_name: string
+          max_attendees?: number | null
+          name: string
+          photos?: string[] | null
+          price?: number | null
+          report_count?: number | null
+          safety_rules?: string | null
+          start_time: string
+          type?: Database["public"]["Enums"]["event_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          actual_rsvp?: number | null
+          age_limit?: number | null
+          city?: string
+          country?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_time?: string | null
+          expected_attendance?: number | null
+          host_id?: string
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          location_name?: string
+          max_attendees?: number | null
+          name?: string
+          photos?: string[] | null
+          price?: number | null
+          report_count?: number | null
+          safety_rules?: string | null
+          start_time?: string
+          type?: Database["public"]["Enums"]["event_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "hosts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hosts: {
+        Row: {
+          created_at: string | null
+          events_hosted: number | null
+          id: string
+          rating: number | null
+          user_id: string
+          verification_documents: string[] | null
+          verification_status:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          events_hosted?: number | null
+          id?: string
+          rating?: number | null
+          user_id: string
+          verification_documents?: string[] | null
+          verification_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          events_hosted?: number | null
+          id?: string
+          rating?: number | null
+          user_id?: string
+          verification_documents?: string[] | null
+          verification_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          event_id: string
+          id: string
+          reason: string
+          reporter_id: string
+          severity: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          event_id: string
+          id?: string
+          reason: string
+          reporter_id: string
+          severity?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          event_id?: string
+          id?: string
+          reason?: string
+          reporter_id?: string
+          severity?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_events: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
+      event_type: "club" | "house_party" | "university" | "festival" | "public"
+      verification_status: "pending" | "verified" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +447,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+      event_type: ["club", "house_party", "university", "festival", "public"],
+      verification_status: ["pending", "verified", "rejected"],
+    },
   },
 } as const
