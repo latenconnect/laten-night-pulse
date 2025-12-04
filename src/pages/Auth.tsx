@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight, AlertCircle, Check } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, AlertCircle, Check, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { emailSchema, passwordSchema, displayNameSchema } from '@/lib/validations';
 import latenLogo from '@/assets/laten-logo.png';
-
-const emailSchema = z.string().trim().email('Invalid email address');
-const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
-const displayNameSchema = z.string().trim().min(2, 'Name must be at least 2 characters').max(50, 'Name too long');
 
 const Auth: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +17,9 @@ const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; displayName?: string }>({});
+  const [passwordStrength, setPasswordStrength] = useState(0);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -29,6 +27,17 @@ const Auth: React.FC = () => {
       navigate('/explore');
     }
   }, [user, navigate]);
+
+  // Calculate password strength
+  useEffect(() => {
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+    setPasswordStrength(strength);
+  }, [password]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string; displayName?: string } = {};
@@ -186,18 +195,44 @@ const Auth: React.FC = () => {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-12 h-14 bg-card/50 border-border/50 focus:border-primary"
+                className="pl-12 pr-12 h-14 bg-card/50 border-border/50 focus:border-primary"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
             {errors.password && (
               <p className="text-sm text-destructive mt-1 flex items-center gap-1">
                 <AlertCircle className="w-4 h-4" />
                 {errors.password}
               </p>
+            )}
+            {!isLogin && password && (
+              <div className="mt-2">
+                <div className="flex gap-1 mb-1">
+                  {[1, 2, 3, 4, 5].map((level) => (
+                    <div
+                      key={level}
+                      className={`h-1.5 flex-1 rounded-full transition-colors ${
+                        passwordStrength >= level
+                          ? level <= 2 ? 'bg-destructive' : level <= 3 ? 'bg-yellow-500' : 'bg-green-500'
+                          : 'bg-muted'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {passwordStrength <= 2 ? 'Weak' : passwordStrength <= 3 ? 'Medium' : 'Strong'} password
+                </p>
+              </div>
             )}
           </div>
 
