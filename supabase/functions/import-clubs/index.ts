@@ -122,14 +122,51 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify authentication and admin role
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("No authorization header provided");
+      return new Response(
+        JSON.stringify({ error: "Authorization required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error("Auth error:", authError?.message);
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check admin role
+    const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
+      _user_id: user.id,
+      _role: "admin"
+    });
+
+    if (roleError || !isAdmin) {
+      console.error("Admin check failed:", roleError?.message || "User is not admin");
+      return new Response(
+        JSON.stringify({ error: "Admin access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log(`Admin ${user.email} authorized for import`);
+
     const apiKey = Deno.env.get("GOOGLE_PLACES_API_KEY");
     if (!apiKey) {
       throw new Error("GOOGLE_PLACES_API_KEY not configured");
     }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse request body for optional parameters
     let targetCity: string | null = null;
