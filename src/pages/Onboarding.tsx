@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { INTERESTS, HUNGARIAN_CITIES } from '@/types';
 import { useApp } from '@/context/AppContext';
 import { cn } from '@/lib/utils';
+import latenLogo from '@/assets/laten-logo-onboarding.png';
 
 const steps = ['welcome', 'age', 'interests', 'location', 'ready'] as const;
 type Step = typeof steps[number];
@@ -98,11 +99,11 @@ const Onboarding: React.FC = () => {
                 transition={{ delay: 0.2 }}
                 className="mb-8"
               >
-                <div className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-primary via-neon-pink to-secondary p-1 mb-6">
-                  <div className="w-full h-full rounded-3xl bg-background flex items-center justify-center">
-                    <span className="text-4xl font-display font-bold text-gradient">L</span>
-                  </div>
-                </div>
+                <img 
+                  src={latenLogo} 
+                  alt="Laten" 
+                  className="w-24 h-24 mx-auto object-contain mb-6"
+                />
                 <h1 className="text-4xl font-display font-bold mb-3">
                   Welcome to <span className="text-gradient">Laten</span>
                 </h1>
