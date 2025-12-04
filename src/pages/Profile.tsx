@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   Settings, ChevronRight, Calendar, Heart, MapPin, 
-  Bell, Shield, LogOut, Sparkles, User as UserIcon
+  Bell, Shield, LogOut, Sparkles, User as UserIcon, LayoutDashboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MobileLayout from '@/components/layouts/MobileLayout';
@@ -26,10 +26,12 @@ const Profile: React.FC = () => {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
+      checkAdminRole();
     } else {
       setLoading(false);
     }
@@ -48,6 +50,17 @@ const Profile: React.FC = () => {
       setProfile(data);
     }
     setLoading(false);
+  };
+
+  const checkAdminRole = async () => {
+    if (!user) return;
+    
+    const { data } = await supabase.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin'
+    });
+    
+    setIsAdmin(!!data);
   };
 
   const handleSignOut = async () => {
@@ -188,6 +201,23 @@ const Profile: React.FC = () => {
           ))}
         </div>
       </section>
+
+      {/* Admin Dashboard Link */}
+      {isAdmin && (
+        <section className="px-4 mt-6">
+          <motion.button
+            onClick={() => navigate('/admin')}
+            whileTap={{ scale: 0.98 }}
+            className="w-full glass-card p-4 flex items-center gap-4 border-2 border-primary/30 touch-highlight"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+              <LayoutDashboard className="w-5 h-5 text-primary" />
+            </div>
+            <span className="flex-1 text-left font-medium">Admin Dashboard</span>
+            <ChevronRight className="w-5 h-5 text-primary" />
+          </motion.button>
+        </section>
+      )}
 
       {/* Host CTA */}
       <section className="px-4 mt-6">
