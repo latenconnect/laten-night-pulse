@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles } from 'lucide-react';
+import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EventCard from '@/components/EventCard';
+import ClubCard from '@/components/ClubCard';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import { mockEvents, getFeaturedEvents } from '@/data/mockEvents';
 import { useApp } from '@/context/AppContext';
+import { useClubs } from '@/hooks/useClubs';
 import { EVENT_TYPES } from '@/types';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Explore: React.FC = () => {
   const navigate = useNavigate();
   const { selectedCity } = useApp();
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const { clubs, loading: clubsLoading } = useClubs(10);
 
   const featuredEvents = getFeaturedEvents();
   const filteredEvents = mockEvents.filter(event => {
@@ -135,6 +139,46 @@ const Explore: React.FC = () => {
               </motion.div>
             ))}
           </div>
+        </section>
+
+        {/* Venues Nearby Section */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Building2 className="w-5 h-5 text-cyan-400" />
+            <h2 className="font-display font-bold text-xl">Venues in {selectedCity}</h2>
+          </div>
+          {clubsLoading ? (
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="w-[280px] flex-shrink-0">
+                  <Skeleton className="h-36 rounded-t-2xl" />
+                  <div className="p-3 space-y-2 bg-card rounded-b-2xl border border-t-0 border-border">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : clubs.length > 0 ? (
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
+              {clubs.map((club, index) => (
+                <motion.div
+                  key={club.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <ClubCard club={club} />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Building2 className="w-10 h-10 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No venues found in {selectedCity}</p>
+            </div>
+          )}
         </section>
 
         {/* This Week */}
