@@ -12,7 +12,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Flag, Shield, Calendar, Users, ArrowLeft, Settings } from 'lucide-react';
+import { LayoutDashboard, Flag, Shield, Calendar, Users, ArrowLeft, Settings, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -22,6 +22,7 @@ const menuItems = [
   { title: 'Host Verification', url: '/admin/hosts', icon: Shield },
   { title: 'Events', url: '/admin/events', icon: Calendar },
   { title: 'Users', url: '/admin/users', icon: Users },
+  { title: 'Club Import', url: '/admin/import', icon: Database },
 ];
 
 const AdminSidebar = () => {
