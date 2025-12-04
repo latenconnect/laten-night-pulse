@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, Calendar, Sparkles, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EventCard from '@/components/EventCard';
-import BottomNav from '@/components/BottomNav';
+import MobileLayout from '@/components/layouts/MobileLayout';
+import MobileHeader from '@/components/MobileHeader';
 import { mockEvents } from '@/data/mockEvents';
 import { useSavedEvents, useEventRsvp } from '@/hooks/useEvents';
 import { useAuth } from '@/context/AuthContext';
@@ -24,11 +25,7 @@ const SavedEvents: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background pb-24">
-        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 py-4">
-          <h1 className="font-display font-bold text-2xl">Saved</h1>
-        </header>
-        
+      <MobileLayout header={<MobileHeader title="Saved" />}>
         <div className="flex flex-col items-center justify-center px-4 py-20">
           <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-6">
             <LogIn className="w-10 h-10 text-primary" />
@@ -37,23 +34,16 @@ const SavedEvents: React.FC = () => {
           <p className="text-muted-foreground text-center mb-6">
             Save events and track your RSVPs by signing in
           </p>
-          <Button variant="neon" onClick={() => navigate('/auth')}>
+          <Button variant="neon" onClick={() => navigate('/auth')} className="touch-target">
             Sign In
           </Button>
         </div>
-        
-        <BottomNav />
-      </div>
+      </MobileLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 py-4">
-        <h1 className="font-display font-bold text-2xl">Saved</h1>
-      </header>
-
+    <MobileLayout header={<MobileHeader title="Saved" />}>
       <main className="px-4 py-6 space-y-8">
         {/* Upcoming Section */}
         <section>
@@ -87,7 +77,7 @@ const SavedEvents: React.FC = () => {
             <div className="glass-card p-8 text-center">
               <Calendar className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
               <p className="text-muted-foreground mb-4">No upcoming events yet</p>
-              <Button variant="outline" onClick={() => navigate('/explore')}>
+              <Button variant="outline" onClick={() => navigate('/explore')} className="touch-target">
                 Explore Events
               </Button>
             </div>
@@ -128,7 +118,7 @@ const SavedEvents: React.FC = () => {
             <div className="glass-card p-8 text-center">
               <Heart className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
               <p className="text-muted-foreground mb-4">No saved events yet</p>
-              <Button variant="outline" onClick={() => navigate('/explore')}>
+              <Button variant="outline" onClick={() => navigate('/explore')} className="touch-target">
                 Explore Events
               </Button>
             </div>
@@ -141,7 +131,7 @@ const SavedEvents: React.FC = () => {
             <Sparkles className="w-5 h-5 text-primary" />
             <h2 className="font-display font-bold text-lg">You Might Like</h2>
           </div>
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
             {mockEvents.slice(0, 4).map((event, index) => (
               <motion.div
                 key={event.id}
@@ -159,9 +149,7 @@ const SavedEvents: React.FC = () => {
           </div>
         </section>
       </main>
-
-      <BottomNav />
-    </div>
+    </MobileLayout>
   );
 };
 

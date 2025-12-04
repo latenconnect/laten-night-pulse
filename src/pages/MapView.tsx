@@ -37,7 +37,7 @@ const MapView: React.FC = () => {
   const event = selectedEvent ? mockEvents.find(e => e.id === selectedEvent) : null;
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="h-screen bg-background flex flex-col overflow-hidden safe-top">
       {/* Map Container */}
       <div className="flex-1 relative">
         {/* Mapbox Map */}
@@ -50,7 +50,7 @@ const MapView: React.FC = () => {
         />
 
         {/* Top Overlay */}
-        <div className="absolute top-0 left-0 right-0 z-30 p-4 bg-gradient-to-b from-background via-background/80 to-transparent">
+        <div className="absolute top-0 left-0 right-0 z-30 p-4 safe-top-padding bg-gradient-to-b from-background via-background/80 to-transparent">
           {/* Search Bar */}
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -60,10 +60,10 @@ const MapView: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search location..."
-                className="w-full input-neon pl-12 pr-4 bg-card/90 backdrop-blur-xl border border-border"
+                className="w-full input-neon pl-12 pr-4 bg-card/90 backdrop-blur-xl border border-border touch-target"
               />
             </div>
-            <Button variant="glass" size="icon">
+            <Button variant="glass" size="icon" className="touch-target">
               <Filter className="w-5 h-5" />
             </Button>
           </div>
@@ -85,7 +85,7 @@ const MapView: React.FC = () => {
               size="sm"
               onClick={() => setShowHeatmap(!showHeatmap)}
               className={cn(
-                'gap-2 transition-all',
+                'gap-2 transition-all touch-target-sm',
                 showHeatmap && 'bg-primary/20 border-primary/50'
               )}
             >
@@ -102,14 +102,14 @@ const MapView: React.FC = () => {
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 100 }}
-              className="absolute bottom-24 left-4 right-4 z-30"
+              className="absolute bottom-28 left-4 right-4 z-30"
             >
               <div className="relative">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setSelectedEvent(null)}
-                  className="absolute -top-2 -right-2 z-10 w-8 h-8 rounded-full bg-card border border-border"
+                  className="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-card border border-border touch-target"
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -127,7 +127,7 @@ const MapView: React.FC = () => {
         <motion.button
           onClick={() => setShowEventList(true)}
           whileTap={{ scale: 0.98 }}
-          className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-card/90 backdrop-blur-xl border border-border"
+          className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-3 rounded-full bg-card/90 backdrop-blur-xl border border-border touch-target no-select"
         >
           <ChevronUp className="w-4 h-4" />
           <span className="text-sm font-medium">View all events</span>
@@ -149,13 +149,13 @@ const MapView: React.FC = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               onClick={(e) => e.stopPropagation()}
-              className="absolute bottom-0 left-0 right-0 max-h-[80vh] bg-card rounded-t-3xl border-t border-border overflow-hidden"
+              className="absolute bottom-0 left-0 right-0 max-h-[80vh] bg-card rounded-t-3xl border-t border-border overflow-hidden safe-bottom-nav"
             >
               <div className="sticky top-0 bg-card p-4 border-b border-border">
                 <div className="w-12 h-1 bg-muted rounded-full mx-auto mb-4" />
                 <h3 className="font-display font-bold text-xl">Events in {selectedCity}</h3>
               </div>
-              <div className="p-4 space-y-3 overflow-y-auto max-h-[60vh]">
+              <div className="p-4 space-y-3 overflow-y-auto max-h-[60vh] overscroll-contain">
                 {cityEvents.map((event) => (
                   <EventCard
                     key={event.id}
