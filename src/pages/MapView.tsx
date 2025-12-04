@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Filter, X, Flame, MapPin, ChevronUp, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EventCard from '@/components/EventCard';
+import ClubCard from '@/components/ClubCard';
 import BottomNav from '@/components/BottomNav';
 import Map from '@/components/Map';
 import { mockEvents } from '@/data/mockEvents';
 import { useApp } from '@/context/AppContext';
+import { useClubs, Club } from '@/hooks/useClubs';
 import { cn } from '@/lib/utils';
 
 // City coordinates for Hungary
@@ -26,15 +28,27 @@ const MapView: React.FC = () => {
   const navigate = useNavigate();
   const { selectedCity } = useApp();
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
+  const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [showEventList, setShowEventList] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showHeatmap, setShowHeatmap] = useState(true);
+  const { clubs } = useClubs();
 
   const cityEvents = mockEvents.filter(e => 
     e.location.city === selectedCity || selectedCity === 'Budapest'
   );
 
   const event = selectedEvent ? mockEvents.find(e => e.id === selectedEvent) : null;
+
+  const handleClubSelect = (club: Club) => {
+    setSelectedEvent(null);
+    setSelectedClub(club);
+  };
+
+  const handleEventSelect = (eventId: string) => {
+    setSelectedClub(null);
+    setSelectedEvent(eventId);
+  };
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden safe-top">
@@ -43,8 +57,10 @@ const MapView: React.FC = () => {
         {/* Mapbox Map */}
         <Map
           events={cityEvents}
+          clubs={clubs}
           selectedEventId={selectedEvent}
-          onEventSelect={setSelectedEvent}
+          onEventSelect={handleEventSelect}
+          onClubSelect={handleClubSelect}
           center={CITY_COORDS[selectedCity] || CITY_COORDS['Budapest']}
           showHeatmap={showHeatmap}
         />
@@ -77,7 +93,7 @@ const MapView: React.FC = () => {
               </div>
               <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/50">
                 <Flame className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-primary">{cityEvents.length} events</span>
+                <span className="text-sm font-medium text-primary">{cityEvents.length} events • {clubs.length} venues</span>
               </div>
             </div>
             <Button
@@ -118,6 +134,30 @@ const MapView: React.FC = () => {
                   variant="compact"
                   onClick={() => navigate(`/event/${event.id}`)}
                 />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Club Preview Card */}
+        <AnimatePresence>
+          {selectedClub && (
+            <motion.div
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              className="absolute bottom-28 left-4 right-4 z-30"
+            >
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedClub(null)}
+                  className="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-card border border-border touch-target"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+                <ClubCard club={selectedClub} variant="compact" />
               </div>
             </motion.div>
           )}

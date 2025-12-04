@@ -2,21 +2,26 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Event } from '@/types';
+import { Club } from '@/hooks/useClubs';
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiYXJvc3NzIiwiYSI6ImNtaW5heTd0dDE1amgzZXIxZnVnczBmZHgifQ._8a-aON5RVdACW4_jsla7A';
 
 interface MapProps {
   events: Event[];
+  clubs?: Club[];
   selectedEventId: string | null;
   onEventSelect: (eventId: string) => void;
+  onClubSelect?: (club: Club) => void;
   center?: [number, number];
   showHeatmap?: boolean;
 }
 
 const Map: React.FC<MapProps> = ({ 
   events, 
+  clubs = [],
   selectedEventId, 
   onEventSelect,
+  onClubSelect,
   center = [19.0402, 47.4979], // Budapest default
   showHeatmap = true
 }) => {
@@ -70,18 +75,32 @@ const Map: React.FC<MapProps> = ({
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
+    // Combine events and clubs into heatmap data
+    const eventFeatures = events.map(event => ({
+      type: 'Feature' as const,
+      properties: {
+        weight: event.isFeatured ? 2 : 1
+      },
+      geometry: {
+        type: 'Point' as const,
+        coordinates: [event.location.lng, event.location.lat]
+      }
+    }));
+
+    const clubFeatures = clubs.map(club => ({
+      type: 'Feature' as const,
+      properties: {
+        weight: club.rating ? Math.min(club.rating / 2.5, 2) : 0.5 // Weight based on rating
+      },
+      geometry: {
+        type: 'Point' as const,
+        coordinates: [club.longitude, club.latitude]
+      }
+    }));
+
     const geojsonData: GeoJSON.FeatureCollection = {
       type: 'FeatureCollection',
-      features: events.map(event => ({
-        type: 'Feature',
-        properties: {
-          weight: event.isFeatured ? 2 : 1
-        },
-        geometry: {
-          type: 'Point',
-          coordinates: [event.location.lng, event.location.lat]
-        }
-      }))
+      features: [...eventFeatures, ...clubFeatures]
     };
 
     // Remove existing source and layer if they exist
@@ -146,9 +165,9 @@ const Map: React.FC<MapProps> = ({
         ]
       }
     });
-  }, [events, mapLoaded, showHeatmap]);
+  }, [events, clubs, mapLoaded, showHeatmap]);
 
-  // Update markers when events change
+  // Update markers when events or clubs change
   useEffect(() => {
     if (!map.current) return;
 
@@ -156,7 +175,7 @@ const Map: React.FC<MapProps> = ({
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
-    // Add new markers
+    // Add event markers
     events.forEach((event) => {
       const el = document.createElement('div');
       el.className = 'event-marker';
@@ -179,7 +198,34 @@ const Map: React.FC<MapProps> = ({
 
       markersRef.current.push(marker);
     });
-  }, [events, onEventSelect]);
+
+    // Add club markers (amber/orange color to distinguish from events)
+    clubs.forEach((club) => {
+      const el = document.createElement('div');
+      el.className = 'club-marker';
+      el.innerHTML = `
+        <div class="relative cursor-pointer group">
+          <div class="absolute inset-0 rounded-full bg-amber-500 animate-ping opacity-30"></div>
+          <div class="relative w-3 h-3 rounded-full bg-amber-500 flex items-center justify-center shadow-lg" style="box-shadow: 0 0 15px rgba(245, 158, 11, 0.5)">
+          </div>
+        </div>
+      `;
+
+      el.addEventListener('click', () => {
+        if (onClubSelect) {
+          onClubSelect(club);
+        } else if (club.google_maps_uri) {
+          window.open(club.google_maps_uri, '_blank', 'noopener,noreferrer');
+        }
+      });
+
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat([club.longitude, club.latitude])
+        .addTo(map.current!);
+
+      markersRef.current.push(marker);
+    });
+  }, [events, clubs, onEventSelect, onClubSelect]);
 
   // Fly to selected event
   useEffect(() => {
