@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
+import HostApplicationCard from '@/components/HostApplicationCard';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -189,24 +190,7 @@ const Profile: React.FC = () => {
 
       {/* Host CTA */}
       <section className="px-4 mt-6">
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="relative overflow-hidden rounded-2xl p-6 cursor-pointer"
-          style={{
-            background: 'linear-gradient(135deg, hsl(270 91% 65% / 0.2) 0%, hsl(330 100% 65% / 0.2) 100%)',
-          }}
-        >
-          <div className="absolute inset-0 border border-primary/30 rounded-2xl" />
-          <div className="relative z-10">
-            <h3 className="font-display font-bold text-lg mb-2">Become a Host</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Create and manage your own events. Reach thousands of party-goers.
-            </p>
-            <Button variant="neon" size="sm">
-              Apply Now
-            </Button>
-          </div>
-        </motion.div>
+        <HostApplicationCard />
       </section>
 
       {/* Sign Out */}

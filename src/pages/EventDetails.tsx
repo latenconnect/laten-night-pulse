@@ -1,24 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   ArrowLeft, Share2, Heart, MapPin, Clock, Users, Ticket, 
-  Shield, Info, Calendar, Navigation, Flag
+  Shield, Info, Calendar, Navigation, Flag, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getEventById } from '@/data/mockEvents';
+import { useSavedEvents, useEventRsvp, useReportEvent } from '@/hooks/useEvents';
+import { useAuth } from '@/context/AuthContext';
 import { EVENT_TYPES } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+const REPORT_REASONS = [
+  'Fake or misleading event',
+  'Inappropriate content',
+  'Safety concerns',
+  'Spam or scam',
+  'Other',
+];
 
 const EventDetails: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user } = useAuth();
+  const { isEventSaved, saveEvent, unsaveEvent } = useSavedEvents();
+  const { hasRsvped, rsvpToEvent, cancelRsvp } = useEventRsvp();
+  const { reportEvent } = useReportEvent();
+  
   const [isLiked, setIsLiked] = useState(false);
   const [isGoing, setIsGoing] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [selectedReason, setSelectedReason] = useState('');
 
+  // For now, use mock data - will be replaced with real DB query
   const event = getEventById(id || '');
+
+  useEffect(() => {
+    if (id) {
+      setIsLiked(isEventSaved(id));
+      setIsGoing(hasRsvped(id));
+    }
+  }, [id, isEventSaved, hasRsvped]);
   
   if (!event) {
     return (
@@ -31,11 +64,49 @@ const EventDetails: React.FC = () => {
   const eventType = EVENT_TYPES.find(t => t.id === event.type);
   const attendancePercentage = Math.round((event.currentRSVP / event.expectedAttendance) * 100);
 
-  const handleRSVP = () => {
-    setIsGoing(!isGoing);
-    toast.success(isGoing ? 'Removed from your events' : 'Added to your events!', {
-      description: isGoing ? undefined : `See you at ${event.name}!`,
-    });
+  const handleLike = async () => {
+    if (!user) {
+      toast.error('Please sign in to save events');
+      navigate('/auth');
+      return;
+    }
+    
+    if (isLiked) {
+      await unsaveEvent(event.id);
+      setIsLiked(false);
+    } else {
+      await saveEvent(event.id);
+      setIsLiked(true);
+    }
+  };
+
+  const handleRSVP = async () => {
+    if (!user) {
+      toast.error('Please sign in to RSVP');
+      navigate('/auth');
+      return;
+    }
+    
+    if (isGoing) {
+      await cancelRsvp(event.id);
+      setIsGoing(false);
+    } else {
+      await rsvpToEvent(event.id);
+      setIsGoing(true);
+    }
+  };
+
+  const handleReport = async () => {
+    if (!selectedReason) {
+      toast.error('Please select a reason');
+      return;
+    }
+    
+    const success = await reportEvent(event.id, selectedReason);
+    if (success) {
+      setReportDialogOpen(false);
+      setSelectedReason('');
+    }
   };
 
   const handleShare = () => {
@@ -84,7 +155,7 @@ const EventDetails: React.FC = () => {
             <Button
               variant="glass"
               size="icon"
-              onClick={() => setIsLiked(!isLiked)}
+              onClick={handleLike}
               className="rounded-full"
             >
               <Heart className={cn('w-5 h-5', isLiked && 'fill-destructive text-destructive')} />
@@ -208,10 +279,49 @@ const EventDetails: React.FC = () => {
         )}
 
         {/* Report */}
-        <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <Flag className="w-4 h-4" />
-          Report this event
-        </button>
+        <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+          <DialogTrigger asChild>
+            <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Flag className="w-4 h-4" />
+              Report this event
+            </button>
+          </DialogTrigger>
+          <DialogContent className="bg-card border-border">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+                Report Event
+              </DialogTitle>
+              <DialogDescription>
+                Help us keep Laten safe. Select a reason for reporting this event.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 mt-4">
+              {REPORT_REASONS.map((reason) => (
+                <button
+                  key={reason}
+                  onClick={() => setSelectedReason(reason)}
+                  className={cn(
+                    'w-full p-3 rounded-lg text-left transition-colors',
+                    selectedReason === reason
+                      ? 'bg-primary/20 border border-primary'
+                      : 'bg-muted hover:bg-muted/80 border border-transparent'
+                  )}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-3 mt-4">
+              <Button variant="outline" className="flex-1" onClick={() => setReportDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" className="flex-1" onClick={handleReport}>
+                Submit Report
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Fixed Bottom CTA */}
