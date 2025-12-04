@@ -4,4 +4,4 @@ project_id = "huigwbyctzjictnaycjj"
 verify_jwt = false
 
 [functions.import-clubs]
-verify_jwt = false
+verify_jwt = true
