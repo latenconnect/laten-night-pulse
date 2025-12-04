@@ -8,6 +8,7 @@ import { AnimatePresence } from "framer-motion";
 import { AppProvider } from "@/context/AppContext";
 import { AuthProvider } from "@/context/AuthContext";
 import SplashScreen from "@/components/SplashScreen";
+import CookieConsent from "@/components/CookieConsent";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
@@ -69,6 +70,7 @@ const App = () => {
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <CookieConsent />
             </BrowserRouter>
           </TooltipProvider>
         </AppProvider>

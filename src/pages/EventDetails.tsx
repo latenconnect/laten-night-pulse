@@ -42,6 +42,7 @@ const EventDetails: React.FC = () => {
   const [isGoing, setIsGoing] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [selectedReason, setSelectedReason] = useState('');
+  const [liabilityAcknowledged, setLiabilityAcknowledged] = useState(false);
 
   // For now, use mock data - will be replaced with real DB query
   const event = getEventById(id || '');
@@ -102,10 +103,16 @@ const EventDetails: React.FC = () => {
       return;
     }
     
+    if (!liabilityAcknowledged) {
+      toast.error('Please acknowledge the liability disclaimer');
+      return;
+    }
+    
     const success = await reportEvent(event.id, selectedReason);
     if (success) {
       setReportDialogOpen(false);
       setSelectedReason('');
+      setLiabilityAcknowledged(false);
     }
   };
 
@@ -312,11 +319,39 @@ const EventDetails: React.FC = () => {
                 </button>
               ))}
             </div>
+            
+            {/* Liability Acknowledgment */}
+            <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={liabilityAcknowledged}
+                  onChange={(e) => setLiabilityAcknowledged(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  I understand that Laten is a platform for event discovery only. I acknowledge that Laten 
+                  is not responsible for the events listed, their hosts, or any incidents that may occur. 
+                  I am submitting this report in good faith and understand that false reports may result 
+                  in account suspension.
+                </span>
+              </label>
+            </div>
+            
             <div className="flex gap-3 mt-4">
-              <Button variant="outline" className="flex-1" onClick={() => setReportDialogOpen(false)}>
+              <Button variant="outline" className="flex-1" onClick={() => {
+                setReportDialogOpen(false);
+                setSelectedReason('');
+                setLiabilityAcknowledged(false);
+              }}>
                 Cancel
               </Button>
-              <Button variant="destructive" className="flex-1" onClick={handleReport}>
+              <Button 
+                variant="destructive" 
+                className="flex-1" 
+                onClick={handleReport}
+                disabled={!selectedReason || !liabilityAcknowledged}
+              >
                 Submit Report
               </Button>
             </div>
