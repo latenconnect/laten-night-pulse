@@ -27,6 +27,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminHosts from "./pages/admin/AdminHosts";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminImport from "./pages/admin/AdminImport";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const App = () => {
                 <Route path="/admin/hosts" element={<AdminHosts />} />
                 <Route path="/admin/events" element={<AdminEvents />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/import" element={<AdminImport />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <CookieConsent />
