@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      clubs: {
+        Row: {
+          address: string | null
+          business_status: string | null
+          city: string
+          country: string | null
+          created_at: string | null
+          google_maps_uri: string | null
+          google_place_id: string
+          id: string
+          is_active: boolean | null
+          last_updated: string | null
+          latitude: number
+          longitude: number
+          name: string
+          photos: string[] | null
+          price_level: number | null
+          rating: number | null
+        }
+        Insert: {
+          address?: string | null
+          business_status?: string | null
+          city: string
+          country?: string | null
+          created_at?: string | null
+          google_maps_uri?: string | null
+          google_place_id: string
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          latitude: number
+          longitude: number
+          name: string
+          photos?: string[] | null
+          price_level?: number | null
+          rating?: number | null
+        }
+        Update: {
+          address?: string | null
+          business_status?: string | null
+          city?: string
+          country?: string | null
+          created_at?: string | null
+          google_maps_uri?: string | null
+          google_place_id?: string
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          photos?: string[] | null
+          price_level?: number | null
+          rating?: number | null
+        }
+        Relationships: []
+      }
       event_rsvps: {
         Row: {
           created_at: string | null
