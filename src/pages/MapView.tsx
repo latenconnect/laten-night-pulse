@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, X, Flame, MapPin, ChevronUp } from 'lucide-react';
+import { Search, Filter, X, Flame, MapPin, ChevronUp, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EventCard from '@/components/EventCard';
 import BottomNav from '@/components/BottomNav';
@@ -28,6 +28,7 @@ const MapView: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [showEventList, setShowEventList] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showHeatmap, setShowHeatmap] = useState(true);
 
   const cityEvents = mockEvents.filter(e => 
     e.location.city === selectedCity || selectedCity === 'Budapest'
@@ -45,6 +46,7 @@ const MapView: React.FC = () => {
           selectedEventId={selectedEvent}
           onEventSelect={setSelectedEvent}
           center={CITY_COORDS[selectedCity] || CITY_COORDS['Budapest']}
+          showHeatmap={showHeatmap}
         />
 
         {/* Top Overlay */}
@@ -66,16 +68,30 @@ const MapView: React.FC = () => {
             </Button>
           </div>
 
-          {/* City Badge */}
-          <div className="flex items-center gap-2 mt-3">
-            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-card/90 backdrop-blur-sm border border-border">
-              <MapPin className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">{selectedCity}</span>
+          {/* City Badge & Heatmap Toggle */}
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-card/90 backdrop-blur-sm border border-border">
+                <MapPin className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">{selectedCity}</span>
+              </div>
+              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/50">
+                <Flame className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">{cityEvents.length} events</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/50">
-              <Flame className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">{cityEvents.length} events</span>
-            </div>
+            <Button
+              variant="glass"
+              size="sm"
+              onClick={() => setShowHeatmap(!showHeatmap)}
+              className={cn(
+                'gap-2 transition-all',
+                showHeatmap && 'bg-primary/20 border-primary/50'
+              )}
+            >
+              <Layers className="w-4 h-4" />
+              <span className="text-xs">Heatmap</span>
+            </Button>
           </div>
         </div>
 
