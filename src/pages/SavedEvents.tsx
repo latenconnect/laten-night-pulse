@@ -1,18 +1,51 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Calendar, Sparkles } from 'lucide-react';
+import { Heart, Calendar, Sparkles, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EventCard from '@/components/EventCard';
 import BottomNav from '@/components/BottomNav';
 import { mockEvents } from '@/data/mockEvents';
+import { useSavedEvents, useEventRsvp } from '@/hooks/useEvents';
+import { useAuth } from '@/context/AuthContext';
+import { dbEventsToEvents } from '@/utils/eventUtils';
 
 const SavedEvents: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { savedEvents, loading: savedLoading } = useSavedEvents();
+  const { rsvpEventIds, loading: rsvpLoading } = useEventRsvp();
+
+  // Convert DB events to frontend format
+  const savedEventsList = dbEventsToEvents(savedEvents);
   
-  // Mock saved events (first 3 events)
-  const savedEvents = mockEvents.slice(0, 3);
-  const upcomingEvents = mockEvents.slice(3, 5);
+  // For mock data fallback - filter events user RSVPed to
+  const upcomingMockEvents = mockEvents.filter(e => rsvpEventIds.includes(e.id));
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 py-4">
+          <h1 className="font-display font-bold text-2xl">Saved</h1>
+        </header>
+        
+        <div className="flex flex-col items-center justify-center px-4 py-20">
+          <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-6">
+            <LogIn className="w-10 h-10 text-primary" />
+          </div>
+          <h2 className="font-display font-bold text-xl mb-2">Sign in to see your events</h2>
+          <p className="text-muted-foreground text-center mb-6">
+            Save events and track your RSVPs by signing in
+          </p>
+          <Button variant="neon" onClick={() => navigate('/auth')}>
+            Sign In
+          </Button>
+        </div>
+        
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -29,9 +62,13 @@ const SavedEvents: React.FC = () => {
             <h2 className="font-display font-bold text-lg">Your Upcoming Events</h2>
           </div>
           
-          {upcomingEvents.length > 0 ? (
+          {rsvpLoading ? (
+            <div className="glass-card p-8 text-center">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            </div>
+          ) : upcomingMockEvents.length > 0 ? (
             <div className="space-y-3">
-              {upcomingEvents.map((event, index) => (
+              {upcomingMockEvents.map((event, index) => (
                 <motion.div
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -63,13 +100,17 @@ const SavedEvents: React.FC = () => {
             <Heart className="w-5 h-5 text-destructive" />
             <h2 className="font-display font-bold text-lg">Saved Events</h2>
             <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs">
-              {savedEvents.length}
+              {savedEventsList.length}
             </span>
           </div>
           
-          {savedEvents.length > 0 ? (
+          {savedLoading ? (
+            <div className="glass-card p-8 text-center">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            </div>
+          ) : savedEventsList.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              {savedEvents.map((event, index) => (
+              {savedEventsList.map((event, index) => (
                 <motion.div
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -101,7 +142,7 @@ const SavedEvents: React.FC = () => {
             <h2 className="font-display font-bold text-lg">You Might Like</h2>
           </div>
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
-            {mockEvents.slice(4).map((event, index) => (
+            {mockEvents.slice(0, 4).map((event, index) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, x: 20 }}
