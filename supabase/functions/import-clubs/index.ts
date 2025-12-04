@@ -79,7 +79,7 @@ async function searchNearby(
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey,
-      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.priceLevel,places.googleMapsUri,places.businessStatus,places.photos,nextPageToken",
+      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.priceLevel,places.googleMapsUri,places.businessStatus,places.photos",
     },
     body: JSON.stringify(body),
   });
