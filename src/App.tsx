@@ -17,6 +17,8 @@ import EventDetails from "./pages/EventDetails";
 import Profile from "./pages/Profile";
 import SavedEvents from "./pages/SavedEvents";
 import CreateEvent from "./pages/CreateEvent";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +65,8 @@ const App = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/saved" element={<SavedEvents />} />
                 <Route path="/create" element={<CreateEvent />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

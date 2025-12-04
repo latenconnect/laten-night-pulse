@@ -57,13 +57,13 @@ const Profile: React.FC = () => {
   };
 
   const menuItems = [
-    { icon: Calendar, label: 'My Events', count: 3 },
-    { icon: Heart, label: 'Saved Events', count: 12 },
-    { icon: Bell, label: 'Notifications' },
-    { icon: MapPin, label: 'Change Location', value: selectedCity },
-    { icon: Sparkles, label: 'Edit Interests' },
-    { icon: Shield, label: 'Safety & Privacy' },
-    { icon: Settings, label: 'Settings' },
+    { icon: Calendar, label: 'My Events', count: 3, path: '/saved' },
+    { icon: Heart, label: 'Saved Events', count: 12, path: '/saved' },
+    { icon: Bell, label: 'Notifications', path: undefined },
+    { icon: MapPin, label: 'Change Location', value: selectedCity, path: '/onboarding' },
+    { icon: Sparkles, label: 'Edit Interests', path: '/onboarding' },
+    { icon: Shield, label: 'Privacy Policy', path: '/privacy' },
+    { icon: Settings, label: 'Terms of Service', path: '/terms' },
   ];
 
   return (
@@ -164,9 +164,10 @@ const Profile: React.FC = () => {
       {/* Menu */}
       <section className="px-4 mt-6">
         <div className="glass-card overflow-hidden">
-          {menuItems.map((item, index) => (
+          {menuItems.map((item) => (
             <motion.button
               key={item.label}
+              onClick={() => item.path && navigate(item.path)}
               whileHover={{ backgroundColor: 'hsla(240, 15%, 15%, 0.5)' }}
               className="w-full flex items-center gap-4 p-4 border-b border-border/50 last:border-0"
             >
