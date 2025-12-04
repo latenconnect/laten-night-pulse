@@ -6,9 +6,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { AppProvider } from "@/context/AppContext";
+import { AuthProvider } from "@/context/AuthContext";
 import SplashScreen from "@/components/SplashScreen";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
+import Auth from "./pages/Auth";
 import Explore from "./pages/Explore";
 import MapView from "./pages/MapView";
 import EventDetails from "./pages/EventDetails";
@@ -33,37 +35,40 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner 
-            position="top-center"
-            toastOptions={{
-              style: {
-                background: 'hsl(240 15% 10%)',
-                border: '1px solid hsl(240 15% 18%)',
-                color: 'hsl(0 0% 98%)',
-              },
-            }}
-          />
-          <AnimatePresence mode="wait">
-            {isLoading && <SplashScreen key="splash" />}
-          </AnimatePresence>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/explore" element={<Explore />} />
-              <Route path="/map" element={<MapView />} />
-              <Route path="/event/:id" element={<EventDetails />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/saved" element={<SavedEvents />} />
-              <Route path="/create" element={<CreateEvent />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AppProvider>
+      <AuthProvider>
+        <AppProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner 
+              position="top-center"
+              toastOptions={{
+                style: {
+                  background: 'hsl(240 15% 10%)',
+                  border: '1px solid hsl(240 15% 18%)',
+                  color: 'hsl(0 0% 98%)',
+                },
+              }}
+            />
+            <AnimatePresence mode="wait">
+              {isLoading && <SplashScreen key="splash" />}
+            </AnimatePresence>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/explore" element={<Explore />} />
+                <Route path="/map" element={<MapView />} />
+                <Route path="/event/:id" element={<EventDetails />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/saved" element={<SavedEvents />} />
+                <Route path="/create" element={<CreateEvent />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AppProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

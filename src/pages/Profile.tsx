@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   Settings, ChevronRight, Calendar, Heart, MapPin, 
   Bell, Shield, LogOut, Sparkles, User as UserIcon
@@ -7,9 +8,52 @@ import {
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface Profile {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  city: string | null;
+}
 
 const Profile: React.FC = () => {
+  const navigate = useNavigate();
   const { selectedCity, interests } = useApp();
+  const { user, signOut } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, display_name, avatar_url, city')
+      .eq('id', user.id)
+      .single();
+    
+    if (!error && data) {
+      setProfile(data);
+    }
+    setLoading(false);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success('Signed out successfully');
+    navigate('/auth');
+  };
 
   const menuItems = [
     { icon: Calendar, label: 'My Events', count: 3 },
@@ -39,22 +83,40 @@ const Profile: React.FC = () => {
               {/* Avatar */}
               <div className="relative">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-secondary p-0.5">
-                  <div className="w-full h-full rounded-2xl bg-card flex items-center justify-center">
-                    <UserIcon className="w-10 h-10 text-muted-foreground" />
+                  <div className="w-full h-full rounded-2xl bg-card flex items-center justify-center overflow-hidden">
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <UserIcon className="w-10 h-10 text-muted-foreground" />
+                    )}
                   </div>
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-secondary flex items-center justify-center border-2 border-card">
-                  <span className="text-xs">✓</span>
-                </div>
+                {user && (
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-secondary flex items-center justify-center border-2 border-card">
+                    <span className="text-xs">✓</span>
+                  </div>
+                )}
               </div>
 
               {/* Info */}
               <div className="flex-1">
-                <h1 className="font-display font-bold text-xl mb-1">Guest User</h1>
-                <p className="text-sm text-muted-foreground mb-3">Sign in to unlock all features</p>
-                <Button variant="outline" size="sm">
-                  Sign In
-                </Button>
+                {user ? (
+                  <>
+                    <h1 className="font-display font-bold text-xl mb-1">
+                      {profile?.display_name || user.email?.split('@')[0]}
+                    </h1>
+                    <p className="text-sm text-muted-foreground mb-1">{user.email}</p>
+                    <p className="text-xs text-primary">{profile?.city || selectedCity}</p>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="font-display font-bold text-xl mb-1">Guest User</h1>
+                    <p className="text-sm text-muted-foreground mb-3">Sign in to unlock all features</p>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+                      Sign In
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -148,12 +210,18 @@ const Profile: React.FC = () => {
       </section>
 
       {/* Sign Out */}
-      <section className="px-4 mt-6">
-        <Button variant="ghost" className="w-full text-destructive hover:text-destructive gap-2">
-          <LogOut className="w-5 h-5" />
-          Sign Out
-        </Button>
-      </section>
+      {user && (
+        <section className="px-4 mt-6">
+          <Button 
+            variant="ghost" 
+            className="w-full text-destructive hover:text-destructive gap-2"
+            onClick={handleSignOut}
+          >
+            <LogOut className="w-5 h-5" />
+            Sign Out
+          </Button>
+        </section>
+      )}
 
       <BottomNav />
     </div>
