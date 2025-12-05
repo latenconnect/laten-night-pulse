@@ -1,7 +1,7 @@
 project_id = "huigwbyctzjictnaycjj"
 
 [functions.send-notification]
-verify_jwt = false
+verify_jwt = true
 
 [functions.import-clubs]
 verify_jwt = true
