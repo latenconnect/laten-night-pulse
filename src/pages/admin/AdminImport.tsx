@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, Database, MapPin, RefreshCw, Download, DollarSign, Clock, Trash2 } from 'lucide-react';
+import { AlertTriangle, Database, MapPin, RefreshCw, Download, DollarSign, Clock, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 const HUNGARIAN_CITIES = [
@@ -44,6 +44,7 @@ const AdminImport = () => {
   const [importLog, setImportLog] = useState<string[]>([]);
   const [cleaning, setCleaning] = useState(false);
   const [cleanupLog, setCleanupLog] = useState<string[]>([]);
+  const [syncingAlgolia, setSyncingAlgolia] = useState(false);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -216,6 +217,29 @@ const AdminImport = () => {
     }
   };
 
+  const handleAlgoliaSync = async () => {
+    setSyncingAlgolia(true);
+    try {
+      const response = await supabase.functions.invoke('algolia-sync');
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      const result = response.data;
+      if (result.success) {
+        toast.success(`Algolia synced: ${result.eventsIndexed} events, ${result.clubsIndexed} clubs`);
+      } else {
+        throw new Error(result.error || 'Sync failed');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Algolia sync failed: ${message}`);
+    } finally {
+      setSyncingAlgolia(false);
+    }
+  };
+
   if (isAdmin === null) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -231,6 +255,42 @@ const AdminImport = () => {
           <h1 className="text-3xl font-bold">Club Database Import</h1>
           <p className="text-muted-foreground mt-1">Import venue data from Google Places API (New)</p>
         </div>
+
+        {/* Algolia Sync */}
+        <Card className="border-blue-500/50 bg-blue-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-blue-500 text-lg">
+              <Search className="h-5 w-5" />
+              Algolia Search Sync
+            </CardTitle>
+            <CardDescription>
+              Sync all events and clubs to Algolia for global search functionality
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={handleAlgoliaSync} 
+              disabled={syncingAlgolia}
+              variant="outline"
+              className="gap-2 border-blue-500/50 text-blue-500 hover:bg-blue-500/10"
+            >
+              {syncingAlgolia ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  Sync to Algolia
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Run this after importing new venues or when events change.
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Cleanup Section */}
         <Card className="border-red-500/50 bg-red-500/5">

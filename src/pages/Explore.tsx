@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles, Building2, ChevronDown } from 'lucide-react';
@@ -14,6 +14,7 @@ import ClubCard from '@/components/ClubCard';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import { mockEvents, getFeaturedEvents } from '@/data/mockEvents';
 import { useApp } from '@/context/AppContext';
+import { SearchContext } from '@/context/SearchContext';
 import { useClubs } from '@/hooks/useClubs';
 import { EVENT_TYPES } from '@/types';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,7 @@ const HUNGARIAN_CITIES = [
 const Explore: React.FC = () => {
   const navigate = useNavigate();
   const { selectedCity, setSelectedCity } = useApp();
+  const searchContext = useContext(SearchContext);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const { clubs, loading: clubsLoading } = useClubs(10, false); // Show all cities
@@ -84,16 +86,18 @@ const Explore: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="relative">
+      <button
+        onClick={() => searchContext?.openSearch()}
+        className="w-full relative flex items-center"
+      >
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search events, clubs, hosts..."
-          className="w-full input-neon pl-12 pr-4 bg-card border border-border touch-target"
-        />
-      </div>
+        <div className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-xl text-left text-muted-foreground touch-target">
+          Search events, clubs, hosts...
+        </div>
+        <kbd className="hidden md:inline-flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+          ⌘K
+        </kbd>
+      </button>
       
       {/* Category Pills */}
       <div className="mt-3 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth-mobile pb-1">

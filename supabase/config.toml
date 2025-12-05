@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.cleanup-venues]
 verify_jwt = true
+
+[functions.algolia-sync]
+verify_jwt = true
+
+[functions.algolia-search]
+verify_jwt = false
