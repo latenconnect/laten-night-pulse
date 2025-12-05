@@ -54,7 +54,10 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm truncate">{club.name}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-sm truncate">{club.name}</h3>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary flex-shrink-0">{club.city}</span>
+          </div>
           {club.address && (
             <p className="text-xs text-muted-foreground truncate mt-0.5">
               {club.address}
@@ -95,6 +98,11 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
             <MapPin className="w-10 h-10 text-muted-foreground" />
           </div>
         )}
+        
+        {/* City badge */}
+        <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-primary/80 backdrop-blur-sm">
+          <span className="text-xs font-medium text-primary-foreground">{club.city}</span>
+        </div>
         
         {/* Rating badge */}
         {club.rating && (
