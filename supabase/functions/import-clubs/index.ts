@@ -42,6 +42,10 @@ interface PlaceResult {
   googleMapsUri?: string;
   businessStatus?: string;
   photos?: Array<{ name: string }>;
+  regularOpeningHours?: {
+    openNow?: boolean;
+    weekdayDescriptions?: string[];
+  };
 }
 
 interface SearchResponse {
@@ -79,7 +83,7 @@ async function searchNearby(
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey,
-      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.priceLevel,places.googleMapsUri,places.businessStatus,places.photos",
+      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.priceLevel,places.googleMapsUri,places.businessStatus,places.photos,places.regularOpeningHours",
     },
     body: JSON.stringify(body),
   });
@@ -252,6 +256,12 @@ Deno.serve(async (req) => {
                 }
               }
 
+              // Prepare opening hours data
+              const openingHours = place.regularOpeningHours ? {
+                open_now: place.regularOpeningHours.openNow,
+                weekday_text: place.regularOpeningHours.weekdayDescriptions,
+              } : null;
+
               // Insert into database
               const { error: insertError } = await supabase.from("clubs").insert({
                 google_place_id: place.id,
@@ -266,6 +276,8 @@ Deno.serve(async (req) => {
                 photos: photoUrls.length > 0 ? photoUrls : null,
                 google_maps_uri: place.googleMapsUri || null,
                 business_status: place.businessStatus || null,
+                opening_hours: openingHours,
+                venue_type: venueType,
                 is_active: true,
               });
 
