@@ -239,33 +239,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age_verified: boolean | null
+          age_verified_at: string | null
           avatar_url: string | null
           bio: string | null
           city: string | null
           created_at: string | null
           date_of_birth: string | null
+          didit_session_id: string | null
           display_name: string | null
           email: string | null
           id: string
           updated_at: string | null
         }
         Insert: {
+          age_verified?: boolean | null
+          age_verified_at?: string | null
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          didit_session_id?: string | null
           display_name?: string | null
           email?: string | null
           id: string
           updated_at?: string | null
         }
         Update: {
+          age_verified?: boolean | null
+          age_verified_at?: string | null
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          didit_session_id?: string | null
           display_name?: string | null
           email?: string | null
           id?: string
