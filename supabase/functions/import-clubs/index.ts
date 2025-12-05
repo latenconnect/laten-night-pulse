@@ -6,31 +6,39 @@ const corsHeaders = {
 };
 
 // Hungarian cities with coordinates and recommended radius (km)
+// Budapest has multiple search points to cover more area
 const HUNGARIAN_CITIES = [
-  { name: "Budapest", lat: 47.4979, lng: 19.0402, radius: 25000 },
-  { name: "Debrecen", lat: 47.5316, lng: 21.6273, radius: 15000 },
-  { name: "Szeged", lat: 46.253, lng: 20.1414, radius: 15000 },
-  { name: "Pécs", lat: 46.0727, lng: 18.2323, radius: 15000 },
-  { name: "Győr", lat: 47.6875, lng: 17.6504, radius: 15000 },
-  { name: "Siófok", lat: 46.9048, lng: 18.0486, radius: 20000 },
-  { name: "Miskolc", lat: 48.1035, lng: 20.7784, radius: 15000 },
-  { name: "Eger", lat: 47.9025, lng: 20.3772, radius: 12000 },
-  { name: "Veszprém", lat: 47.0933, lng: 17.9115, radius: 12000 },
-  { name: "Székesfehérvár", lat: 47.1896, lng: 18.4105, radius: 12000 },
-  { name: "Sopron", lat: 47.6851, lng: 16.5903, radius: 12000 },
-  { name: "Nyíregyháza", lat: 47.9554, lng: 21.7177, radius: 12000 },
-  { name: "Kaposvár", lat: 46.3594, lng: 17.7968, radius: 12000 },
-  { name: "Balatonfüred", lat: 46.9579, lng: 17.8903, radius: 15000 },
-  { name: "Tokaj", lat: 48.1172, lng: 21.4097, radius: 10000 },
-  { name: "Kecskemét", lat: 46.8964, lng: 19.6897, radius: 12000 },
-  { name: "Dunaújváros", lat: 46.9619, lng: 18.9355, radius: 10000 },
-  { name: "Esztergom", lat: 47.7858, lng: 18.7403, radius: 10000 },
-  { name: "Hévíz", lat: 46.7903, lng: 17.1892, radius: 15000 },
-  { name: "Zamárdi", lat: 46.8833, lng: 17.9500, radius: 15000 },
+  // Budapest - multiple districts for comprehensive coverage
+  { name: "Budapest", lat: 47.4979, lng: 19.0402, radius: 8000, area: "center" }, // City center
+  { name: "Budapest", lat: 47.5074, lng: 19.0454, radius: 5000, area: "district7" }, // Party district (VII)
+  { name: "Budapest", lat: 47.4733, lng: 19.0621, radius: 6000, area: "district9" }, // IX district
+  { name: "Budapest", lat: 47.5225, lng: 19.0514, radius: 5000, area: "district6" }, // VI district 
+  { name: "Budapest", lat: 47.4869, lng: 19.0178, radius: 6000, area: "buda" }, // Buda side
+  { name: "Budapest", lat: 47.5384, lng: 19.0705, radius: 5000, area: "district13" }, // XIII district
+  // Other cities
+  { name: "Debrecen", lat: 47.5316, lng: 21.6273, radius: 15000, area: "main" },
+  { name: "Szeged", lat: 46.253, lng: 20.1414, radius: 15000, area: "main" },
+  { name: "Pécs", lat: 46.0727, lng: 18.2323, radius: 15000, area: "main" },
+  { name: "Győr", lat: 47.6875, lng: 17.6504, radius: 15000, area: "main" },
+  { name: "Siófok", lat: 46.9048, lng: 18.0486, radius: 20000, area: "main" },
+  { name: "Miskolc", lat: 48.1035, lng: 20.7784, radius: 15000, area: "main" },
+  { name: "Eger", lat: 47.9025, lng: 20.3772, radius: 12000, area: "main" },
+  { name: "Veszprém", lat: 47.0933, lng: 17.9115, radius: 12000, area: "main" },
+  { name: "Székesfehérvár", lat: 47.1896, lng: 18.4105, radius: 12000, area: "main" },
+  { name: "Sopron", lat: 47.6851, lng: 16.5903, radius: 12000, area: "main" },
+  { name: "Nyíregyháza", lat: 47.9554, lng: 21.7177, radius: 12000, area: "main" },
+  { name: "Kaposvár", lat: 46.3594, lng: 17.7968, radius: 12000, area: "main" },
+  { name: "Balatonfüred", lat: 46.9579, lng: 17.8903, radius: 15000, area: "main" },
+  { name: "Tokaj", lat: 48.1172, lng: 21.4097, radius: 10000, area: "main" },
+  { name: "Kecskemét", lat: 46.8964, lng: 19.6897, radius: 12000, area: "main" },
+  { name: "Dunaújváros", lat: 46.9619, lng: 18.9355, radius: 10000, area: "main" },
+  { name: "Esztergom", lat: 47.7858, lng: 18.7403, radius: 10000, area: "main" },
+  { name: "Hévíz", lat: 46.7903, lng: 17.1892, radius: 15000, area: "main" },
+  { name: "Zamárdi", lat: 46.8833, lng: 17.9500, radius: 15000, area: "main" },
 ];
 
-// Venue types to search for
-const VENUE_TYPES = ["bar", "night_club", "restaurant"];
+// Venue types to search for - expanded list for better coverage
+const VENUE_TYPES = ["bar", "night_club", "pub", "cafe", "restaurant"];
 
 interface PlaceResult {
   id: string;
@@ -210,7 +218,7 @@ Deno.serve(async (req) => {
 
         let pageToken: string | undefined;
         let pageCount = 0;
-        const maxPages = 3; // Limit pagination to control API costs
+        const maxPages = 5; // Increased for better coverage
 
         do {
           try {
