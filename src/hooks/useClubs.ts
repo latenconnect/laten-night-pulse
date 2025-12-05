@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/context/AppContext';
+import { Json } from '@/integrations/supabase/types';
+
+export interface OpeningHours {
+  weekday_text?: string[];
+  open_now?: boolean;
+}
 
 export interface Club {
   id: string;
@@ -13,6 +19,8 @@ export interface Club {
   price_level: number | null;
   photos: string[] | null;
   google_maps_uri: string | null;
+  business_status: string | null;
+  opening_hours: OpeningHours | null;
 }
 
 export const useClubs = (limit?: number, filterByCity?: boolean) => {
@@ -29,7 +37,7 @@ export const useClubs = (limit?: number, filterByCity?: boolean) => {
       try {
         let query = supabase
           .from('clubs')
-          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri')
+          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours')
           .eq('is_active', true)
           .order('rating', { ascending: false, nullsFirst: false });
 
@@ -45,7 +53,13 @@ export const useClubs = (limit?: number, filterByCity?: boolean) => {
         const { data, error: fetchError } = await query;
 
         if (fetchError) throw fetchError;
-        setClubs(data || []);
+        
+        // Map data to Club type with proper opening_hours casting
+        const mappedClubs: Club[] = (data || []).map(club => ({
+          ...club,
+          opening_hours: club.opening_hours as OpeningHours | null
+        }));
+        setClubs(mappedClubs);
       } catch (err) {
         console.error('Error fetching clubs:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch clubs');

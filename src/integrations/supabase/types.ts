@@ -29,6 +29,7 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
+          opening_hours: Json | null
           photos: string[] | null
           price_level: number | null
           rating: number | null
@@ -47,6 +48,7 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
+          opening_hours?: Json | null
           photos?: string[] | null
           price_level?: number | null
           rating?: number | null
@@ -65,6 +67,7 @@ export type Database = {
           latitude?: number
           longitude?: number
           name?: string
+          opening_hours?: Json | null
           photos?: string[] | null
           price_level?: number | null
           rating?: number | null

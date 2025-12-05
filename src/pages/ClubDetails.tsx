@@ -9,12 +9,17 @@ import {
   ExternalLink, 
   ChevronLeft, 
   ChevronRight,
-  X
+  X,
+  Share2,
+  Clock,
+  Copy,
+  Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useClubs } from '@/hooks/useClubs';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const ClubDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +39,30 @@ const ClubDetails: React.FC = () => {
         '_blank',
         'noopener,noreferrer'
       );
+    }
+  };
+
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    const shareData = {
+      title: club?.name || 'Check out this venue',
+      text: `Check out ${club?.name} on Laten!`,
+      url: shareUrl,
+    };
+
+    try {
+      if (navigator.share && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Link copied to clipboard!');
+      }
+    } catch (err) {
+      // User cancelled share or error occurred
+      if ((err as Error).name !== 'AbortError') {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Link copied to clipboard!');
+      }
     }
   };
 
@@ -149,9 +178,17 @@ const ClubDetails: React.FC = () => {
           <ArrowLeft className="w-5 h-5" />
         </button>
 
-        {/* City badge */}
-        <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-primary/90 backdrop-blur-sm">
-          <span className="text-sm font-medium text-primary-foreground">{club.city}</span>
+        {/* City badge & Share button */}
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          <button
+            onClick={handleShare}
+            className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+          >
+            <Share2 className="w-5 h-5" />
+          </button>
+          <div className="px-3 py-1.5 rounded-full bg-primary/90 backdrop-blur-sm">
+            <span className="text-sm font-medium text-primary-foreground">{club.city}</span>
+          </div>
         </div>
       </div>
 
@@ -199,6 +236,52 @@ const ClubDetails: React.FC = () => {
                 <p className="font-medium">{club.address}</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Opening Hours */}
+        {club.opening_hours && club.opening_hours.weekday_text && club.opening_hours.weekday_text.length > 0 && (
+          <div className="glass-card p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-secondary" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-muted-foreground">Opening Hours</p>
+                  {club.opening_hours.open_now !== undefined && (
+                    <span className={cn(
+                      'text-xs font-medium px-2 py-0.5 rounded-full',
+                      club.opening_hours.open_now 
+                        ? 'bg-green-500/20 text-green-400' 
+                        : 'bg-red-500/20 text-red-400'
+                    )}>
+                      {club.opening_hours.open_now ? 'Open now' : 'Closed'}
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  {club.opening_hours.weekday_text.map((day, index) => (
+                    <p key={index} className="text-sm">
+                      {day}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Business Status */}
+        {club.business_status && (
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              'w-2 h-2 rounded-full',
+              club.business_status === 'OPERATIONAL' ? 'bg-green-500' : 'bg-amber-500'
+            )} />
+            <span className="text-sm text-muted-foreground">
+              {club.business_status === 'OPERATIONAL' ? 'Currently Operating' : club.business_status.replace(/_/g, ' ').toLowerCase()}
+            </span>
           </div>
         )}
 
