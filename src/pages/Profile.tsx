@@ -72,7 +72,7 @@ const Profile: React.FC = () => {
   const menuItems = [
     { icon: Calendar, label: 'My Events', count: 3, path: '/saved' },
     { icon: Heart, label: 'Saved Events', count: 12, path: '/saved' },
-    { icon: Bell, label: 'Notifications', path: undefined },
+    { icon: Bell, label: 'Notifications', path: undefined, action: () => toast.info('Push notifications settings coming soon!') },
     { icon: MapPin, label: 'Change Location', value: selectedCity, path: '/onboarding' },
     { icon: Sparkles, label: 'Edit Interests', path: '/onboarding' },
     { icon: Shield, label: 'Privacy Policy', path: '/privacy' },
@@ -180,7 +180,7 @@ const Profile: React.FC = () => {
           {menuItems.map((item) => (
             <motion.button
               key={item.label}
-              onClick={() => item.path && navigate(item.path)}
+              onClick={() => item.path ? navigate(item.path) : item.action?.()}
               whileTap={{ scale: 0.98 }}
               className="w-full flex items-center gap-4 p-4 border-b border-border/50 last:border-0 touch-highlight touch-target no-select"
             >

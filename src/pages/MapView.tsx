@@ -79,7 +79,12 @@ const MapView: React.FC = () => {
                 className="w-full input-neon pl-12 pr-4 bg-card/90 backdrop-blur-xl border border-border touch-target"
               />
             </div>
-            <Button variant="glass" size="icon" className="touch-target">
+            <Button 
+              variant="glass" 
+              size="icon" 
+              className="touch-target"
+              onClick={() => setSearchQuery('')}
+            >
               <Filter className="w-5 h-5" />
             </Button>
           </div>
