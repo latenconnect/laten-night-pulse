@@ -202,6 +202,13 @@ export type Database = {
             referencedRelation: "hosts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "events_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "public_host_info"
+            referencedColumns: ["id"]
+          },
         ]
       }
       hosts: {
@@ -432,7 +439,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_host_info: {
+        Row: {
+          created_at: string | null
+          events_hosted: number | null
+          id: string | null
+          rating: number | null
+          user_id: string | null
+          verification_status:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          events_hosted?: number | null
+          id?: string | null
+          rating?: number | null
+          user_id?: string | null
+          verification_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          events_hosted?: number | null
+          id?: string | null
+          rating?: number | null
+          user_id?: string | null
+          verification_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_rate_limit: {

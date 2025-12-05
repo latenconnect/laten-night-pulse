@@ -25,35 +25,41 @@ serve(async (req) => {
     const body = await req.text();
     console.log('Received webhook payload:', body);
 
-    // Verify webhook signature
+    // Verify webhook signature - REQUIRED
     const signature = req.headers.get('x-signature');
-    if (signature) {
-      const encoder = new TextEncoder();
-      const key = await crypto.subtle.importKey(
-        'raw',
-        encoder.encode(DIDIT_WEBHOOK_SECRET),
-        { name: 'HMAC', hash: 'SHA-256' },
-        false,
-        ['sign']
-      );
-      
-      const signatureBuffer = await crypto.subtle.sign(
-        'HMAC',
-        key,
-        encoder.encode(body)
-      );
-      
-      const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
+    if (!signature) {
+      console.error('Missing webhook signature');
+      return new Response(JSON.stringify({ error: 'Missing signature' }), { 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      });
+    }
 
-      if (signature !== expectedSignature) {
-        console.error('Invalid webhook signature');
-        return new Response(JSON.stringify({ error: 'Invalid signature' }), { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        });
-      }
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(DIDIT_WEBHOOK_SECRET),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    
+    const signatureBuffer = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(body)
+    );
+    
+    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    if (signature !== expectedSignature) {
+      console.error('Invalid webhook signature');
+      return new Response(JSON.stringify({ error: 'Invalid signature' }), { 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      });
     }
 
     const payload = JSON.parse(body);
