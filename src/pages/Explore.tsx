@@ -91,15 +91,15 @@ const Explore: React.FC = () => {
       </div>
       
       {/* Category Pills */}
-      <div className="mt-3 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth-mobile">
+      <div className="mt-3 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth-mobile pb-1">
         <motion.button
           onClick={() => setActiveFilter(null)}
           whileTap={{ scale: 0.95 }}
           className={cn(
-            'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all touch-target-sm no-select',
+            'flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all',
             !activeFilter 
               ? 'bg-primary text-primary-foreground shadow-[0_0_15px_hsla(270,91%,65%,0.4)]' 
-              : 'bg-card border border-border text-muted-foreground'
+              : 'bg-card border border-border text-muted-foreground hover:border-primary/50'
           )}
         >
           All Events
@@ -110,14 +110,14 @@ const Explore: React.FC = () => {
             onClick={() => setActiveFilter(type.id)}
             whileTap={{ scale: 0.95 }}
             className={cn(
-              'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 touch-target-sm no-select',
+              'flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2',
               activeFilter === type.id
                 ? 'bg-primary text-primary-foreground shadow-[0_0_15px_hsla(270,91%,65%,0.4)]'
-                : 'bg-card border border-border text-muted-foreground'
+                : 'bg-card border border-border text-muted-foreground hover:border-primary/50'
             )}
           >
-            <span>{type.icon}</span>
-            {type.label}
+            <span className="text-base">{type.icon}</span>
+            <span>{type.label}</span>
           </motion.button>
         ))}
       </div>
