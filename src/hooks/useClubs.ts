@@ -15,7 +15,7 @@ export interface Club {
   google_maps_uri: string | null;
 }
 
-export const useClubs = (limit?: number) => {
+export const useClubs = (limit?: number, filterByCity?: boolean) => {
   const { selectedCity } = useApp();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,8 +31,12 @@ export const useClubs = (limit?: number) => {
           .from('clubs')
           .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri')
           .eq('is_active', true)
-          .eq('city', selectedCity)
           .order('rating', { ascending: false, nullsFirst: false });
+
+        // Only filter by city if explicitly requested
+        if (filterByCity) {
+          query = query.eq('city', selectedCity);
+        }
 
         if (limit) {
           query = query.limit(limit);
@@ -51,7 +55,7 @@ export const useClubs = (limit?: number) => {
     };
 
     fetchClubs();
-  }, [selectedCity, limit]);
+  }, [selectedCity, limit, filterByCity]);
 
   return { clubs, loading, error };
 };
