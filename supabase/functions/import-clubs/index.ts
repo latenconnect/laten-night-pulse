@@ -37,8 +37,8 @@ const HUNGARIAN_CITIES = [
   { name: "Zamárdi", lat: 46.8833, lng: 17.9500, radius: 15000, area: "main" },
 ];
 
-// Venue types to search for - expanded list for better coverage
-const VENUE_TYPES = ["bar", "night_club", "pub", "cafe", "restaurant"];
+// Venue types to search for - nightlife venues only
+const VENUE_TYPES = ["bar", "night_club", "pub"];
 
 interface PlaceResult {
   id: string;
