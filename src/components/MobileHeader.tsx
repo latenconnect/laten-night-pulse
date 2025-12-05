@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { SearchContext } from '@/context/SearchContext';
 
 interface MobileHeaderProps {
   title?: string;
@@ -12,6 +13,7 @@ interface MobileHeaderProps {
   rightAction?: React.ReactNode;
   transparent?: boolean;
   className?: string;
+  showSearch?: boolean;
 }
 
 const MobileHeader: React.FC<MobileHeaderProps> = ({
@@ -20,9 +22,11 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   backPath,
   rightAction,
   transparent = false,
-  className
+  className,
+  showSearch = false
 }) => {
   const navigate = useNavigate();
+  const searchContext = useContext(SearchContext);
 
   const handleBack = () => {
     if (backPath) {
@@ -59,7 +63,19 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
         </h1>
       )}
       
-      <div className="w-10 flex justify-end">
+      <div className="w-10 flex justify-end gap-1">
+        {showSearch && searchContext && (
+          <motion.div whileTap={{ scale: 0.9 }}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={searchContext.openSearch}
+              className="h-10 w-10 rounded-full touch-target"
+            >
+              <Search className="w-5 h-5" />
+            </Button>
+          </motion.div>
+        )}
         {rightAction}
       </div>
     </div>
