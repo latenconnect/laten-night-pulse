@@ -196,7 +196,14 @@ const ClubDetails: React.FC = () => {
       <div className="px-4 py-6 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-display font-bold mb-2">{club.name}</h1>
+          <div className="flex items-center gap-2 mb-2">
+            <h1 className="text-2xl font-display font-bold">{club.name}</h1>
+            {club.venue_type && (
+              <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-secondary/20 text-secondary capitalize">
+                {club.venue_type.replace(/_/g, ' ')}
+              </span>
+            )}
+          </div>
           
           {/* Rating & Price */}
           <div className="flex items-center gap-4">

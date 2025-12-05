@@ -21,6 +21,7 @@ export interface Club {
   google_maps_uri: string | null;
   business_status: string | null;
   opening_hours: OpeningHours | null;
+  venue_type: string | null;
 }
 
 export const useClubs = (limit?: number, filterByCity?: boolean) => {
@@ -37,7 +38,7 @@ export const useClubs = (limit?: number, filterByCity?: boolean) => {
       try {
         let query = supabase
           .from('clubs')
-          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours')
+          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type')
           .eq('is_active', true)
           .order('rating', { ascending: false, nullsFirst: false });
 

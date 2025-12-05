@@ -33,6 +33,7 @@ export type Database = {
           photos: string[] | null
           price_level: number | null
           rating: number | null
+          venue_type: string | null
         }
         Insert: {
           address?: string | null
@@ -52,6 +53,7 @@ export type Database = {
           photos?: string[] | null
           price_level?: number | null
           rating?: number | null
+          venue_type?: string | null
         }
         Update: {
           address?: string | null
@@ -71,6 +73,7 @@ export type Database = {
           photos?: string[] | null
           price_level?: number | null
           rating?: number | null
+          venue_type?: string | null
         }
         Relationships: []
       }
