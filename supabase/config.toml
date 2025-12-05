@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.import-clubs]
 verify_jwt = true
+
+[functions.didit-session]
+verify_jwt = true
+
+[functions.didit-webhook]
+verify_jwt = false

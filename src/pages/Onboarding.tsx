@@ -1,39 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, MapPin, Sparkles, Shield, Check } from 'lucide-react';
+import { ChevronRight, MapPin, Sparkles, Shield, Check, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { INTERESTS, HUNGARIAN_CITIES } from '@/types';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
+import { useAgeVerification } from '@/hooks/useAgeVerification';
 import { cn } from '@/lib/utils';
 import latenLogo from '@/assets/laten-logo-onboarding.png';
+import { toast } from 'sonner';
 
 const steps = ['welcome', 'age', 'interests', 'location', 'ready'] as const;
 type Step = typeof steps[number];
 
 const Onboarding: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { setHasCompletedOnboarding, setInterests, setSelectedCity } = useApp();
+  const { loading: verificationLoading, error: verificationError, startVerification, checkVerificationStatus } = useAgeVerification();
+  
   const [currentStep, setCurrentStep] = useState<Step>('welcome');
   const [age, setAge] = useState('');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [city, setCity] = useState('Budapest');
   const [ageError, setAgeError] = useState('');
+  const [verificationMode, setVerificationMode] = useState<'manual' | 'didit'>('manual');
+  const [isVerified, setIsVerified] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
 
   const currentIndex = steps.indexOf(currentStep);
 
+  // Check verification status when user is logged in
+  useEffect(() => {
+    const checkStatus = async () => {
+      if (user) {
+        setCheckingStatus(true);
+        const verified = await checkVerificationStatus();
+        setIsVerified(verified);
+        setCheckingStatus(false);
+      }
+    };
+    checkStatus();
+  }, [user, checkVerificationStatus]);
+
+  const handleDiditVerification = async () => {
+    if (!user) {
+      toast.error('Please sign in to verify your age with Didit');
+      navigate('/auth');
+      return;
+    }
+
+    const session = await startVerification();
+    if (session?.url) {
+      // Open Didit verification in a new tab
+      window.open(session.url, '_blank');
+      toast.info('Complete verification in the new tab, then return here');
+      
+      // Poll for verification status
+      const pollInterval = setInterval(async () => {
+        const verified = await checkVerificationStatus();
+        if (verified) {
+          setIsVerified(true);
+          clearInterval(pollInterval);
+          toast.success('Age verified successfully!');
+          // Auto-advance to next step
+          setCurrentStep('interests');
+        }
+      }, 3000);
+
+      // Stop polling after 5 minutes
+      setTimeout(() => clearInterval(pollInterval), 300000);
+    }
+  };
+
   const handleNext = () => {
     if (currentStep === 'age') {
-      const ageNum = parseInt(age);
-      if (!age || isNaN(ageNum)) {
-        setAgeError('Please enter your age');
+      if (verificationMode === 'manual') {
+        const ageNum = parseInt(age);
+        if (!age || isNaN(ageNum)) {
+          setAgeError('Please enter your age');
+          return;
+        }
+        if (ageNum < 18) {
+          setAgeError('You must be 18 or older to use Laten');
+          return;
+        }
+        setAgeError('');
+      } else if (!isVerified) {
+        toast.error('Please complete age verification first');
         return;
       }
-      if (ageNum < 18) {
-        setAgeError('You must be 18 or older to use Laten');
-        return;
-      }
-      setAgeError('');
     }
 
     if (currentStep === 'ready') {
@@ -146,28 +203,118 @@ const Onboarding: React.FC = () => {
             >
               <Shield className="w-16 h-16 mx-auto mb-6 text-primary" />
               <h2 className="text-3xl font-display font-bold mb-3">Age Verification</h2>
-              <p className="text-muted-foreground mb-8 max-w-xs mx-auto">
+              <p className="text-muted-foreground mb-6 max-w-xs mx-auto">
                 You must be 18 or older to use Laten
               </p>
 
-              <div className="max-w-xs mx-auto">
-                <input
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="Enter your age"
-                  className="w-full input-neon bg-card border border-border text-center text-2xl font-display font-bold py-4 mb-3"
-                />
-                {ageError && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-destructive text-sm"
-                  >
-                    {ageError}
-                  </motion.p>
-                )}
+              {/* Verification Mode Toggle */}
+              <div className="flex gap-2 justify-center mb-6">
+                <button
+                  onClick={() => setVerificationMode('manual')}
+                  className={cn(
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-all',
+                    verificationMode === 'manual'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  )}
+                >
+                  Quick Entry
+                </button>
+                <button
+                  onClick={() => setVerificationMode('didit')}
+                  className={cn(
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-all',
+                    verificationMode === 'didit'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  )}
+                >
+                  ID Verification
+                </button>
               </div>
+
+              {verificationMode === 'manual' ? (
+                <div className="max-w-xs mx-auto">
+                  <input
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="Enter your age"
+                    className="w-full input-neon bg-card border border-border text-center text-2xl font-display font-bold py-4 mb-3"
+                  />
+                  {ageError && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-destructive text-sm"
+                    >
+                      {ageError}
+                    </motion.p>
+                  )}
+                  <p className="text-muted-foreground text-xs mt-4">
+                    For full features, consider using ID Verification
+                  </p>
+                </div>
+              ) : (
+                <div className="max-w-xs mx-auto">
+                  {checkingStatus ? (
+                    <div className="flex flex-col items-center gap-3 py-8">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      <p className="text-muted-foreground">Checking verification status...</p>
+                    </div>
+                  ) : isVerified ? (
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="glass-card p-6 border-green-500/50"
+                    >
+                      <div className="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center mb-4">
+                        <Check className="w-8 h-8 text-green-500" />
+                      </div>
+                      <h3 className="font-semibold text-green-400 mb-2">Age Verified!</h3>
+                      <p className="text-muted-foreground text-sm">
+                        Your identity has been verified. You can continue.
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="glass-card p-4">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Verify your age securely with Didit. This provides a verified badge on your profile.
+                        </p>
+                        <Button
+                          onClick={handleDiditVerification}
+                          disabled={verificationLoading || !user}
+                          variant="neon"
+                          className="w-full"
+                        >
+                          {verificationLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Starting verification...
+                            </>
+                          ) : (
+                            <>
+                              Verify with Didit
+                              <ExternalLink className="w-4 h-4 ml-2" />
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      
+                      {!user && (
+                        <p className="text-amber-400 text-sm">
+                          Please sign in first to use ID verification
+                        </p>
+                      )}
+
+                      {verificationError && (
+                        <p className="text-destructive text-sm">{verificationError}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -301,6 +448,7 @@ const Onboarding: React.FC = () => {
           variant="neon"
           size="xl"
           className="w-full"
+          disabled={currentStep === 'age' && verificationMode === 'didit' && !isVerified && !checkingStatus}
         >
           {currentStep === 'ready' ? 'Start Exploring' : 'Continue'}
           <ChevronRight className="w-5 h-5" />
