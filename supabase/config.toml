@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.didit-webhook]
 verify_jwt = false
+
+[functions.cleanup-venues]
+verify_jwt = true

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, Database, MapPin, RefreshCw, Download, DollarSign, Clock } from 'lucide-react';
+import { AlertTriangle, Database, MapPin, RefreshCw, Download, DollarSign, Clock, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const HUNGARIAN_CITIES = [
@@ -42,6 +42,8 @@ const AdminImport = () => {
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [maxPerCity, setMaxPerCity] = useState<string>('50');
   const [importLog, setImportLog] = useState<string[]>([]);
+  const [cleaning, setCleaning] = useState(false);
+  const [cleanupLog, setCleanupLog] = useState<string[]>([]);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -160,6 +162,49 @@ const AdminImport = () => {
     return estimatedCost.toFixed(2);
   };
 
+  const handleCleanup = async () => {
+    setCleaning(true);
+    setCleanupLog([]);
+    setCleanupLog(prev => [...prev, 'Starting venue cleanup...']);
+    setCleanupLog(prev => [...prev, 'Removing non-club venues (restaurants, cafes, shopping malls, etc.)...']);
+
+    try {
+      const response = await supabase.functions.invoke('cleanup-venues');
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      const result = response.data;
+
+      if (result.success) {
+        setCleanupLog(prev => [...prev, `✓ Cleanup completed!`]);
+        setCleanupLog(prev => [...prev, `  Deactivated: ${result.deactivated_count} venues`]);
+        
+        if (result.deactivated_venues && result.deactivated_venues.length > 0) {
+          setCleanupLog(prev => [...prev, `  Removed venues:`]);
+          result.deactivated_venues.slice(0, 20).forEach((name: string) => {
+            setCleanupLog(prev => [...prev, `    - ${name}`]);
+          });
+          if (result.deactivated_venues.length > 20) {
+            setCleanupLog(prev => [...prev, `    ... and ${result.deactivated_venues.length - 20} more`]);
+          }
+        }
+
+        toast.success(`Cleanup completed: ${result.deactivated_count} non-club venues removed`);
+        fetchStats();
+      } else {
+        throw new Error(result.error || 'Cleanup failed');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      setCleanupLog(prev => [...prev, `✗ Error: ${message}`]);
+      toast.error(`Cleanup failed: ${message}`);
+    } finally {
+      setCleaning(false);
+    }
+  };
+
   if (isAdmin === null) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -175,6 +220,48 @@ const AdminImport = () => {
           <h1 className="text-3xl font-bold">Club Database Import</h1>
           <p className="text-muted-foreground mt-1">Import venue data from Google Places API (New)</p>
         </div>
+
+        {/* Cleanup Section */}
+        <Card className="border-red-500/50 bg-red-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-red-500 text-lg">
+              <Trash2 className="h-5 w-5" />
+              Database Cleanup
+            </CardTitle>
+            <CardDescription>
+              Remove non-club venues (restaurants, cafes, shopping malls, theatres, etc.)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              onClick={handleCleanup} 
+              disabled={cleaning}
+              variant="destructive"
+              className="gap-2"
+            >
+              {cleaning ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Cleaning...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Clean Non-Club Venues
+                </>
+              )}
+            </Button>
+
+            {/* Cleanup Log */}
+            {cleanupLog.length > 0 && (
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg font-mono text-xs max-h-48 overflow-y-auto">
+                {cleanupLog.map((log, i) => (
+                  <div key={i} className="py-0.5">{log}</div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Cost Warning */}
         <Card className="border-amber-500/50 bg-amber-500/5">
