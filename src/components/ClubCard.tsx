@@ -1,6 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, Star, ExternalLink, DollarSign } from 'lucide-react';
+import { MapPin, Star, ChevronRight, DollarSign } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
 import { cn } from '@/lib/utils';
 
@@ -10,10 +11,10 @@ interface ClubCardProps {
 }
 
 const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
+  const navigate = useNavigate();
+  
   const handleClick = () => {
-    if (club.google_maps_uri) {
-      window.open(club.google_maps_uri, '_blank', 'noopener,noreferrer');
-    }
+    navigate(`/club/${club.id}`);
   };
 
   const priceIndicator = club.price_level ? (
@@ -74,7 +75,7 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
           </div>
         </div>
 
-        <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
       </motion.div>
     );
   }
@@ -125,7 +126,7 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
         <div className="flex items-center justify-between mt-2">
           {priceIndicator || <span />}
           <span className="text-xs text-primary flex items-center gap-1">
-            View on Maps <ExternalLink className="w-3 h-3" />
+            View Details <ChevronRight className="w-3 h-3" />
           </span>
         </div>
       </div>
