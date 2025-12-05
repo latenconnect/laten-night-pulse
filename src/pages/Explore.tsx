@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles, Building2 } from 'lucide-react';
+import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles, Building2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import EventCard from '@/components/EventCard';
 import ClubCard from '@/components/ClubCard';
 import MobileLayout from '@/components/layouts/MobileLayout';
@@ -13,12 +19,18 @@ import { EVENT_TYPES } from '@/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const HUNGARIAN_CITIES = [
+  'Budapest', 'Debrecen', 'Szeged', 'Pécs', 'Győr', 'Siófok', 'Miskolc', 'Eger',
+  'Veszprém', 'Székesfehérvár', 'Sopron', 'Nyíregyháza', 'Kaposvár', 'Balatonfüred',
+  'Tokaj', 'Kecskemét', 'Dunaújváros', 'Esztergom', 'Hévíz', 'Zamárdi'
+];
+
 const Explore: React.FC = () => {
   const navigate = useNavigate();
-  const { selectedCity } = useApp();
+  const { selectedCity, setSelectedCity } = useApp();
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const { clubs, loading: clubsLoading } = useClubs(10);
+  const { clubs, loading: clubsLoading } = useClubs(10, false); // Show all cities
 
   const featuredEvents = getFeaturedEvents();
   const filteredEvents = mockEvents.filter(event => {
@@ -34,10 +46,32 @@ const Explore: React.FC = () => {
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider">Current Location</p>
-          <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4 text-primary" />
-            <span className="font-display font-semibold">{selectedCity}</span>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1 hover:opacity-80 transition-opacity">
+                <MapPin className="w-4 h-4 text-primary" />
+                <span className="font-display font-semibold">{selectedCity}</span>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="start" 
+              className="w-48 max-h-64 overflow-y-auto bg-card border border-border z-50"
+            >
+              {HUNGARIAN_CITIES.map((city) => (
+                <DropdownMenuItem
+                  key={city}
+                  onClick={() => setSelectedCity(city)}
+                  className={cn(
+                    "cursor-pointer",
+                    city === selectedCity && "bg-primary/10 text-primary"
+                  )}
+                >
+                  {city}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <Button variant="glass" size="icon" className="touch-target">
           <Filter className="w-5 h-5" />
@@ -145,7 +179,7 @@ const Explore: React.FC = () => {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Building2 className="w-5 h-5 text-cyan-400" />
-            <h2 className="font-display font-bold text-xl">Venues in {selectedCity}</h2>
+            <h2 className="font-display font-bold text-xl">Popular Venues</h2>
           </div>
           {clubsLoading ? (
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
@@ -176,7 +210,7 @@ const Explore: React.FC = () => {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Building2 className="w-10 h-10 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No venues found in {selectedCity}</p>
+              <p className="text-sm">No venues found</p>
             </div>
           )}
         </section>
