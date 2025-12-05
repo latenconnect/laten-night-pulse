@@ -73,7 +73,12 @@ const Explore: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Button variant="glass" size="icon" className="touch-target">
+        <Button 
+          variant="glass" 
+          size="icon" 
+          className="touch-target"
+          onClick={() => setActiveFilter(null)}
+        >
           <Filter className="w-5 h-5" />
         </Button>
       </div>
