@@ -37,8 +37,54 @@ const HUNGARIAN_CITIES = [
   { name: "Zamárdi", lat: 46.8833, lng: 17.9500, radius: 15000, area: "main" },
 ];
 
-// Venue types to search for - nightlife venues only
-const VENUE_TYPES = ["bar", "night_club", "pub"];
+// Venue types to search for - nightlife venues only (NO restaurants, cafes, etc.)
+const VENUE_TYPES = ["night_club", "bar", "pub"];
+
+// Map Google venue types to user-friendly event filter categories
+function mapVenueTypeToCategory(googleType: string, placeName: string): string {
+  const nameLower = placeName.toLowerCase();
+  
+  // Check for festival venues
+  if (nameLower.includes('festival') || nameLower.includes('fesztivál') || 
+      nameLower.includes('arena') || nameLower.includes('stadion') ||
+      nameLower.includes('sziget') || nameLower.includes('balaton sound') ||
+      nameLower.includes('volt') || nameLower.includes('ozora')) {
+    return 'festival';
+  }
+  
+  // Check for famous club keywords
+  if (nameLower.includes('romkert') || nameLower.includes('szimpla') ||
+      nameLower.includes('instant') || nameLower.includes('fogas') ||
+      nameLower.includes('akvárium') || nameLower.includes('a38') ||
+      nameLower.includes('doboz') || nameLower.includes('ötkert') ||
+      nameLower.includes('morrison') || nameLower.includes('akvarium') ||
+      googleType === 'night_club') {
+    return 'club';
+  }
+  
+  // Check for rooftop/lounge bars
+  if (nameLower.includes('rooftop') || nameLower.includes('sky') ||
+      nameLower.includes('terasz') || nameLower.includes('lounge') ||
+      nameLower.includes('360')) {
+    return 'lounge';
+  }
+  
+  // Pubs and Irish bars
+  if (googleType === 'pub' || nameLower.includes('pub') || 
+      nameLower.includes('irish') || nameLower.includes('sörház') ||
+      nameLower.includes('söröző')) {
+    return 'pub';
+  }
+  
+  // Wine bars
+  if (nameLower.includes('wine') || nameLower.includes('bor') ||
+      nameLower.includes('pince')) {
+    return 'wine_bar';
+  }
+  
+  // Default to bar
+  return 'bar';
+}
 
 interface PlaceResult {
   id: string;
@@ -243,6 +289,28 @@ Deno.serve(async (req) => {
               if (seenPlaceIds.has(place.id)) continue;
               seenPlaceIds.add(place.id);
 
+              const placeName = place.displayName?.text || "";
+              const placeNameLower = placeName.toLowerCase();
+
+              // FILTER OUT NON-NIGHTLIFE VENUES
+              const excludePatterns = [
+                'restaurant', 'étterem', 'steakhouse', 'steak house', 'bistro', 'grill',
+                'brunch', 'breakfast', 'lunch', 'dinner', 'kitchen', 'konyha',
+                'bakery', 'pékség', 'confectionery', 'cukrászda', 'pastry', 'bagel',
+                'kávézó', 'kávéház', 'coffee', 'café', 'cafe',
+                'mall', 'plaza', 'shopping', 'market', 'store', 'shop', 'áruház',
+                'cinema', 'mozi', 'theatre', 'theater', 'színház', 'operetta', 'opera',
+                'gym', 'fitness', 'spa', 'wellness', 'hotel', 'hostel', 'museum', 'múzeum',
+                'mcdonald', 'burger king', 'kfc', 'subway', 'pizza hut', 'domino',
+                'pharmacy', 'gyógyszertár', 'bank', 'atm', 'office', 'iroda'
+              ];
+
+              const shouldExclude = excludePatterns.some(pattern => placeNameLower.includes(pattern));
+              if (shouldExclude) {
+                console.log(`Skipping non-nightlife venue: ${placeName}`);
+                continue;
+              }
+
               // Check if place already exists
               const { data: existing } = await supabase
                 .from("clubs")
@@ -254,6 +322,9 @@ Deno.serve(async (req) => {
                 citySkipped++;
                 continue;
               }
+
+              // Determine the venue category for filtering
+              const venueCategory = mapVenueTypeToCategory(venueType, placeName);
 
               // Get photo URLs (max 2)
               const photoUrls: string[] = [];
@@ -270,10 +341,10 @@ Deno.serve(async (req) => {
                 weekday_text: place.regularOpeningHours.weekdayDescriptions,
               } : null;
 
-              // Insert into database
+              // Insert into database with proper venue category
               const { error: insertError } = await supabase.from("clubs").insert({
                 google_place_id: place.id,
-                name: place.displayName?.text || "Unknown Venue",
+                name: placeName || "Unknown Venue",
                 address: place.formattedAddress || null,
                 city: city.name,
                 country: "Hungary",
@@ -285,7 +356,7 @@ Deno.serve(async (req) => {
                 google_maps_uri: place.googleMapsUri || null,
                 business_status: place.businessStatus || null,
                 opening_hours: openingHours,
-                venue_type: venueType,
+                venue_type: venueCategory, // Use mapped category instead of raw Google type
                 is_active: true,
               });
 
