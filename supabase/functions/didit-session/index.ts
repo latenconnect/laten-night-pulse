@@ -14,12 +14,18 @@ serve(async (req) => {
 
   try {
     const DIDIT_API_KEY = Deno.env.get('DIDIT_API_KEY');
+    const DIDIT_WORKFLOW_ID = Deno.env.get('DIDIT_WORKFLOW_ID');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!DIDIT_API_KEY) {
       console.error('DIDIT_API_KEY is not configured');
       throw new Error('Didit API key not configured');
+    }
+
+    if (!DIDIT_WORKFLOW_ID) {
+      console.error('DIDIT_WORKFLOW_ID is not configured');
+      throw new Error('Didit workflow ID not configured');
     }
 
     // Get user from auth header
@@ -49,17 +55,17 @@ serve(async (req) => {
 
     const { callback_url } = await req.json();
     
-    // Create Didit verification session
+    // Create Didit verification session using correct API format
     const diditResponse = await fetch('https://verification.didit.me/v2/session/', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${DIDIT_API_KEY}`,
+        'X-Api-Key': DIDIT_API_KEY,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        workflow_id: DIDIT_WORKFLOW_ID,
         callback: callback_url || `https://huigwbyctzjictnaycjj.supabase.co/functions/v1/didit-webhook`,
         vendor_data: user.id, // Store user ID to link back
-        features: 'age-estimation', // Use age estimation feature
       }),
     });
 
