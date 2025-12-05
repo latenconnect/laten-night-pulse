@@ -165,8 +165,8 @@ const AdminImport = () => {
   const handleCleanup = async () => {
     setCleaning(true);
     setCleanupLog([]);
-    setCleanupLog(prev => [...prev, 'Starting venue cleanup...']);
-    setCleanupLog(prev => [...prev, 'Removing non-club venues (restaurants, cafes, shopping malls, etc.)...']);
+    setCleanupLog(prev => [...prev, 'Starting venue cleanup and categorization...']);
+    setCleanupLog(prev => [...prev, 'Removing non-club venues & categorizing nightlife spots...']);
 
     try {
       const response = await supabase.functions.invoke('cleanup-venues');
@@ -179,19 +179,30 @@ const AdminImport = () => {
 
       if (result.success) {
         setCleanupLog(prev => [...prev, `✓ Cleanup completed!`]);
-        setCleanupLog(prev => [...prev, `  Deactivated: ${result.deactivated_count} venues`]);
+        setCleanupLog(prev => [...prev, `  Deactivated: ${result.deactivated_count} non-club venues`]);
+        setCleanupLog(prev => [...prev, `  Recategorized: ${result.recategorized_count} venues`]);
         
         if (result.deactivated_venues && result.deactivated_venues.length > 0) {
           setCleanupLog(prev => [...prev, `  Removed venues:`]);
-          result.deactivated_venues.slice(0, 20).forEach((name: string) => {
-            setCleanupLog(prev => [...prev, `    - ${name}`]);
+          result.deactivated_venues.slice(0, 15).forEach((name: string) => {
+            setCleanupLog(prev => [...prev, `    ✗ ${name}`]);
           });
-          if (result.deactivated_venues.length > 20) {
-            setCleanupLog(prev => [...prev, `    ... and ${result.deactivated_venues.length - 20} more`]);
+          if (result.deactivated_venues.length > 15) {
+            setCleanupLog(prev => [...prev, `    ... and ${result.deactivated_venues.length - 15} more`]);
           }
         }
 
-        toast.success(`Cleanup completed: ${result.deactivated_count} non-club venues removed`);
+        if (result.recategorized_venues && result.recategorized_venues.length > 0) {
+          setCleanupLog(prev => [...prev, `  Recategorized venues:`]);
+          result.recategorized_venues.slice(0, 15).forEach((change: string) => {
+            setCleanupLog(prev => [...prev, `    → ${change}`]);
+          });
+          if (result.recategorized_venues.length > 15) {
+            setCleanupLog(prev => [...prev, `    ... and ${result.recategorized_venues.length - 15} more`]);
+          }
+        }
+
+        toast.success(`Cleanup: ${result.deactivated_count} removed, ${result.recategorized_count} recategorized`);
         fetchStats();
       } else {
         throw new Error(result.error || 'Cleanup failed');

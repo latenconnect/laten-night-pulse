@@ -1,9 +1,20 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, Star, ChevronRight, DollarSign } from 'lucide-react';
+import { MapPin, Star, ChevronRight, DollarSign, Music, Wine, Beer, Sparkles, GlassWater } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+
+// Map venue types to display labels and styles
+const VENUE_TYPE_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  club: { label: 'Club', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: Music },
+  bar: { label: 'Bar', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', icon: GlassWater },
+  pub: { label: 'Pub', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30', icon: Beer },
+  lounge: { label: 'Lounge', color: 'bg-pink-500/20 text-pink-400 border-pink-500/30', icon: Sparkles },
+  wine_bar: { label: 'Wine Bar', color: 'bg-rose-500/20 text-rose-400 border-rose-500/30', icon: Wine },
+  festival: { label: 'Festival', color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: Sparkles },
+};
 
 interface ClubCardProps {
   club: Club;
@@ -16,6 +27,9 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
   const handleClick = () => {
     navigate(`/club/${club.id}`);
   };
+
+  const venueConfig = club.venue_type ? VENUE_TYPE_CONFIG[club.venue_type] || VENUE_TYPE_CONFIG.bar : VENUE_TYPE_CONFIG.bar;
+  const VenueIcon = venueConfig.icon;
 
   const priceIndicator = club.price_level ? (
     <div className="flex items-center gap-0.5">
@@ -55,9 +69,15 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-sm truncate">{club.name}</h3>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary flex-shrink-0">{club.city}</span>
+            <span className={cn(
+              "text-[10px] px-1.5 py-0.5 rounded border flex items-center gap-1 flex-shrink-0",
+              venueConfig.color
+            )}>
+              <VenueIcon className="w-2.5 h-2.5" />
+              {venueConfig.label}
+            </span>
           </div>
           {club.address && (
             <p className="text-xs text-muted-foreground truncate mt-0.5">
@@ -100,9 +120,13 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
           </div>
         )}
         
-        {/* City badge */}
-        <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-primary/80 backdrop-blur-sm">
-          <span className="text-xs font-medium text-primary-foreground">{club.city}</span>
+        {/* Venue type badge */}
+        <div className={cn(
+          "absolute top-2 left-2 px-2 py-1 rounded-full backdrop-blur-sm flex items-center gap-1 border",
+          venueConfig.color
+        )}>
+          <VenueIcon className="w-3 h-3" />
+          <span className="text-xs font-medium">{venueConfig.label}</span>
         </div>
         
         {/* Rating badge */}
@@ -116,7 +140,10 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
 
       {/* Content */}
       <div className="p-3">
-        <h3 className="font-semibold truncate">{club.name}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold truncate">{club.name}</h3>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary flex-shrink-0">{club.city}</span>
+        </div>
         {club.address && (
           <p className="text-xs text-muted-foreground truncate mt-1 flex items-center gap-1">
             <MapPin className="w-3 h-3 flex-shrink-0" />
