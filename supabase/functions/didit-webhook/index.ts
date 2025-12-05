@@ -48,9 +48,11 @@ serve(async (req) => {
         .join('');
 
       if (signature !== expectedSignature) {
-        console.warn('Webhook signature mismatch - proceeding anyway for development');
-        // In production, you might want to reject: 
-        // return new Response('Invalid signature', { status: 401 });
+        console.error('Invalid webhook signature');
+        return new Response(JSON.stringify({ error: 'Invalid signature' }), { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        });
       }
     }
 
