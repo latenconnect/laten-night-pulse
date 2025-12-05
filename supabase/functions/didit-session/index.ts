@@ -51,6 +51,29 @@ serve(async (req) => {
       });
     }
 
+    // Rate limiting: max 5 verification requests per hour per user
+    const { data: rateLimitOk, error: rateLimitError } = await supabase
+      .rpc('check_rate_limit', {
+        _user_id: user.id,
+        _action: 'didit_session',
+        _max_requests: 5,
+        _window_minutes: 60
+      });
+
+    if (rateLimitError) {
+      console.error('Rate limit check error:', rateLimitError);
+    }
+
+    if (rateLimitOk === false) {
+      console.warn('Rate limit exceeded for user:', user.id);
+      return new Response(JSON.stringify({ 
+        error: 'Too many verification requests. Please try again later.' 
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     console.log('Creating Didit session for user:', user.id);
 
     const { callback_url } = await req.json();
