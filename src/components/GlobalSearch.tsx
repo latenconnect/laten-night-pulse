@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, X, MapPin, Calendar, Music, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import { useAlgoliaSearch, SearchHit, SearchFilters } from '@/hooks/useAlgoliaSearch';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -59,7 +60,12 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
   const getHighlightedText = (hit: SearchHit, field: string) => {
     const highlight = hit._highlightResult?.[field];
     if (highlight?.value) {
-      return <span dangerouslySetInnerHTML={{ __html: highlight.value }} />;
+      // Sanitize HTML to prevent XSS attacks while preserving Algolia's <em> highlight tags
+      const sanitizedHtml = DOMPurify.sanitize(highlight.value, {
+        ALLOWED_TAGS: ['em'],
+        ALLOWED_ATTR: []
+      });
+      return <span dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
     }
     return (hit as any)[field] || '';
   };
