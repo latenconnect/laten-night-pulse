@@ -25,6 +25,7 @@ export type Database = {
           google_place_id: string
           id: string
           is_active: boolean | null
+          is_featured: boolean | null
           last_updated: string | null
           latitude: number
           longitude: number
@@ -45,6 +46,7 @@ export type Database = {
           google_place_id: string
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           last_updated?: string | null
           latitude: number
           longitude: number
@@ -65,6 +67,7 @@ export type Database = {
           google_place_id?: string
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           last_updated?: string | null
           latitude?: number
           longitude?: number
@@ -418,6 +421,96 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_interactions: {
+        Row: {
+          city: string | null
+          club_id: string | null
+          created_at: string
+          event_id: string | null
+          event_type: string | null
+          id: string
+          interaction_type: string
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          club_id?: string | null
+          created_at?: string
+          event_id?: string | null
+          event_type?: string | null
+          id?: string
+          interaction_type: string
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          club_id?: string | null
+          created_at?: string
+          event_id?: string | null
+          event_type?: string | null
+          id?: string
+          interaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interactions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_interactions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          avg_price_preference: number | null
+          created_at: string
+          id: string
+          pref_club: number | null
+          pref_festival: number | null
+          pref_house_party: number | null
+          pref_public: number | null
+          pref_university: number | null
+          preferred_cities: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_price_preference?: number | null
+          created_at?: string
+          id?: string
+          pref_club?: number | null
+          pref_festival?: number | null
+          pref_house_party?: number | null
+          pref_public?: number | null
+          pref_university?: number | null
+          preferred_cities?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_price_preference?: number | null
+          created_at?: string
+          id?: string
+          pref_club?: number | null
+          pref_festival?: number | null
+          pref_house_party?: number | null
+          pref_public?: number | null
+          pref_university?: number | null
+          preferred_cities?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

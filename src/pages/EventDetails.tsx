@@ -10,6 +10,7 @@ import { getEventById } from '@/data/mockEvents';
 import { useSavedEvents, useEventRsvp, useReportEvent } from '@/hooks/useEvents';
 import { useAuth } from '@/context/AuthContext';
 import { useHaptics } from '@/hooks/useHaptics';
+import { usePersonalization } from '@/hooks/usePersonalization';
 import { EVENT_TYPES } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -39,6 +40,7 @@ const EventDetails: React.FC = () => {
   const { hasRsvped, rsvpToEvent, cancelRsvp } = useEventRsvp();
   const { reportEvent } = useReportEvent();
   const { lightTap, mediumTap, successNotification, warningNotification } = useHaptics();
+  const { trackInteraction } = usePersonalization();
   
   const [isLiked, setIsLiked] = useState(false);
   const [isGoing, setIsGoing] = useState(false);
@@ -53,8 +55,15 @@ const EventDetails: React.FC = () => {
     if (id) {
       setIsLiked(isEventSaved(id));
       setIsGoing(hasRsvped(id));
+      
+      // Track view interaction after 2 seconds (ensures intentional view)
+      const timer = setTimeout(() => {
+        trackInteraction('view', id);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
     }
-  }, [id, isEventSaved, hasRsvped]);
+  }, [id, isEventSaved, hasRsvped, trackInteraction]);
   
   if (!event) {
     return (
@@ -82,6 +91,8 @@ const EventDetails: React.FC = () => {
       await saveEvent(event.id);
       setIsLiked(true);
       await successNotification();
+      // Track save interaction
+      trackInteraction('save', event.id);
     }
   };
 
@@ -100,6 +111,8 @@ const EventDetails: React.FC = () => {
       await rsvpToEvent(event.id);
       setIsGoing(true);
       await successNotification();
+      // Track RSVP interaction (highest weight)
+      trackInteraction('rsvp', event.id);
     }
   };
 
@@ -123,6 +136,9 @@ const EventDetails: React.FC = () => {
   };
 
   const handleShare = () => {
+    // Track share interaction
+    trackInteraction('share', event.id);
+    
     if (navigator.share) {
       navigator.share({
         title: event.name,
