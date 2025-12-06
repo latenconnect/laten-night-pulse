@@ -1,7 +1,7 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles, Building2, ChevronDown } from 'lucide-react';
+import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles, Building2, ChevronDown, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,11 +11,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import EventCard from '@/components/EventCard';
 import ClubCard from '@/components/ClubCard';
+import ForYouSection from '@/components/ForYouSection';
+import FeaturedBadge from '@/components/FeaturedBadge';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import { mockEvents, getFeaturedEvents } from '@/data/mockEvents';
 import { useApp } from '@/context/AppContext';
 import { SearchContext } from '@/context/SearchContext';
 import { useClubs } from '@/hooks/useClubs';
+import { usePersonalizedFeed } from '@/hooks/usePersonalizedFeed';
+import { useFeaturedClubs } from '@/hooks/useFeaturedContent';
 import { EVENT_TYPES } from '@/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,9 +36,20 @@ const Explore: React.FC = () => {
   const searchContext = useContext(SearchContext);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const { clubs, loading: clubsLoading } = useClubs(10, false); // Show all cities
+  
+  // Real data hooks
+  const { clubs, loading: clubsLoading } = useClubs(10, false);
+  const { clubs: featuredClubs, loading: featuredClubsLoading } = useFeaturedClubs(selectedCity, 5);
+  const { 
+    forYouEvents, 
+    trendingEvents, 
+    featuredEvents: dbFeaturedEvents,
+    loading: feedLoading,
+    hasPersonalization 
+  } = usePersonalizedFeed();
 
-  const featuredEvents = getFeaturedEvents();
+  // Mock data as fallback
+  const mockFeaturedEvents = getFeaturedEvents();
   const filteredEvents = mockEvents.filter(event => {
     const matchesFilter = !activeFilter || event.type === activeFilter;
     const matchesSearch = !searchQuery || 
@@ -42,6 +57,13 @@ const Explore: React.FC = () => {
       event.location.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
+
+  // Combine featured clubs with regular clubs, prioritizing featured
+  const displayClubs = useMemo(() => {
+    const featured = featuredClubs.map(c => ({ ...c, isFeatured: true }));
+    const regular = clubs.filter(c => !featuredClubs.find(fc => fc.id === c.id));
+    return [...featured, ...regular].slice(0, 10);
+  }, [clubs, featuredClubs]);
 
   const ExploreHeader = (
     <div className="px-4 py-4">
@@ -136,14 +158,22 @@ const Explore: React.FC = () => {
   return (
     <MobileLayout header={ExploreHeader}>
       <main className="px-4 py-6 space-y-8">
+        {/* For You Section (Personalized) */}
+        <ForYouSection 
+          events={forYouEvents} 
+          loading={feedLoading} 
+          hasPersonalization={hasPersonalization}
+        />
+
         {/* Featured Section */}
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-primary" />
+            <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
             <h2 className="font-display font-bold text-xl">Featured Tonight</h2>
+            <FeaturedBadge variant="sponsored" size="sm" />
           </div>
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
-            {featuredEvents.map((event, index) => (
+            {mockFeaturedEvents.map((event, index) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, x: 20 }}
@@ -184,13 +214,18 @@ const Explore: React.FC = () => {
           </div>
         </section>
 
-        {/* Venues Nearby Section */}
+        {/* Venues Section with Featured */}
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Building2 className="w-5 h-5 text-cyan-400" />
             <h2 className="font-display font-bold text-xl">Popular Venues</h2>
+            {featuredClubs.length > 0 && (
+              <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">
+                {featuredClubs.length} Promoted
+              </span>
+            )}
           </div>
-          {clubsLoading ? (
+          {clubsLoading || featuredClubsLoading ? (
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="w-[280px] flex-shrink-0">
@@ -203,16 +238,22 @@ const Explore: React.FC = () => {
                 </div>
               ))}
             </div>
-          ) : clubs.length > 0 ? (
+          ) : displayClubs.length > 0 ? (
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
-              {clubs.map((club, index) => (
+              {displayClubs.map((club, index) => (
                 <motion.div
                   key={club.id}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
+                  className="relative"
                 >
                   <ClubCard club={club} />
+                  {(club as any).isFeatured && (
+                    <div className="absolute top-2 left-2">
+                      <FeaturedBadge variant="premium" size="sm" />
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </div>
