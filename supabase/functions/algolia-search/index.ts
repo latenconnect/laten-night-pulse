@@ -59,6 +59,23 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Algolia search error:', errorText);
+      
+      // Handle index not found gracefully
+      if (response.status === 404) {
+        console.log('Index does not exist yet - needs initial sync');
+        return new Response(JSON.stringify({ 
+          hits: [], 
+          nbHits: 0, 
+          page: 0, 
+          nbPages: 0, 
+          hitsPerPage,
+          needsSync: true,
+          message: 'Search index not created yet. Please sync data from Admin panel.'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
       throw new Error(`Algolia search failed: ${errorText}`);
     }
 
