@@ -9,6 +9,7 @@ import BottomNav from '@/components/BottomNav';
 import { useHost, useCreateEvent } from '@/hooks/useHost';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
+import { CohostManager } from '@/components/CohostManager';
 import { toast } from 'sonner';
 
 const CreateEvent: React.FC = () => {
@@ -30,6 +31,7 @@ const CreateEvent: React.FC = () => {
     description: '',
     expected_attendance: '',
   });
+  const [pendingCohostIds, setPendingCohostIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (field: string, value: string) => {
@@ -334,6 +336,16 @@ const CreateEvent: React.FC = () => {
             className="w-full input-neon bg-card border border-border disabled:opacity-50"
           />
         </div>
+
+        {/* Co-Hosts Section */}
+        {canCreateEvent && (
+          <div className="glass-card p-4">
+            <CohostManager 
+              onCohostsChange={setPendingCohostIds}
+              initialCohosts={pendingCohostIds}
+            />
+          </div>
+        )}
       </main>
 
       {/* Fixed Bottom CTA */}

@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useHaptics } from '@/hooks/useHaptics';
 import { usePersonalization } from '@/hooks/usePersonalization';
 import { EventQA } from '@/components/EventQA';
+import { EventChat } from '@/components/EventChat';
 import { EVENT_TYPES } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -311,6 +312,11 @@ const EventDetails: React.FC = () => {
         {/* Q&A Section */}
         <div className="mb-6">
           <EventQA eventId={event.id} hostUserId={event.hostId} />
+        </div>
+
+        {/* Event Chat */}
+        <div className="mb-6">
+          <EventChat eventId={event.id} hostUserId={event.hostId} />
         </div>
 
         {/* Report */}
