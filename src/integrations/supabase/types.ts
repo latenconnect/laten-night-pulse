@@ -80,6 +80,122 @@ export type Database = {
         }
         Relationships: []
       }
+      event_answers: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          is_host_answer: boolean | null
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          is_host_answer?: boolean | null
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          is_host_answer?: boolean | null
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "event_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_cohosts: {
+        Row: {
+          added_at: string
+          added_by: string
+          event_id: string
+          host_id: string
+          id: string
+          role: string
+        }
+        Insert: {
+          added_at?: string
+          added_by: string
+          event_id: string
+          host_id: string
+          id?: string
+          role?: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string
+          event_id?: string
+          host_id?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_cohosts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_cohosts_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "hosts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_cohosts_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "public_host_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_questions: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          question: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          question: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          question?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_questions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_rsvps: {
         Row: {
           created_at: string | null
