@@ -11,6 +11,7 @@ import { useSavedEvents, useEventRsvp, useReportEvent } from '@/hooks/useEvents'
 import { useAuth } from '@/context/AuthContext';
 import { useHaptics } from '@/hooks/useHaptics';
 import { usePersonalization } from '@/hooks/usePersonalization';
+import { EventQA } from '@/components/EventQA';
 import { EVENT_TYPES } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -306,6 +307,11 @@ const EventDetails: React.FC = () => {
             <p className="font-semibold mt-1">{event.dressCode}</p>
           </div>
         )}
+
+        {/* Q&A Section */}
+        <div className="mb-6">
+          <EventQA eventId={event.id} hostUserId={event.hostId} />
+        </div>
 
         {/* Report */}
         <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
