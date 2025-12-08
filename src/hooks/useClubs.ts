@@ -24,7 +24,7 @@ export interface Club {
   venue_type: string | null;
 }
 
-export const useClubs = (limit?: number, filterByCity?: boolean) => {
+export const useClubs = (limit?: number, filterByCity?: boolean, prioritizeNightlife?: boolean) => {
   const { selectedCity } = useApp();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +41,11 @@ export const useClubs = (limit?: number, filterByCity?: boolean) => {
           .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type')
           .eq('is_active', true)
           .order('rating', { ascending: false, nullsFirst: false });
+
+        // Prioritize actual nightlife venues (clubs, bars, pubs)
+        if (prioritizeNightlife) {
+          query = query.in('venue_type', ['night_club', 'club', 'bar', 'pub', 'lounge']);
+        }
 
         // Only filter by city if explicitly requested
         if (filterByCity) {
@@ -70,7 +75,7 @@ export const useClubs = (limit?: number, filterByCity?: boolean) => {
     };
 
     fetchClubs();
-  }, [selectedCity, limit, filterByCity]);
+  }, [selectedCity, limit, filterByCity, prioritizeNightlife]);
 
   return { clubs, loading, error };
 };
