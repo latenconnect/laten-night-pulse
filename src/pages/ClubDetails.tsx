@@ -17,18 +17,16 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useClubs } from '@/hooks/useClubs';
+import { useClubById } from '@/hooks/useClubById';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const ClubDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { clubs, loading } = useClubs(100, false);
+  const { club, loading } = useClubById(id);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [showFullscreen, setShowFullscreen] = useState(false);
-
-  const club = clubs.find(c => c.id === id);
 
   const handleGetDirections = () => {
     if (club?.google_maps_uri) {
