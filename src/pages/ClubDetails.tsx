@@ -13,11 +13,14 @@ import {
   Share2,
   Clock,
   Copy,
-  Check
+  Check,
+  Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useClubById } from '@/hooks/useClubById';
+import { useNearbyClubs } from '@/hooks/useNearbyClubs';
+import ClubCard from '@/components/ClubCard';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -25,6 +28,7 @@ const ClubDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { club, loading } = useClubById(id);
+  const { clubs: nearbyClubs, loading: nearbyLoading } = useNearbyClubs(club?.city, id, 6);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [showFullscreen, setShowFullscreen] = useState(false);
 
@@ -318,6 +322,29 @@ const ClubDetails: React.FC = () => {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Nearby Venues Section */}
+        {nearbyClubs.length > 0 && (
+          <section className="pt-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Building2 className="w-5 h-5 text-cyan-400" />
+              <h2 className="font-display font-bold text-lg">Nearby in {club.city}</h2>
+            </div>
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
+              {nearbyClubs.map((nearbyClub, index) => (
+                <motion.div
+                  key={nearbyClub.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="flex-shrink-0"
+                >
+                  <ClubCard club={nearbyClub} variant="compact" />
+                </motion.div>
+              ))}
+            </div>
+          </section>
         )}
       </div>
 

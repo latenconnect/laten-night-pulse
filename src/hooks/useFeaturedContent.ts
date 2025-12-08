@@ -48,6 +48,7 @@ export const useFeaturedClubs = (city?: string, limit: number = 5) => {
     const fetchFeaturedClubs = async () => {
       setLoading(true);
 
+      // First try to get explicitly featured clubs
       let query = supabase
         .from('clubs')
         .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type, is_featured')
@@ -60,7 +61,26 @@ export const useFeaturedClubs = (city?: string, limit: number = 5) => {
         query = query.eq('city', city);
       }
 
-      const { data, error } = await query;
+      let { data, error } = await query;
+
+      // If no featured clubs, fall back to top-rated nightlife venues
+      if (!error && (!data || data.length === 0)) {
+        let fallbackQuery = supabase
+          .from('clubs')
+          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type, is_featured')
+          .eq('is_active', true)
+          .in('venue_type', ['night_club', 'club', 'bar', 'pub', 'lounge'])
+          .order('rating', { ascending: false, nullsFirst: false })
+          .limit(limit);
+
+        if (city) {
+          fallbackQuery = fallbackQuery.eq('city', city);
+        }
+
+        const fallbackResult = await fallbackQuery;
+        data = fallbackResult.data;
+        error = fallbackResult.error;
+      }
 
       if (error) {
         console.error('Error fetching featured clubs:', error);

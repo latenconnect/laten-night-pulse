@@ -38,7 +38,7 @@ const Explore: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   
   // Real data hooks
-  const { clubs, loading: clubsLoading } = useClubs(10, false);
+  const { clubs, loading: clubsLoading } = useClubs(10, false, true); // prioritize nightlife venues
   const { clubs: featuredClubs, loading: featuredClubsLoading } = useFeaturedClubs(selectedCity, 5);
   const { 
     forYouEvents, 
