@@ -12,6 +12,7 @@ import {
 import EventCard from '@/components/EventCard';
 import ClubCard from '@/components/ClubCard';
 import ForYouSection from '@/components/ForYouSection';
+import StoriesBar from '@/components/stories/StoriesBar';
 import FeaturedBadge from '@/components/FeaturedBadge';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import { mockEvents, getFeaturedEvents } from '@/data/mockEvents';

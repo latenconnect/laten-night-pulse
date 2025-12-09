@@ -24,6 +24,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 import ClubDetails from "./pages/ClubDetails";
+import Friends from "./pages/Friends";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminHosts from "./pages/admin/AdminHosts";
@@ -68,6 +69,7 @@ const AppContent = () => {
         <Route path="/event/:id" element={<EventDetails />} />
         <Route path="/club/:id" element={<ClubDetails />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/friends" element={<Friends />} />
         <Route path="/saved" element={<SavedEvents />} />
         <Route path="/create" element={<CreateEvent />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
