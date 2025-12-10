@@ -11,6 +11,8 @@ import { useSavedEvents, useEventRsvp, useReportEvent } from '@/hooks/useEvents'
 import { useAuth } from '@/context/AuthContext';
 import { useHaptics } from '@/hooks/useHaptics';
 import { usePersonalization } from '@/hooks/usePersonalization';
+import { useAgeVerification } from '@/hooks/useAgeVerification';
+import { supabase } from '@/integrations/supabase/client';
 import { EventQA } from '@/components/EventQA';
 import { EventChat } from '@/components/EventChat';
 import { EVENT_TYPES } from '@/types';
@@ -43,12 +45,15 @@ const EventDetails: React.FC = () => {
   const { reportEvent } = useReportEvent();
   const { lightTap, mediumTap, successNotification, warningNotification } = useHaptics();
   const { trackInteraction } = usePersonalization();
+  const { startVerification, loading: verificationLoading } = useAgeVerification();
   
   const [isLiked, setIsLiked] = useState(false);
   const [isGoing, setIsGoing] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [selectedReason, setSelectedReason] = useState('');
   const [liabilityAcknowledged, setLiabilityAcknowledged] = useState(false);
+  const [isAgeVerified, setIsAgeVerified] = useState<boolean | null>(null);
+  const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
 
   // For now, use mock data - will be replaced with real DB query
   const event = getEventById(id || '');
@@ -66,6 +71,31 @@ const EventDetails: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [id, isEventSaved, hasRsvped, trackInteraction]);
+
+  useEffect(() => {
+    const checkAge = async () => {
+      if (!user) {
+        setIsAgeVerified(null);
+        return;
+      }
+      const { data } = await supabase
+        .from('profiles')
+        .select('age_verified')
+        .eq('id', user.id)
+        .maybeSingle();
+      setIsAgeVerified(data?.age_verified === true);
+    };
+    checkAge();
+  }, [user]);
+
+  const handleVerifyAge = async () => {
+    const result = await startVerification();
+    if (result?.url) {
+      window.open(result.url, '_blank');
+      toast.info('Complete verification in the new tab.');
+      setVerifyDialogOpen(false);
+    }
+  };
   
   if (!event) {
     return (
@@ -103,6 +133,12 @@ const EventDetails: React.FC = () => {
     if (!user) {
       toast.error('Please sign in to RSVP');
       navigate('/auth');
+      return;
+    }
+
+    // Check age verification before allowing RSVP
+    if (!isAgeVerified) {
+      setVerifyDialogOpen(true);
       return;
     }
     
@@ -318,6 +354,34 @@ const EventDetails: React.FC = () => {
         <div className="mb-6">
           <EventChat eventId={event.id} hostUserId={event.hostId} />
         </div>
+
+        {/* Age Verification Dialog */}
+        <Dialog open={verifyDialogOpen} onOpenChange={setVerifyDialogOpen}>
+          <DialogContent className="bg-card border-border">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" />
+                Age Verification Required
+              </DialogTitle>
+              <DialogDescription>
+                You must verify you're 18+ to attend events on Laten.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-3 mt-4">
+              <Button variant="outline" className="flex-1" onClick={() => setVerifyDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="neon" 
+                className="flex-1" 
+                onClick={handleVerifyAge}
+                disabled={verificationLoading}
+              >
+                {verificationLoading ? 'Loading...' : 'Verify Now'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Report */}
         <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>

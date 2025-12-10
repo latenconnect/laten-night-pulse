@@ -11,6 +11,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
 import { CohostManager } from '@/components/CohostManager';
 import { toast } from 'sonner';
+import { useAgeVerification } from '@/hooks/useAgeVerification';
+import { supabase } from '@/integrations/supabase/client';
+import { ShieldAlert, Loader2 } from 'lucide-react';
 
 const CreateEvent: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +21,9 @@ const CreateEvent: React.FC = () => {
   const { selectedCity } = useApp();
   const { host, applyAsHost, isVerifiedHost, isPendingHost, loading: hostLoading } = useHost();
   const { createEvent, canCreateEvent } = useCreateEvent();
+  const { startVerification, loading: verificationLoading } = useAgeVerification();
+  const [isAgeVerified, setIsAgeVerified] = useState(false);
+  const [checkingAge, setCheckingAge] = useState(true);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -33,6 +39,31 @@ const CreateEvent: React.FC = () => {
   });
   const [pendingCohostIds, setPendingCohostIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    const checkAgeVerification = async () => {
+      if (!user) {
+        setCheckingAge(false);
+        return;
+      }
+      const { data } = await supabase
+        .from('profiles')
+        .select('age_verified')
+        .eq('id', user.id)
+        .maybeSingle();
+      setIsAgeVerified(data?.age_verified === true);
+      setCheckingAge(false);
+    };
+    checkAgeVerification();
+  }, [user]);
+
+  const handleVerifyAge = async () => {
+    const result = await startVerification();
+    if (result?.url) {
+      window.open(result.url, '_blank');
+      toast.info('Complete verification in the new tab.');
+    }
+  };
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -86,6 +117,36 @@ const CreateEvent: React.FC = () => {
           </p>
           <Button variant="neon" onClick={() => navigate('/auth')}>
             Sign In
+          </Button>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // Age verification required
+  if (!checkingAge && !isAgeVerified) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 py-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="font-display font-bold text-xl">Create Event</h1>
+          </div>
+        </header>
+        <div className="flex flex-col items-center justify-center px-4 py-20">
+          <ShieldAlert className="w-16 h-16 text-primary mb-4" />
+          <h2 className="font-display font-bold text-xl mb-2">Age Verification Required</h2>
+          <p className="text-muted-foreground text-center mb-6">
+            You must verify you're 18+ to create events on Laten.
+          </p>
+          <Button variant="neon" onClick={handleVerifyAge} disabled={verificationLoading}>
+            {verificationLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            ) : null}
+            Verify My Age
           </Button>
         </div>
         <BottomNav />
