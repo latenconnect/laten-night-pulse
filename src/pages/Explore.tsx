@@ -15,6 +15,7 @@ import ForYouSection from '@/components/ForYouSection';
 import StoriesBar from '@/components/stories/StoriesBar';
 import FeaturedBadge from '@/components/FeaturedBadge';
 import MobileLayout from '@/components/layouts/MobileLayout';
+import { LiveFeedHeader, SocialSignal } from '@/components/engagement';
 import { mockEvents, getFeaturedEvents } from '@/data/mockEvents';
 import { useApp } from '@/context/AppContext';
 import { SearchContext } from '@/context/SearchContext';
@@ -158,6 +159,17 @@ const Explore: React.FC = () => {
 
   return (
     <MobileLayout header={ExploreHeader}>
+      {/* Live Activity Header */}
+      <LiveFeedHeader 
+        city={selectedCity}
+        activeUsers={Math.floor(Math.random() * 50) + 20}
+        trendingCount={trendingEvents.length}
+        newEventsToday={dbFeaturedEvents.length}
+      />
+      
+      {/* Stories Bar */}
+      <StoriesBar />
+
       <main className="px-4 py-6 space-y-8">
         {/* For You Section (Personalized) */}
         <ForYouSection 
