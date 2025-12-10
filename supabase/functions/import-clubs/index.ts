@@ -151,7 +151,7 @@ async function searchNearby(
   return response.json();
 }
 
-async function getPhotoUrl(apiKey: string, photoName: string, maxWidth: number = 400): Promise<string | null> {
+async function getPhotoUrl(apiKey: string, photoName: string, maxWidth: number = 1200): Promise<string | null> {
   try {
     const url = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=${maxWidth}&key=${apiKey}`;
     // Return the URL directly - Google will redirect to the actual image
