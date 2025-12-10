@@ -35,17 +35,24 @@ export const useStories = () => {
 
   const fetchStories = async () => {
     try {
-      // Fetch all non-expired stories with profile info
+      // Fetch all non-expired stories
       const { data: stories, error } = await supabase
         .from('stories')
-        .select(`
-          *,
-          profile:profiles!stories_user_id_fkey(display_name, avatar_url)
-        `)
+        .select('*')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      // Get unique user IDs and fetch their profiles separately
+      const userIds = [...new Set((stories || []).map(s => s.user_id))];
+      
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', userIds);
+      
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
       // Fetch viewed stories if user is logged in
       let viewedIds = new Set<string>();
@@ -65,10 +72,11 @@ export const useStories = () => {
       const groupedMap = new Map<string, StoryGroup>();
       
       (stories || []).forEach((story: any) => {
+        const profile = profileMap.get(story.user_id);
         const existing = groupedMap.get(story.user_id);
         const storyData: Story = {
           ...story,
-          profile: story.profile
+          profile
         };
         
         if (existing) {
@@ -79,8 +87,8 @@ export const useStories = () => {
         } else {
           groupedMap.set(story.user_id, {
             user_id: story.user_id,
-            display_name: story.profile?.display_name || 'User',
-            avatar_url: story.profile?.avatar_url,
+            display_name: profile?.display_name || 'User',
+            avatar_url: profile?.avatar_url,
             stories: [storyData],
             hasUnviewed: !viewedIds.has(story.id)
           });

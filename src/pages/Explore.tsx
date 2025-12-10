@@ -1,7 +1,7 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles, Building2, ChevronDown, Star } from 'lucide-react';
+import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles, Building2, ChevronDown, Star, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -16,12 +16,14 @@ import StoriesBar from '@/components/stories/StoriesBar';
 import FeaturedBadge from '@/components/FeaturedBadge';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import { LiveFeedHeader, SocialSignal } from '@/components/engagement';
+import { SocialActivityFeed, FriendsSuggestions } from '@/components/social';
 import { mockEvents, getFeaturedEvents } from '@/data/mockEvents';
 import { useApp } from '@/context/AppContext';
 import { SearchContext } from '@/context/SearchContext';
 import { useClubs } from '@/hooks/useClubs';
 import { usePersonalizedFeed } from '@/hooks/usePersonalizedFeed';
 import { useFeaturedClubs } from '@/hooks/useFeaturedContent';
+import { useAuth } from '@/context/AuthContext';
 import { EVENT_TYPES } from '@/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,6 +37,7 @@ const HUNGARIAN_CITIES = [
 const Explore: React.FC = () => {
   const navigate = useNavigate();
   const { selectedCity, setSelectedCity } = useApp();
+  const { user } = useAuth();
   const searchContext = useContext(SearchContext);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -171,12 +174,18 @@ const Explore: React.FC = () => {
       <StoriesBar />
 
       <main className="px-4 py-6 space-y-8">
+        {/* Friend Suggestions (for logged in users) */}
+        {user && <FriendsSuggestions city={selectedCity} limit={3} />}
+
         {/* For You Section (Personalized) */}
         <ForYouSection 
           events={forYouEvents} 
           loading={feedLoading} 
           hasPersonalization={hasPersonalization}
         />
+
+        {/* Friend Activity Feed */}
+        {user && <SocialActivityFeed limit={3} />}
 
         {/* Featured Section */}
         <section>
