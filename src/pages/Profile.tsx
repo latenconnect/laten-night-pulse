@@ -29,11 +29,24 @@ const Profile: React.FC = () => {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { startVerification, loading: verificationLoading } = useAgeVerification();
 
-  // Only show admin features for the owner
-  const OWNER_EMAIL = 'aronpeterszabo@gmail.com';
-  const isOwner = user?.email === OWNER_EMAIL;
+  // Check admin role server-side
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      const { data } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin'
+      });
+      setIsAdmin(!!data);
+    };
+    checkAdminRole();
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -205,8 +218,8 @@ const Profile: React.FC = () => {
         </div>
       </section>
 
-      {/* Admin Dashboard Link - Only visible to owner */}
-      {isOwner && (
+      {/* Admin Dashboard Link - Only visible to admins */}
+      {isAdmin && (
         <section className="px-4 mt-6">
           <motion.button
             onClick={() => navigate('/admin')}
