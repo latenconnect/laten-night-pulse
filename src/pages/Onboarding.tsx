@@ -17,8 +17,15 @@ type Step = typeof steps[number];
 const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { setHasCompletedOnboarding, setInterests, setSelectedCity } = useApp();
+  const { hasCompletedOnboarding, setHasCompletedOnboarding, setInterests, setSelectedCity } = useApp();
   const { loading: verificationLoading, error: verificationError, startVerification, checkVerificationStatus } = useAgeVerification();
+
+  // Redirect if already completed onboarding
+  useEffect(() => {
+    if (hasCompletedOnboarding) {
+      navigate('/explore', { replace: true });
+    }
+  }, [hasCompletedOnboarding, navigate]);
   
   const [currentStep, setCurrentStep] = useState<Step>('welcome');
   const [age, setAge] = useState('');
