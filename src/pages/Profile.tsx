@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   Settings, ChevronRight, Calendar, Heart, MapPin, 
-  Bell, Shield, LogOut, Sparkles, User as UserIcon, LayoutDashboard
+  Bell, Shield, LogOut, Sparkles, User as UserIcon, LayoutDashboard, 
+  BadgeCheck, ShieldCheck, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MobileLayout from '@/components/layouts/MobileLayout';
@@ -12,12 +13,14 @@ import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAgeVerification } from '@/hooks/useAgeVerification';
 
 interface Profile {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
   city: string | null;
+  age_verified: boolean | null;
 }
 
 const Profile: React.FC = () => {
@@ -27,6 +30,7 @@ const Profile: React.FC = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { startVerification, loading: verificationLoading } = useAgeVerification();
 
   useEffect(() => {
     if (user) {
@@ -42,7 +46,7 @@ const Profile: React.FC = () => {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, avatar_url, city')
+      .select('id, display_name, avatar_url, city, age_verified')
       .eq('id', user.id)
       .single();
     
@@ -50,6 +54,14 @@ const Profile: React.FC = () => {
       setProfile(data);
     }
     setLoading(false);
+  };
+
+  const handleVerifyAge = async () => {
+    const result = await startVerification();
+    if (result?.url) {
+      window.open(result.url, '_blank');
+      toast.info('Complete verification in the new tab. Your status will update automatically.');
+    }
   };
 
   const checkAdminRole = async () => {
@@ -216,6 +228,49 @@ const Profile: React.FC = () => {
             <span className="flex-1 text-left font-medium">Admin Dashboard</span>
             <ChevronRight className="w-5 h-5 text-primary" />
           </motion.button>
+        </section>
+      )}
+
+      {/* ID Verification */}
+      {user && (
+        <section className="px-4 mt-6">
+          <div className="glass-card p-4">
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                profile?.age_verified ? 'bg-secondary/20' : 'bg-primary/20'
+              }`}>
+                {profile?.age_verified ? (
+                  <ShieldCheck className="w-6 h-6 text-secondary" />
+                ) : (
+                  <BadgeCheck className="w-6 h-6 text-primary" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold">
+                  {profile?.age_verified ? 'Age Verified' : 'ID Verification'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {profile?.age_verified 
+                    ? 'Your age has been verified (18+)'
+                    : 'Verify your age to create or attend events'}
+                </p>
+              </div>
+              {!profile?.age_verified && (
+                <Button
+                  variant="neon"
+                  size="sm"
+                  onClick={handleVerifyAge}
+                  disabled={verificationLoading}
+                >
+                  {verificationLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    'Verify'
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
         </section>
       )}
 
