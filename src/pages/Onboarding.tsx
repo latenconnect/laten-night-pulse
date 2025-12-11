@@ -35,6 +35,11 @@ const Onboarding: React.FC = () => {
   const [verificationMode, setVerificationMode] = useState<'manual' | 'didit'>('manual');
   const [isVerified, setIsVerified] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
+  
+  // Rate limiting for age entry attempts
+  const [ageAttempts, setAgeAttempts] = useState(0);
+  const [ageLocked, setAgeLocked] = useState(false);
+  const MAX_AGE_ATTEMPTS = 3;
 
   const currentIndex = steps.indexOf(currentStep);
 
@@ -83,6 +88,12 @@ const Onboarding: React.FC = () => {
 
   const handleNext = () => {
     if (currentStep === 'age') {
+      if (ageLocked) {
+        setAgeError('Too many attempts. Please use ID Verification instead.');
+        setVerificationMode('didit');
+        return;
+      }
+      
       if (verificationMode === 'manual') {
         const ageNum = parseInt(age);
         if (!age || isNaN(ageNum)) {
@@ -90,7 +101,17 @@ const Onboarding: React.FC = () => {
           return;
         }
         if (ageNum < 18) {
-          setAgeError('You must be 18 or older to use Laten');
+          const newAttempts = ageAttempts + 1;
+          setAgeAttempts(newAttempts);
+          
+          if (newAttempts >= MAX_AGE_ATTEMPTS) {
+            setAgeLocked(true);
+            setAgeError('Too many invalid attempts. Please verify your age with ID.');
+            setVerificationMode('didit');
+            toast.error('Age entry locked. Please use ID verification.');
+          } else {
+            setAgeError(`You must be 18 or older to use Laten (${MAX_AGE_ATTEMPTS - newAttempts} attempts remaining)`);
+          }
           return;
         }
         setAgeError('');
@@ -114,12 +135,21 @@ const Onboarding: React.FC = () => {
     }
   };
 
+  // Limit interest selection to prevent spam toggling
+  const MAX_INTERESTS = 10;
+  
   const toggleInterest = (interest: string) => {
-    setSelectedInterests(prev =>
-      prev.includes(interest)
-        ? prev.filter(i => i !== interest)
-        : [...prev, interest]
-    );
+    setSelectedInterests(prev => {
+      if (prev.includes(interest)) {
+        return prev.filter(i => i !== interest);
+      }
+      // Limit max selections
+      if (prev.length >= MAX_INTERESTS) {
+        toast.error(`Maximum ${MAX_INTERESTS} interests allowed`);
+        return prev;
+      }
+      return [...prev, interest];
+    });
   };
 
   const pageVariants = {
