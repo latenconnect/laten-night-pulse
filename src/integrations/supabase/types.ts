@@ -14,6 +14,100 @@ export type Database = {
   }
   public: {
     Tables: {
+      club_analytics: {
+        Row: {
+          clicks: number | null
+          club_id: string
+          created_at: string | null
+          date: string
+          directions_clicks: number | null
+          id: string
+          shares: number | null
+          views: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          club_id: string
+          created_at?: string | null
+          date?: string
+          directions_clicks?: number | null
+          id?: string
+          shares?: number | null
+          views?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          club_id?: string
+          created_at?: string | null
+          date?: string
+          directions_clicks?: number | null
+          id?: string
+          shares?: number | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_analytics_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_claims: {
+        Row: {
+          admin_notes: string | null
+          business_email: string
+          business_name: string
+          business_phone: string | null
+          club_id: string
+          created_at: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["club_verification_status"]
+          user_id: string
+          verification_documents: string[] | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          business_email: string
+          business_name: string
+          business_phone?: string | null
+          club_id: string
+          created_at?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["club_verification_status"]
+          user_id: string
+          verification_documents?: string[] | null
+        }
+        Update: {
+          admin_notes?: string | null
+          business_email?: string
+          business_name?: string
+          business_phone?: string | null
+          club_id?: string
+          created_at?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["club_verification_status"]
+          user_id?: string
+          verification_documents?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_claims_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clubs: {
         Row: {
           address: string | null
@@ -31,6 +125,7 @@ export type Database = {
           longitude: number
           name: string
           opening_hours: Json | null
+          owner_id: string | null
           photos: string[] | null
           price_level: number | null
           rating: number | null
@@ -52,6 +147,7 @@ export type Database = {
           longitude: number
           name: string
           opening_hours?: Json | null
+          owner_id?: string | null
           photos?: string[] | null
           price_level?: number | null
           rating?: number | null
@@ -73,12 +169,60 @@ export type Database = {
           longitude?: number
           name?: string
           opening_hours?: Json | null
+          owner_id?: string | null
           photos?: string[] | null
           price_level?: number | null
           rating?: number | null
           venue_type?: string | null
         }
         Relationships: []
+      }
+      event_analytics: {
+        Row: {
+          clicks: number | null
+          created_at: string | null
+          date: string
+          event_id: string
+          id: string
+          revenue_cents: number | null
+          rsvps: number | null
+          shares: number | null
+          ticket_sales: number | null
+          views: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          created_at?: string | null
+          date?: string
+          event_id: string
+          id?: string
+          revenue_cents?: number | null
+          rsvps?: number | null
+          shares?: number | null
+          ticket_sales?: number | null
+          views?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          created_at?: string | null
+          date?: string
+          event_id?: string
+          id?: string
+          revenue_cents?: number | null
+          rsvps?: number | null
+          shares?: number | null
+          ticket_sales?: number | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_analytics_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_answers: {
         Row: {
@@ -111,6 +255,59 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "event_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_boosts: {
+        Row: {
+          boost_type: string
+          clicks: number | null
+          created_at: string | null
+          currency: string
+          ends_at: string
+          event_id: string
+          id: string
+          impressions: number | null
+          price_cents: number
+          starts_at: string
+          status: Database["public"]["Enums"]["boost_status"]
+          stripe_payment_id: string | null
+        }
+        Insert: {
+          boost_type?: string
+          clicks?: number | null
+          created_at?: string | null
+          currency?: string
+          ends_at: string
+          event_id: string
+          id?: string
+          impressions?: number | null
+          price_cents: number
+          starts_at: string
+          status?: Database["public"]["Enums"]["boost_status"]
+          stripe_payment_id?: string | null
+        }
+        Update: {
+          boost_type?: string
+          clicks?: number | null
+          created_at?: string | null
+          currency?: string
+          ends_at?: string
+          event_id?: string
+          id?: string
+          impressions?: number | null
+          price_cents?: number
+          starts_at?: string
+          status?: Database["public"]["Enums"]["boost_status"]
+          stripe_payment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_boosts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
@@ -256,6 +453,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_tickets: {
+        Row: {
+          created_at: string | null
+          currency: string
+          description: string | null
+          event_id: string
+          id: string
+          name: string
+          price_cents: number
+          quantity_sold: number | null
+          quantity_total: number
+          sale_ends_at: string | null
+          sale_starts_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          event_id: string
+          id?: string
+          name: string
+          price_cents: number
+          quantity_sold?: number | null
+          quantity_total: number
+          sale_ends_at?: string | null
+          sale_starts_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          event_id?: string
+          id?: string
+          name?: string
+          price_cents?: number
+          quantity_sold?: number | null
+          quantity_total?: number
+          sale_ends_at?: string | null
+          sale_starts_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_tickets_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
@@ -638,6 +885,53 @@ export type Database = {
           },
         ]
       }
+      ticket_purchases: {
+        Row: {
+          commission_cents: number
+          id: string
+          price_paid_cents: number
+          purchased_at: string | null
+          qr_code: string | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          stripe_payment_id: string | null
+          ticket_id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          commission_cents: number
+          id?: string
+          price_paid_cents: number
+          purchased_at?: string | null
+          qr_code?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          stripe_payment_id?: string | null
+          ticket_id: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          commission_cents?: number
+          id?: string
+          price_paid_cents?: number
+          purchased_at?: string | null
+          qr_code?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          stripe_payment_id?: string | null
+          ticket_id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_purchases_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "event_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_connections: {
         Row: {
           connection_type: string
@@ -776,6 +1070,59 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          club_id: string
+          created_at: string | null
+          currency: string
+          expires_at: string
+          id: string
+          price_cents: number
+          started_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_subscription_id: string | null
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          updated_at: string | null
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          club_id: string
+          created_at?: string | null
+          currency?: string
+          expires_at: string
+          id?: string
+          price_cents: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_subscription_id?: string | null
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string | null
+        }
+        Update: {
+          auto_renew?: boolean | null
+          club_id?: string
+          created_at?: string | null
+          currency?: string
+          expires_at?: string
+          id?: string
+          price_cents?: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_subscription_id?: string | null
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_subscriptions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: true
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       public_host_info: {
@@ -833,10 +1180,23 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_club_analytics: {
+        Args: { p_club_id: string; p_field: string }
+        Returns: undefined
+      }
+      increment_event_analytics: {
+        Args: { p_event_id: string; p_field: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      boost_status: "pending" | "active" | "completed" | "cancelled"
+      club_verification_status: "pending" | "verified" | "rejected"
       event_type: "club" | "house_party" | "university" | "festival" | "public"
+      subscription_status: "active" | "cancelled" | "expired" | "trial"
+      subscription_tier: "basic" | "boost" | "ultimate"
+      ticket_status: "available" | "sold" | "used" | "refunded" | "cancelled"
       verification_status: "pending" | "verified" | "rejected"
     }
     CompositeTypes: {
@@ -966,7 +1326,12 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      boost_status: ["pending", "active", "completed", "cancelled"],
+      club_verification_status: ["pending", "verified", "rejected"],
       event_type: ["club", "house_party", "university", "festival", "public"],
+      subscription_status: ["active", "cancelled", "expired", "trial"],
+      subscription_tier: ["basic", "boost", "ultimate"],
+      ticket_status: ["available", "sold", "used", "refunded", "cancelled"],
       verification_status: ["pending", "verified", "rejected"],
     },
   },
