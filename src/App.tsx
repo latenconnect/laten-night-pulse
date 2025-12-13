@@ -31,6 +31,9 @@ import AdminHosts from "./pages/admin/AdminHosts";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminImport from "./pages/admin/AdminImport";
+import DJMarketplace from "./pages/DJMarketplace";
+import DJProfile from "./pages/DJProfile";
+import DJDashboard from "./pages/DJDashboard";
 import { SearchContext } from "@/context/SearchContext";
 
 const queryClient = new QueryClient();
@@ -72,6 +75,10 @@ const AppContent = () => {
         <Route path="/friends" element={<Friends />} />
         <Route path="/saved" element={<SavedEvents />} />
         <Route path="/create" element={<CreateEvent />} />
+        {/* DJ Marketplace routes */}
+        <Route path="/djs" element={<DJMarketplace />} />
+        <Route path="/dj/:djId" element={<DJProfile />} />
+        <Route path="/dj/dashboard" element={<DJDashboard />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         {/* Admin routes */}

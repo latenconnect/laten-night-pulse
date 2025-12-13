@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Map, Compass, Plus, Heart, User } from 'lucide-react';
+import { Map, Compass, Plus, Music, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHaptics } from '@/hooks/useHaptics';
 
@@ -9,7 +9,7 @@ const navItems = [
   { icon: Map, label: 'Map', path: '/map' },
   { icon: Compass, label: 'Explore', path: '/explore' },
   { icon: Plus, label: 'Create', path: '/create', isSpecial: true },
-  { icon: Heart, label: 'Saved', path: '/saved' },
+  { icon: Music, label: 'DJs', path: '/djs' },
   { icon: User, label: 'Profile', path: '/profile' },
 ];
 
