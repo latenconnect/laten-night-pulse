@@ -35,6 +35,7 @@ import DJMarketplace from "./pages/DJMarketplace";
 import DJProfile from "./pages/DJProfile";
 import DJDashboard from "./pages/DJDashboard";
 import { SearchContext } from "@/context/SearchContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 const queryClient = new QueryClient();
 
@@ -111,29 +112,31 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner 
-              position="top-center"
-              toastOptions={{
-                style: {
-                  background: 'hsl(240 15% 10%)',
-                  border: '1px solid hsl(240 15% 18%)',
-                  color: 'hsl(0 0% 98%)',
-                },
-              }}
-            />
-            <AnimatePresence mode="wait">
-              {isLoading && <SplashScreen key="splash" />}
-            </AnimatePresence>
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
-          </TooltipProvider>
-        </AppProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <AppProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner 
+                position="top-center"
+                toastOptions={{
+                  style: {
+                    background: 'hsl(240 15% 10%)',
+                    border: '1px solid hsl(240 15% 18%)',
+                    color: 'hsl(0 0% 98%)',
+                  },
+                }}
+              />
+              <AnimatePresence mode="wait">
+                {isLoading && <SplashScreen key="splash" />}
+              </AnimatePresence>
+              <BrowserRouter>
+                <AppContent />
+              </BrowserRouter>
+            </TooltipProvider>
+          </AppProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 };
