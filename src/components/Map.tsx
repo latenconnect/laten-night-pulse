@@ -179,14 +179,40 @@ const Map: React.FC<MapProps> = ({
     events.forEach((event) => {
       const el = document.createElement('div');
       el.className = 'event-marker';
-      el.innerHTML = `
-        <div class="relative cursor-pointer group">
-          <div class="absolute inset-0 rounded-full ${event.isFeatured ? 'bg-purple-500' : 'bg-cyan-500'} animate-ping opacity-40"></div>
-          <div class="relative w-4 h-4 rounded-full ${event.isFeatured ? 'bg-purple-500' : 'bg-cyan-500'} flex items-center justify-center shadow-lg" style="box-shadow: 0 0 20px ${event.isFeatured ? 'rgba(168, 85, 247, 0.6)' : 'rgba(6, 182, 212, 0.6)'}">
-            ${event.isFeatured ? '<svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>' : ''}
-          </div>
-        </div>
-      `;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'relative cursor-pointer group';
+
+      const ring = document.createElement('div');
+      ring.className = 'absolute inset-0 rounded-full animate-ping opacity-40';
+      ring.classList.add(event.isFeatured ? 'bg-purple-500' : 'bg-cyan-500');
+
+      const circle = document.createElement('div');
+      circle.className = 'relative w-4 h-4 rounded-full flex items-center justify-center shadow-lg';
+      circle.classList.add(event.isFeatured ? 'bg-purple-500' : 'bg-cyan-500');
+      circle.style.boxShadow = event.isFeatured
+        ? '0 0 20px rgba(168, 85, 247, 0.6)'
+        : '0 0 20px rgba(6, 182, 212, 0.6)';
+
+      if (event.isFeatured) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', 'w-2 h-2 text-white');
+        svg.setAttribute('fill', 'currentColor');
+        svg.setAttribute('viewBox', '0 0 24 24');
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute(
+          'd',
+          'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'
+        );
+
+        svg.appendChild(path);
+        circle.appendChild(svg);
+      }
+
+      wrapper.appendChild(ring);
+      wrapper.appendChild(circle);
+      el.appendChild(wrapper);
 
       el.addEventListener('click', () => {
         onEventSelect(event.id);
@@ -203,13 +229,20 @@ const Map: React.FC<MapProps> = ({
     clubs.forEach((club) => {
       const el = document.createElement('div');
       el.className = 'club-marker';
-      el.innerHTML = `
-        <div class="relative cursor-pointer group">
-          <div class="absolute inset-0 rounded-full bg-amber-500 animate-ping opacity-30"></div>
-          <div class="relative w-3 h-3 rounded-full bg-amber-500 flex items-center justify-center shadow-lg" style="box-shadow: 0 0 15px rgba(245, 158, 11, 0.5)">
-          </div>
-        </div>
-      `;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'relative cursor-pointer group';
+
+      const ring = document.createElement('div');
+      ring.className = 'absolute inset-0 rounded-full bg-amber-500 animate-ping opacity-30';
+
+      const circle = document.createElement('div');
+      circle.className = 'relative w-3 h-3 rounded-full bg-amber-500 flex items-center justify-center shadow-lg';
+      circle.style.boxShadow = '0 0 15px rgba(245, 158, 11, 0.5)';
+
+      wrapper.appendChild(ring);
+      wrapper.appendChild(circle);
+      el.appendChild(wrapper);
 
       el.addEventListener('click', () => {
         if (onClubSelect) {
