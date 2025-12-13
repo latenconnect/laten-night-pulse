@@ -177,6 +177,270 @@ export type Database = {
         }
         Relationships: []
       }
+      dj_availability: {
+        Row: {
+          created_at: string | null
+          date: string
+          dj_profile_id: string
+          id: string
+          is_available: boolean | null
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          dj_profile_id: string
+          id?: string
+          is_available?: boolean | null
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          dj_profile_id?: string
+          id?: string
+          is_available?: boolean | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dj_availability_dj_profile_id_fkey"
+            columns: ["dj_profile_id"]
+            isOneToOne: false
+            referencedRelation: "dj_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dj_booking_requests: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string | null
+          currency: string | null
+          dj_profile_id: string
+          dj_response: string | null
+          event_date: string
+          event_description: string | null
+          event_location: string | null
+          event_type: string
+          id: string
+          message: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          currency?: string | null
+          dj_profile_id: string
+          dj_response?: string | null
+          event_date: string
+          event_description?: string | null
+          event_location?: string | null
+          event_type: string
+          id?: string
+          message?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          currency?: string | null
+          dj_profile_id?: string
+          dj_response?: string | null
+          event_date?: string
+          event_description?: string | null
+          event_location?: string | null
+          event_type?: string
+          id?: string
+          message?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dj_booking_requests_dj_profile_id_fkey"
+            columns: ["dj_profile_id"]
+            isOneToOne: false
+            referencedRelation: "dj_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dj_profiles: {
+        Row: {
+          bio: string | null
+          city: string
+          created_at: string | null
+          currency: string | null
+          dj_name: string
+          experience_level: string | null
+          genres: string[]
+          id: string
+          instagram_url: string | null
+          is_active: boolean | null
+          mixcloud_url: string | null
+          preferred_event_types: string[] | null
+          price_max: number | null
+          price_min: number | null
+          profile_photo: string | null
+          rating: number | null
+          review_count: number | null
+          soundcloud_url: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          city?: string
+          created_at?: string | null
+          currency?: string | null
+          dj_name: string
+          experience_level?: string | null
+          genres?: string[]
+          id?: string
+          instagram_url?: string | null
+          is_active?: boolean | null
+          mixcloud_url?: string | null
+          preferred_event_types?: string[] | null
+          price_max?: number | null
+          price_min?: number | null
+          profile_photo?: string | null
+          rating?: number | null
+          review_count?: number | null
+          soundcloud_url?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          city?: string
+          created_at?: string | null
+          currency?: string | null
+          dj_name?: string
+          experience_level?: string | null
+          genres?: string[]
+          id?: string
+          instagram_url?: string | null
+          is_active?: boolean | null
+          mixcloud_url?: string | null
+          preferred_event_types?: string[] | null
+          price_max?: number | null
+          price_min?: number | null
+          profile_photo?: string | null
+          rating?: number | null
+          review_count?: number | null
+          soundcloud_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dj_reviews: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          dj_profile_id: string
+          id: string
+          rating: number
+          review: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          dj_profile_id: string
+          id?: string
+          rating: number
+          review?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          dj_profile_id?: string
+          id?: string
+          rating?: number
+          review?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dj_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "dj_booking_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dj_reviews_dj_profile_id_fkey"
+            columns: ["dj_profile_id"]
+            isOneToOne: false
+            referencedRelation: "dj_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dj_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          created_at: string | null
+          currency: string
+          dj_profile_id: string
+          expires_at: string | null
+          id: string
+          price_cents: number
+          started_at: string | null
+          status: string
+          stripe_subscription_id: string | null
+          tier: string
+          updated_at: string | null
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          currency?: string
+          dj_profile_id: string
+          expires_at?: string | null
+          id?: string
+          price_cents?: number
+          started_at?: string | null
+          status?: string
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+        }
+        Update: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          currency?: string
+          dj_profile_id?: string
+          expires_at?: string | null
+          id?: string
+          price_cents?: number
+          started_at?: string | null
+          status?: string
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dj_subscriptions_dj_profile_id_fkey"
+            columns: ["dj_profile_id"]
+            isOneToOne: true
+            referencedRelation: "dj_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_analytics: {
         Row: {
           clicks: number | null
