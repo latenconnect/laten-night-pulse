@@ -4,7 +4,7 @@ import { translations } from './translations';
 
 const LANGUAGE_KEY = 'laten_language';
 
-const SUPPORTED_LANGUAGES = ['en', 'hu', 'zh', 'vi', 'fr', 'it', 'es', 'de'];
+const SUPPORTED_LANGUAGES = ['en', 'hu', 'zh', 'vi', 'fr', 'it', 'es', 'de', 'ko'];
 
 // Get saved language or detect from browser
 const getInitialLanguage = (): string => {
