@@ -246,13 +246,13 @@ const AdminImport = () => {
     setGeneratingTranslations(true);
     setTranslationLog([]);
     setTranslationLog(prev => [...prev, 'Starting translation generation...']);
-    setTranslationLog(prev => [...prev, 'Languages: Chinese, Vietnamese, French, Italian, Spanish, German']);
+    setTranslationLog(prev => [...prev, 'Languages: Chinese, Vietnamese, French, Italian, Spanish, German, Korean']);
 
     try {
       const response = await supabase.functions.invoke('translate-i18n', {
         body: {
           englishTranslations: translations.en,
-          targetLanguages: ['zh', 'vi', 'fr', 'it', 'es', 'de']
+          targetLanguages: ['zh', 'vi', 'fr', 'it', 'es', 'de', 'ko']
         }
       });
 
@@ -343,7 +343,7 @@ const AdminImport = () => {
               Translation Generator
             </CardTitle>
             <CardDescription>
-              Generate translations for: Chinese, Vietnamese, French, Italian, Spanish, German
+              Generate translations for: Chinese, Vietnamese, French, Italian, Spanish, German, Korean
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -354,6 +354,7 @@ const AdminImport = () => {
               <Badge variant="outline">🇮🇹 Italian</Badge>
               <Badge variant="outline">🇪🇸 Spanish</Badge>
               <Badge variant="outline">🇩🇪 German</Badge>
+              <Badge variant="outline">🇰🇷 Korean</Badge>
             </div>
             <Button 
               onClick={handleGenerateTranslations} 
