@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.algolia-search]
 verify_jwt = false
+
+[functions.translate-i18n]
+verify_jwt = true

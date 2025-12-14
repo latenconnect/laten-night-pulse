@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, Database, MapPin, RefreshCw, Download, DollarSign, Clock, Trash2, Search } from 'lucide-react';
+import { AlertTriangle, Database, MapPin, RefreshCw, Download, DollarSign, Clock, Trash2, Search, Languages } from 'lucide-react';
 import { toast } from 'sonner';
+import { translations } from '@/i18n/translations';
 
 const HUNGARIAN_CITIES = [
   "Budapest", "Debrecen", "Szeged", "Pécs", "Győr", "Siófok", "Miskolc", "Eger",
@@ -45,7 +46,8 @@ const AdminImport = () => {
   const [cleaning, setCleaning] = useState(false);
   const [cleanupLog, setCleanupLog] = useState<string[]>([]);
   const [syncingAlgolia, setSyncingAlgolia] = useState(false);
-
+  const [generatingTranslations, setGeneratingTranslations] = useState(false);
+  const [translationLog, setTranslationLog] = useState<string[]>([]);
   useEffect(() => {
     const checkAdminAccess = async () => {
       if (!user) {
@@ -240,6 +242,47 @@ const AdminImport = () => {
     }
   };
 
+  const handleGenerateTranslations = async () => {
+    setGeneratingTranslations(true);
+    setTranslationLog([]);
+    setTranslationLog(prev => [...prev, 'Starting translation generation...']);
+    setTranslationLog(prev => [...prev, 'Languages: Chinese, Vietnamese, French, Italian, Spanish, German']);
+
+    try {
+      const response = await supabase.functions.invoke('translate-i18n', {
+        body: {
+          englishTranslations: translations.en,
+          targetLanguages: ['zh', 'vi', 'fr', 'it', 'es', 'de']
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      const result = response.data;
+      if (result.success) {
+        setTranslationLog(prev => [...prev, `✓ Translation completed!`]);
+        setTranslationLog(prev => [...prev, `  Strings translated: ${result.stats.stringsTranslated}`]);
+        setTranslationLog(prev => [...prev, `  Languages: ${result.stats.languagesCompleted}`]);
+        setTranslationLog(prev => [...prev, '']);
+        setTranslationLog(prev => [...prev, '📋 Copy the translations below and paste into src/i18n/translations.ts:']);
+        setTranslationLog(prev => [...prev, '']);
+        setTranslationLog(prev => [...prev, JSON.stringify(result.translations, null, 2)]);
+        
+        toast.success(`Translations generated for ${result.stats.languagesCompleted} languages!`);
+      } else {
+        throw new Error(result.error || 'Translation failed');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      setTranslationLog(prev => [...prev, `✗ Error: ${message}`]);
+      toast.error(`Translation failed: ${message}`);
+    } finally {
+      setGeneratingTranslations(false);
+    }
+  };
+
   if (isAdmin === null) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -289,6 +332,59 @@ const AdminImport = () => {
             <p className="text-xs text-muted-foreground mt-2">
               Run this after importing new venues or when events change.
             </p>
+          </CardContent>
+        </Card>
+
+        {/* Translation Generator */}
+        <Card className="border-purple-500/50 bg-purple-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-purple-500 text-lg">
+              <Languages className="h-5 w-5" />
+              Translation Generator
+            </CardTitle>
+            <CardDescription>
+              Generate translations for: Chinese, Vietnamese, French, Italian, Spanish, German
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline">🇨🇳 Chinese</Badge>
+              <Badge variant="outline">🇻🇳 Vietnamese</Badge>
+              <Badge variant="outline">🇫🇷 French</Badge>
+              <Badge variant="outline">🇮🇹 Italian</Badge>
+              <Badge variant="outline">🇪🇸 Spanish</Badge>
+              <Badge variant="outline">🇩🇪 German</Badge>
+            </div>
+            <Button 
+              onClick={handleGenerateTranslations} 
+              disabled={generatingTranslations}
+              variant="outline"
+              className="gap-2 border-purple-500/50 text-purple-500 hover:bg-purple-500/10"
+            >
+              {generatingTranslations ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Generating Translations...
+                </>
+              ) : (
+                <>
+                  <Languages className="h-4 w-4" />
+                  Generate All Translations
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Uses Google Translate via RapidAPI. Output must be manually copied to translations.ts.
+            </p>
+
+            {/* Translation Log */}
+            {translationLog.length > 0 && (
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg font-mono text-xs max-h-96 overflow-y-auto whitespace-pre-wrap">
+                {translationLog.map((log, i) => (
+                  <div key={i} className="py-0.5">{log}</div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 

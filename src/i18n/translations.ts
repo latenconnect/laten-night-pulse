@@ -1,4 +1,15 @@
-export type Language = 'en' | 'hu';
+export type Language = 'en' | 'hu' | 'zh' | 'vi' | 'fr' | 'it' | 'es' | 'de';
+
+export const languageNames: Record<Language, { name: string; nativeName: string; flag: string }> = {
+  en: { name: 'English', nativeName: 'English', flag: '🇬🇧' },
+  hu: { name: 'Hungarian', nativeName: 'Magyar', flag: '🇭🇺' },
+  zh: { name: 'Chinese', nativeName: '中文', flag: '🇨🇳' },
+  vi: { name: 'Vietnamese', nativeName: 'Tiếng Việt', flag: '🇻🇳' },
+  fr: { name: 'French', nativeName: 'Français', flag: '🇫🇷' },
+  it: { name: 'Italian', nativeName: 'Italiano', flag: '🇮🇹' },
+  es: { name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
+  de: { name: 'German', nativeName: 'Deutsch', flag: '🇩🇪' },
+};
 
 export const translations = {
   en: {
