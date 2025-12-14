@@ -4,17 +4,18 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Settings, ChevronRight, Calendar, Heart, MapPin, 
   Bell, Shield, LogOut, Sparkles, User as UserIcon, LayoutDashboard, 
-  BadgeCheck, ShieldCheck, Loader2
+  BadgeCheck, ShieldCheck, Loader2, Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import HostApplicationCard from '@/components/HostApplicationCard';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAgeVerification } from '@/hooks/useAgeVerification';
-
 interface Profile {
   id: string;
   display_name: string | null;
@@ -27,6 +28,7 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { selectedCity, interests } = useApp();
   const { user, signOut } = useAuth();
+  const { language } = useLanguage();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -91,6 +93,7 @@ const Profile: React.FC = () => {
     { icon: Bell, label: 'Notifications', path: undefined, action: () => toast.info('Push notifications settings coming soon!') },
     { icon: MapPin, label: 'Change Location', value: selectedCity, path: '/onboarding' },
     { icon: Sparkles, label: 'Edit Interests', path: '/onboarding' },
+    { icon: Globe, label: 'Language', customRight: <LanguageSwitcher />, path: undefined },
     { icon: Shield, label: 'Privacy Policy', path: '/privacy' },
     { icon: Settings, label: 'Terms of Service', path: '/terms' },
   ];
@@ -194,11 +197,11 @@ const Profile: React.FC = () => {
       <section className="px-4 mt-6">
         <div className="glass-card overflow-hidden">
           {menuItems.map((item) => (
-            <motion.button
+            <motion.div
               key={item.label}
               onClick={() => item.path ? navigate(item.path) : item.action?.()}
-              whileTap={{ scale: 0.98 }}
-              className="w-full flex items-center gap-4 p-4 border-b border-border/50 last:border-0 touch-highlight touch-target no-select"
+              whileTap={item.path || item.action ? { scale: 0.98 } : undefined}
+              className={`w-full flex items-center gap-4 p-4 border-b border-border/50 last:border-0 ${item.path || item.action ? 'touch-highlight touch-target no-select cursor-pointer' : ''}`}
             >
               <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
                 <item.icon className="w-5 h-5 text-muted-foreground" />
@@ -212,8 +215,11 @@ const Profile: React.FC = () => {
               {item.value && (
                 <span className="text-sm text-muted-foreground">{item.value}</span>
               )}
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </motion.button>
+              {item.customRight && item.customRight}
+              {(item.path || item.action) && !item.customRight && (
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              )}
+            </motion.div>
           ))}
         </div>
       </section>
