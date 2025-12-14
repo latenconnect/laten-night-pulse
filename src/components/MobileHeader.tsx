@@ -5,6 +5,7 @@ import { ArrowLeft, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SearchContext } from '@/context/SearchContext';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 interface MobileHeaderProps {
   title?: string;
@@ -14,6 +15,7 @@ interface MobileHeaderProps {
   transparent?: boolean;
   className?: string;
   showSearch?: boolean;
+  showLanguage?: boolean;
 }
 
 const MobileHeader: React.FC<MobileHeaderProps> = ({
@@ -23,7 +25,8 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   rightAction,
   transparent = false,
   className,
-  showSearch = false
+  showSearch = false,
+  showLanguage = false
 }) => {
   const navigate = useNavigate();
   const searchContext = useContext(SearchContext);
@@ -63,7 +66,8 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
         </h1>
       )}
       
-      <div className="w-10 flex justify-end gap-1">
+      <div className="flex justify-end items-center gap-1">
+        {showLanguage && <LanguageSwitcher />}
         {showSearch && searchContext && (
           <motion.div whileTap={{ scale: 0.9 }}>
             <Button

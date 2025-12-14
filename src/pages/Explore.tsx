@@ -17,6 +17,7 @@ import FeaturedBadge from '@/components/FeaturedBadge';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import { LiveFeedHeader, SocialSignal } from '@/components/engagement';
 import { SocialActivityFeed, FriendsSuggestions } from '@/components/social';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { mockEvents, getFeaturedEvents } from '@/data/mockEvents';
 import { useApp } from '@/context/AppContext';
 import { SearchContext } from '@/context/SearchContext';
@@ -102,16 +103,18 @@ const Explore: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Button 
-          variant="glass" 
-          size="icon" 
-          className="touch-target"
-          onClick={() => setActiveFilter(null)}
-        >
-          <Filter className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <Button 
+            variant="glass" 
+            size="icon" 
+            className="touch-target"
+            onClick={() => setActiveFilter(null)}
+          >
+            <Filter className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
-
       {/* Search */}
       <button
         onClick={() => searchContext?.openSearch()}
