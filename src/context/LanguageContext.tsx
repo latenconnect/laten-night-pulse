@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { translations } from '@/i18n/translations';
+import React, { createContext, useContext, ReactNode, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import '@/i18n/config';
 
 export type Language = 'en' | 'hu';
-
-const LANGUAGE_KEY = 'laten_language';
 
 interface LanguageContextType {
   language: Language;
@@ -15,61 +14,26 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem(LANGUAGE_KEY);
-    if (saved === 'en' || saved === 'hu') return saved;
-    // Auto-detect from browser
-    const browserLang = navigator.language.toLowerCase();
-    return browserLang.startsWith('hu') ? 'hu' : 'en';
-  });
+  const { t: i18nT, i18n } = useTranslation();
 
-  useEffect(() => {
-    localStorage.setItem(LANGUAGE_KEY, language);
-    document.documentElement.lang = language;
-  }, [language]);
+  const language = (i18n.language as Language) || 'en';
 
   const setLanguage = useCallback((lang: Language) => {
-    setLanguageState(lang);
-  }, []);
+    i18n.changeLanguage(lang);
+  }, [i18n]);
 
   const t = useCallback((key: string): string => {
-    const keys = key.split('.');
-    let value: any = translations[language];
-    
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        // Fallback to English
-        value = translations.en;
-        for (const fallbackKey of keys) {
-          if (value && typeof value === 'object' && fallbackKey in value) {
-            value = value[fallbackKey];
-          } else {
-            return key; // Return key if not found
-          }
-        }
-        break;
-      }
-    }
-    
-    return typeof value === 'string' ? value : key;
-  }, [language]);
+    const result = i18nT(key, { returnObjects: false });
+    return typeof result === 'string' ? result : key;
+  }, [i18nT]);
 
   const tArray = useCallback((key: string): string[] => {
-    const keys = key.split('.');
-    let value: any = translations[language];
-    
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        return [];
-      }
+    const result = i18nT(key, { returnObjects: true });
+    if (Array.isArray(result)) {
+      return result.filter((item): item is string => typeof item === 'string');
     }
-    
-    return Array.isArray(value) ? value : [];
-  }, [language]);
+    return [];
+  }, [i18nT]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, tArray }}>
