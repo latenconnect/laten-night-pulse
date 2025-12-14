@@ -2,7 +2,7 @@ import React, { createContext, useContext, ReactNode, useCallback } from 'react'
 import { useTranslation } from 'react-i18next';
 import '@/i18n/config';
 
-export type Language = 'en' | 'hu' | 'zh' | 'vi' | 'fr' | 'it' | 'es' | 'de';
+export type Language = 'en' | 'hu' | 'zh' | 'vi' | 'fr' | 'it' | 'es' | 'de' | 'ko';
 
 interface LanguageContextType {
   language: Language;

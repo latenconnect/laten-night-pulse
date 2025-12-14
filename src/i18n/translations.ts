@@ -1,4 +1,4 @@
-export type Language = 'en' | 'hu' | 'zh' | 'vi' | 'fr' | 'it' | 'es' | 'de';
+export type Language = 'en' | 'hu' | 'zh' | 'vi' | 'fr' | 'it' | 'es' | 'de' | 'ko';
 
 export const languageNames: Record<Language, { name: string; nativeName: string; flag: string }> = {
   en: { name: 'English', nativeName: 'English', flag: '🇬🇧' },
@@ -9,6 +9,7 @@ export const languageNames: Record<Language, { name: string; nativeName: string;
   it: { name: 'Italian', nativeName: 'Italiano', flag: '🇮🇹' },
   es: { name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
   de: { name: 'German', nativeName: 'Deutsch', flag: '🇩🇪' },
+  ko: { name: 'Korean', nativeName: '한국어', flag: '🇰🇷' },
 };
 
 export const translations = {
