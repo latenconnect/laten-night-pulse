@@ -4,14 +4,22 @@ import { translations } from './translations';
 
 const LANGUAGE_KEY = 'laten_language';
 
+const SUPPORTED_LANGUAGES = ['en', 'hu', 'zh', 'vi', 'fr', 'it', 'es', 'de'];
+
 // Get saved language or detect from browser
 const getInitialLanguage = (): string => {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(LANGUAGE_KEY);
-    if (saved === 'en' || saved === 'hu') return saved;
+    if (saved && SUPPORTED_LANGUAGES.includes(saved)) return saved;
     
     const browserLang = navigator.language.toLowerCase();
-    return browserLang.startsWith('hu') ? 'hu' : 'en';
+    // Check for exact match first
+    if (SUPPORTED_LANGUAGES.includes(browserLang)) return browserLang;
+    // Check for language prefix match
+    const langPrefix = browserLang.split('-')[0];
+    if (SUPPORTED_LANGUAGES.includes(langPrefix)) return langPrefix;
+    
+    return 'en';
   }
   return 'en';
 };

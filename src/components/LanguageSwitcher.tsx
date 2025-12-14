@@ -8,11 +8,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useLanguage, Language } from '@/context/LanguageContext';
+import { languageNames } from '@/i18n/translations';
 
-const languages: { code: Language; name: string; flag: string }[] = [
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'hu', name: 'Magyar', flag: '🇭🇺' },
-];
+const languages = Object.entries(languageNames).map(([code, info]) => ({
+  code: code as Language,
+  name: info.nativeName,
+  flag: info.flag,
+}));
 
 export const LanguageSwitcher: React.FC = () => {
   const { language, setLanguage } = useLanguage();
