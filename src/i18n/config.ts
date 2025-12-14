@@ -24,13 +24,16 @@ const getInitialLanguage = (): string => {
   return 'en';
 };
 
+// Build resources from translations object dynamically
+const resources: Record<string, { translation: Record<string, unknown> }> = {};
+Object.keys(translations).forEach((lang) => {
+  resources[lang] = { translation: (translations as Record<string, Record<string, unknown>>)[lang] };
+});
+
 i18n
   .use(initReactI18next)
   .init({
-    resources: {
-      en: { translation: translations.en },
-      hu: { translation: translations.hu },
-    },
+    resources,
     lng: getInitialLanguage(),
     fallbackLng: 'en',
     interpolation: {
