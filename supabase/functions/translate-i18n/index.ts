@@ -5,14 +5,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Target languages: code -> Google Translate language code
+// Target languages: code -> Google Cloud Translation language code
 const TARGET_LANGUAGES: Record<string, string> = {
-  zh: 'zh-CN',      // Chinese (Simplified)
-  vi: 'vi',         // Vietnamese
-  fr: 'fr',         // French
-  it: 'it',         // Italian
-  es: 'es',         // Spanish
-  de: 'de',         // German
+  zh: 'zh',       // Chinese (Simplified)
+  vi: 'vi',       // Vietnamese
+  fr: 'fr',       // French
+  it: 'it',       // Italian
+  es: 'es',       // Spanish
+  de: 'de',       // German
+  ko: 'ko',       // Korean
 };
 
 // Flatten nested object to array of { path, value } pairs
@@ -65,52 +66,59 @@ function unflattenObject(pairs: Array<{ path: string; value: string }>): Record<
   return result;
 }
 
-// Translate text using Google Translate via RapidAPI
-async function translateText(
+// Translate texts using official Google Cloud Translation API v2
+// Supports batch translation (up to 128 texts per request)
+async function translateBatch(
   texts: string[], 
   targetLang: string, 
   apiKey: string
 ): Promise<string[]> {
   const results: string[] = [];
+  const batchSize = 100; // Google allows up to 128, using 100 for safety
   
-  // Batch translate in chunks to avoid rate limits
-  const chunkSize = 50;
-  
-  for (let i = 0; i < texts.length; i += chunkSize) {
-    const chunk = texts.slice(i, i + chunkSize);
+  for (let i = 0; i < texts.length; i += batchSize) {
+    const batch = texts.slice(i, i + batchSize);
     
-    // Translate each text in the chunk
-    for (const text of chunk) {
-      try {
-        const response = await fetch('https://google-translate113.p.rapidapi.com/api/v1/translator/text', {
+    try {
+      const response = await fetch(
+        `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`,
+        {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-rapidapi-key': apiKey,
-            'x-rapidapi-host': 'google-translate113.p.rapidapi.com'
           },
           body: JSON.stringify({
-            from: 'en',
-            to: targetLang,
-            text: text
+            q: batch,
+            source: 'en',
+            target: targetLang,
+            format: 'text'
           })
-        });
-        
-        if (!response.ok) {
-          console.error(`Translation error for "${text}": ${response.status}`);
-          results.push(text); // Fallback to original
-          continue;
         }
-        
-        const data = await response.json();
-        results.push(data.trans || text);
-        
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (error) {
-        console.error(`Translation error for "${text}":`, error);
-        results.push(text); // Fallback to original
+      );
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Google Translation API error (${response.status}):`, errorText);
+        // Fallback to original texts for this batch
+        results.push(...batch);
+        continue;
       }
+      
+      const data = await response.json();
+      
+      if (data.data?.translations) {
+        for (const translation of data.data.translations) {
+          results.push(translation.translatedText);
+        }
+        console.log(`Translated batch ${Math.floor(i / batchSize) + 1}: ${batch.length} strings`);
+      } else {
+        console.error('Unexpected response format:', data);
+        results.push(...batch);
+      }
+    } catch (error) {
+      console.error(`Translation batch error:`, error);
+      // Fallback to original texts for this batch
+      results.push(...batch);
     }
   }
   
@@ -123,9 +131,9 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('RAPIDAPI_KEY');
+    const apiKey = Deno.env.get('GOOGLE_TRANSLATION_API_KEY');
     if (!apiKey) {
-      throw new Error('RAPIDAPI_KEY not configured');
+      throw new Error('GOOGLE_TRANSLATION_API_KEY not configured');
     }
 
     const { englishTranslations, targetLanguages } = await req.json();
@@ -141,7 +149,7 @@ serve(async (req) => {
     const flattenedEn = flattenObject(englishTranslations);
     const textsToTranslate = flattenedEn.map(p => p.value);
     
-    console.log(`Translating ${textsToTranslate.length} strings to ${langsToTranslate.length} languages...`);
+    console.log(`Translating ${textsToTranslate.length} strings to ${langsToTranslate.length} languages using Google Cloud Translation API...`);
     
     for (const langCode of langsToTranslate) {
       const googleLangCode = TARGET_LANGUAGES[langCode];
@@ -150,9 +158,9 @@ serve(async (req) => {
         continue;
       }
       
-      console.log(`Translating to ${langCode} (${googleLangCode})...`);
+      console.log(`Translating to ${langCode}...`);
       
-      const translatedTexts = await translateText(textsToTranslate, googleLangCode, apiKey);
+      const translatedTexts = await translateBatch(textsToTranslate, googleLangCode, apiKey);
       
       // Reconstruct the nested object with translated values
       const translatedPairs = flattenedEn.map((pair, index) => ({
