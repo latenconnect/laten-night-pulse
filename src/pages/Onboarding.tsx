@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { INTERESTS, HUNGARIAN_CITIES } from '@/types';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { useAgeVerification } from '@/hooks/useAgeVerification';
 import { cn } from '@/lib/utils';
 import latenLogo from '@/assets/laten-logo-onboarding.png';
@@ -17,6 +18,7 @@ type Step = typeof steps[number];
 const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { hasCompletedOnboarding, setHasCompletedOnboarding, setInterests, setSelectedCity } = useApp();
   const { loading: verificationLoading, error: verificationError, startVerification, checkVerificationStatus } = useAgeVerification();
 
@@ -199,10 +201,10 @@ const Onboarding: React.FC = () => {
                   className="w-32 h-32 mx-auto object-contain mb-6 drop-shadow-[0_0_25px_hsla(270,91%,65%,0.6)]"
                 />
                 <h1 className="text-4xl font-display font-bold mb-3">
-                  Welcome to <span className="text-gradient">Laten</span>
+                  {t('onboarding.welcome')}
                 </h1>
                 <p className="text-muted-foreground text-lg max-w-xs mx-auto">
-                  Discover the best parties, clubs, and events near you
+                  {t('onboarding.subtitle')}
                 </p>
               </motion.div>
 
@@ -239,9 +241,9 @@ const Onboarding: React.FC = () => {
               className="text-center"
             >
               <Shield className="w-16 h-16 mx-auto mb-6 text-primary" />
-              <h2 className="text-3xl font-display font-bold mb-3">Age Verification</h2>
+              <h2 className="text-3xl font-display font-bold mb-3">{t('onboarding.ageVerification')}</h2>
               <p className="text-muted-foreground mb-6 max-w-xs mx-auto">
-                You must be 18 or older to use Laten
+                {t('onboarding.mustBe18')}
               </p>
 
               {/* Verification Mode Toggle */}
@@ -365,8 +367,8 @@ const Onboarding: React.FC = () => {
             >
               <div className="text-center mb-8">
                 <Sparkles className="w-16 h-16 mx-auto mb-6 text-primary" />
-                <h2 className="text-3xl font-display font-bold mb-3">What's your vibe?</h2>
-                <p className="text-muted-foreground">Select genres you're into</p>
+                <h2 className="text-3xl font-display font-bold mb-3">{t('onboarding.selectInterests')}</h2>
+                <p className="text-muted-foreground">{t('common.filter')}</p>
               </div>
 
               <div className="flex flex-wrap gap-3 justify-center max-w-md mx-auto">
@@ -401,8 +403,8 @@ const Onboarding: React.FC = () => {
             >
               <div className="text-center mb-8">
                 <MapPin className="w-16 h-16 mx-auto mb-6 text-primary" />
-                <h2 className="text-3xl font-display font-bold mb-3">Where are you?</h2>
-                <p className="text-muted-foreground">Select your city</p>
+                <h2 className="text-3xl font-display font-bold mb-3">{t('onboarding.selectCity')}</h2>
+                <p className="text-muted-foreground">{t('explore.venuesIn')} {city}</p>
               </div>
 
               <div className="max-h-72 overflow-y-auto no-scrollbar space-y-2 max-w-sm mx-auto">
@@ -451,9 +453,9 @@ const Onboarding: React.FC = () => {
                 <Check className="w-12 h-12 text-primary-foreground" />
               </motion.div>
 
-              <h2 className="text-3xl font-display font-bold mb-3">You're all set!</h2>
+              <h2 className="text-3xl font-display font-bold mb-3">{t('onboarding.finish')}</h2>
               <p className="text-muted-foreground mb-8 max-w-xs mx-auto">
-                Let's find your next unforgettable night in {city}
+                {t('home.discoverMore')} {city}
               </p>
 
               <div className="glass-card p-4 max-w-xs mx-auto mb-8">
@@ -487,7 +489,7 @@ const Onboarding: React.FC = () => {
           className="w-full"
           disabled={currentStep === 'age' && verificationMode === 'didit' && !isVerified && !checkingStatus}
         >
-          {currentStep === 'ready' ? 'Start Exploring' : 'Continue'}
+          {currentStep === 'ready' ? t('onboarding.finish') : t('onboarding.next')}
           <ChevronRight className="w-5 h-5" />
         </Button>
       </div>

@@ -21,6 +21,7 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { mockEvents, getFeaturedEvents } from '@/data/mockEvents';
 import { useApp } from '@/context/AppContext';
 import { SearchContext } from '@/context/SearchContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { useClubs } from '@/hooks/useClubs';
 import { usePersonalizedFeed } from '@/hooks/usePersonalizedFeed';
 import { useFeaturedClubs } from '@/hooks/useFeaturedContent';
@@ -39,6 +40,7 @@ const Explore: React.FC = () => {
   const navigate = useNavigate();
   const { selectedCity, setSelectedCity } = useApp();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const searchContext = useContext(SearchContext);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -122,7 +124,7 @@ const Explore: React.FC = () => {
       >
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <div className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-xl text-left text-muted-foreground touch-target">
-          Search events, clubs, hosts...
+          {t('common.search')}...
         </div>
         <kbd className="hidden md:inline-flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
           ⌘K
@@ -141,7 +143,7 @@ const Explore: React.FC = () => {
               : 'bg-card border border-border text-muted-foreground hover:border-primary/50'
           )}
         >
-          All Events
+          {t('explore.allEvents')}
         </motion.button>
         {EVENT_TYPES.map((type) => (
           <motion.button
@@ -194,7 +196,7 @@ const Explore: React.FC = () => {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-            <h2 className="font-display font-bold text-xl">Featured Tonight</h2>
+            <h2 className="font-display font-bold text-xl">{t('home.featured')} {t('common.tonight')}</h2>
             <FeaturedBadge variant="sponsored" size="sm" />
           </div>
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
@@ -219,7 +221,7 @@ const Explore: React.FC = () => {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-secondary" />
-            <h2 className="font-display font-bold text-xl">Trending in {selectedCity}</h2>
+            <h2 className="font-display font-bold text-xl">{t('home.trending')} {selectedCity}</h2>
           </div>
           <div className="grid gap-4">
             {filteredEvents.slice(0, 3).map((event, index) => (
@@ -243,7 +245,7 @@ const Explore: React.FC = () => {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Building2 className="w-5 h-5 text-cyan-400" />
-            <h2 className="font-display font-bold text-xl">Popular Venues</h2>
+            <h2 className="font-display font-bold text-xl">{t('explore.popularVenues')}</h2>
             {featuredClubs.length > 0 && (
               <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">
                 {featuredClubs.length} Promoted
@@ -285,7 +287,7 @@ const Explore: React.FC = () => {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Building2 className="w-10 h-10 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No venues found</p>
+              <p className="text-sm">{t('common.noResults')}</p>
             </div>
           )}
         </section>
@@ -294,7 +296,7 @@ const Explore: React.FC = () => {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="w-5 h-5 text-neon-pink" />
-            <h2 className="font-display font-bold text-xl">This Week</h2>
+            <h2 className="font-display font-bold text-xl">{t('common.thisWeek')}</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {filteredEvents.map((event, index) => (

@@ -4,19 +4,21 @@ import { motion } from 'framer-motion';
 import { Map, Compass, Plus, Music, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHaptics } from '@/hooks/useHaptics';
+import { useLanguage } from '@/context/LanguageContext';
 
 const navItems = [
-  { icon: Map, label: 'Map', path: '/map' },
-  { icon: Compass, label: 'Explore', path: '/explore' },
-  { icon: Plus, label: 'Create', path: '/create', isSpecial: true },
-  { icon: Music, label: 'DJs', path: '/djs' },
-  { icon: User, label: 'Profile', path: '/profile' },
+  { icon: Map, labelKey: 'nav.map', path: '/map' },
+  { icon: Compass, labelKey: 'nav.explore', path: '/explore' },
+  { icon: Plus, labelKey: 'host.createEvent', path: '/create', isSpecial: true },
+  { icon: Music, labelKey: 'dj.browseDJs', path: '/djs' },
+  { icon: User, labelKey: 'nav.profile', path: '/profile' },
 ];
 
 const BottomNav: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { lightTap, mediumTap } = useHaptics();
+  const { t } = useLanguage();
 
   const handleNavPress = async (path: string, isSpecial: boolean = false) => {
     if (isSpecial) {
@@ -70,7 +72,7 @@ const BottomNav: React.FC = () => {
                     />
                   )}
                 </div>
-                <span className="text-[11px] font-medium">{item.label}</span>
+                <span className="text-[11px] font-medium">{t(item.labelKey)}</span>
               </motion.button>
             );
           })}

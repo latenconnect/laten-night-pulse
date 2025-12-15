@@ -5,6 +5,7 @@ import { Mail, Lock, User, ArrowRight, AlertCircle, Check, Eye, EyeOff } from 'l
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { toast } from 'sonner';
 import { emailSchema, passwordSchema, displayNameSchema } from '@/lib/validations';
 import latenLogo from '@/assets/laten-logo.png';
@@ -12,6 +13,7 @@ import latenLogo from '@/assets/laten-logo.png';
 const Auth: React.FC = () => {
   const navigate = useNavigate();
   const { user, signUp, signIn } = useAuth();
+  const { t } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -129,10 +131,10 @@ const Auth: React.FC = () => {
           className="text-center mb-8"
         >
           <h1 className="text-3xl font-display font-bold mb-2">
-            {isLogin ? 'Welcome Back' : 'Join Laten'}
+            {isLogin ? t('home.greeting') : t('onboarding.welcome')}
           </h1>
           <p className="text-muted-foreground">
-            {isLogin ? 'Sign in to discover events' : 'Create your account to get started'}
+            {isLogin ? t('auth.signIn') : t('auth.signUp')}
           </p>
         </motion.div>
 
@@ -240,7 +242,7 @@ const Auth: React.FC = () => {
             <div className="flex items-start gap-3 p-3 rounded-xl bg-primary/10 border border-primary/20">
               <Check className="w-5 h-5 text-primary mt-0.5" />
               <p className="text-sm text-muted-foreground">
-                By signing up, you confirm you are 18+ years old
+                {t('onboarding.mustBe18')}
               </p>
             </div>
           )}
@@ -258,7 +260,7 @@ const Auth: React.FC = () => {
               />
             ) : (
               <>
-                {isLogin ? 'Sign In' : 'Create Account'}
+                {isLogin ? t('auth.signIn') : t('auth.signUp')}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </>
             )}
@@ -273,7 +275,7 @@ const Auth: React.FC = () => {
           className="mt-6 text-center"
         >
           <p className="text-muted-foreground">
-            {isLogin ? "Don't have an account?" : 'Already have an account?'}
+            {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}
             <button
               type="button"
               onClick={() => {
@@ -282,7 +284,7 @@ const Auth: React.FC = () => {
               }}
               className="ml-2 text-primary font-semibold hover:underline"
             >
-              {isLogin ? 'Sign Up' : 'Sign In'}
+              {isLogin ? t('auth.signUp') : t('auth.signIn')}
             </button>
           </p>
         </motion.div>
