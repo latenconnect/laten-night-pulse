@@ -77,7 +77,7 @@ const Explore: React.FC = () => {
     <div className="px-4 py-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Current Location</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('common.currentLocation')}</p>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-1 hover:opacity-80 transition-opacity">
