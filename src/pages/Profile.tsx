@@ -28,7 +28,7 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { selectedCity, interests } = useApp();
   const { user, signOut } = useAuth();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -88,14 +88,14 @@ const Profile: React.FC = () => {
   };
 
   const menuItems = [
-    { icon: Calendar, label: 'My Events', count: 3, path: '/saved' },
-    { icon: Heart, label: 'Saved Events', count: 12, path: '/saved' },
-    { icon: Bell, label: 'Notifications', path: undefined, action: () => toast.info('Push notifications settings coming soon!') },
-    { icon: MapPin, label: 'Change Location', value: selectedCity, path: '/onboarding' },
-    { icon: Sparkles, label: 'Edit Interests', path: '/onboarding' },
-    { icon: Globe, label: 'Language', customRight: <LanguageSwitcher />, path: undefined },
-    { icon: Shield, label: 'Privacy Policy', path: '/privacy' },
-    { icon: Settings, label: 'Terms of Service', path: '/terms' },
+    { icon: Calendar, label: t('profile.myEvents'), count: 3, path: '/saved' },
+    { icon: Heart, label: t('profile.savedEvents'), count: 12, path: '/saved' },
+    { icon: Bell, label: t('profile.notifications'), path: undefined, action: () => toast.info('Push notifications settings coming soon!') },
+    { icon: MapPin, label: t('onboarding.selectCity'), value: selectedCity, path: '/onboarding' },
+    { icon: Sparkles, label: t('onboarding.selectInterests'), path: '/onboarding' },
+    { icon: Globe, label: t('profile.language'), customRight: <LanguageSwitcher />, path: undefined },
+    { icon: Shield, label: t('profile.privacy'), path: '/privacy' },
+    { icon: Settings, label: t('auth.termsOfService'), path: '/terms' },
   ];
 
   return (
@@ -143,10 +143,10 @@ const Profile: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <h1 className="font-display font-bold text-xl mb-1">Guest User</h1>
-                    <p className="text-sm text-muted-foreground mb-3">Sign in to unlock all features</p>
+                    <h1 className="font-display font-bold text-xl mb-1">{t('common.loading')}</h1>
+                    <p className="text-sm text-muted-foreground mb-3">{t('auth.signIn')}</p>
                     <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
-                      Sign In
+                      {t('auth.signIn')}
                     </Button>
                   </>
                 )}
@@ -157,15 +157,15 @@ const Profile: React.FC = () => {
             <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-border">
               <div className="text-center">
                 <p className="font-display font-bold text-2xl text-primary">0</p>
-                <p className="text-xs text-muted-foreground">Events Attended</p>
+                <p className="text-xs text-muted-foreground">{t('events.attendees')}</p>
               </div>
               <div className="text-center">
                 <p className="font-display font-bold text-2xl text-secondary">12</p>
-                <p className="text-xs text-muted-foreground">Saved</p>
+                <p className="text-xs text-muted-foreground">{t('events.saved')}</p>
               </div>
               <div className="text-center">
                 <p className="font-display font-bold text-2xl text-neon-pink">3</p>
-                <p className="text-xs text-muted-foreground">Upcoming</p>
+                <p className="text-xs text-muted-foreground">{t('tickets.upcomingEvents')}</p>
               </div>
             </div>
           </motion.div>
@@ -175,7 +175,7 @@ const Profile: React.FC = () => {
       {/* Interests */}
       <section className="px-4 mt-6">
         <h2 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">
-          Your Interests
+          {t('onboarding.selectInterests')}
         </h2>
         <div className="flex flex-wrap gap-2">
           {interests.length > 0 ? (
@@ -188,7 +188,7 @@ const Profile: React.FC = () => {
               </span>
             ))
           ) : (
-            <p className="text-sm text-muted-foreground">No interests selected</p>
+            <p className="text-sm text-muted-foreground">{t('common.noResults')}</p>
           )}
         </div>
       </section>
@@ -235,7 +235,7 @@ const Profile: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
               <LayoutDashboard className="w-5 h-5 text-primary" />
             </div>
-            <span className="flex-1 text-left font-medium">Admin Dashboard</span>
+            <span className="flex-1 text-left font-medium">{t('profile.adminDashboard')}</span>
             <ChevronRight className="w-5 h-5 text-primary" />
           </motion.button>
         </section>
@@ -257,12 +257,12 @@ const Profile: React.FC = () => {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">
-                  {profile?.age_verified ? 'Age Verified' : 'ID Verification'}
+                  {profile?.age_verified ? t('onboarding.ageVerification') : t('onboarding.ageVerification')}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   {profile?.age_verified 
-                    ? 'Your age has been verified (18+)'
-                    : 'Verify your age to create or attend events'}
+                    ? t('onboarding.mustBe18')
+                    : t('onboarding.verifyAge')}
                 </p>
               </div>
               {!profile?.age_verified && (
@@ -298,7 +298,7 @@ const Profile: React.FC = () => {
             onClick={handleSignOut}
           >
             <LogOut className="w-5 h-5" />
-            Sign Out
+            {t('profile.signOut')}
           </Button>
         </section>
       )}
