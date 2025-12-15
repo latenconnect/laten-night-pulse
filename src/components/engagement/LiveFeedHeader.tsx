@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Users, Sparkles, MapPin, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface LiveFeedHeaderProps {
   city: string;
@@ -18,10 +19,11 @@ export const LiveFeedHeader: React.FC<LiveFeedHeaderProps> = ({
   newEventsToday = 0,
   className,
 }) => {
+  const { t } = useLanguage();
   const [currentStat, setCurrentStat] = useState(0);
   
   const stats = [
-    { icon: Users, value: activeUsers, label: 'exploring now', color: 'text-green-400' },
+    { icon: Users, value: activeUsers, label: t('common.exploringNow'), color: 'text-green-400' },
     { icon: TrendingUp, value: trendingCount, label: 'trending events', color: 'text-secondary' },
     { icon: Sparkles, value: newEventsToday, label: 'new today', color: 'text-primary' },
   ].filter(s => s.value > 0);
@@ -52,7 +54,7 @@ export const LiveFeedHeader: React.FC<LiveFeedHeaderProps> = ({
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
         </span>
-        <span className="text-xs text-muted-foreground">Live in {city}</span>
+        <span className="text-xs text-muted-foreground">{t('common.liveIn')} {city}</span>
       </div>
 
       <AnimatePresence mode="wait">

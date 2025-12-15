@@ -3,12 +3,14 @@ import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { useStories, StoryGroup } from '@/hooks/useStories';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StoryViewer from './StoryViewer';
 import CreateStoryDialog from './CreateStoryDialog';
 
 const StoriesBar: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { storyGroups, loading, viewedStoryIds } = useStories();
   const [selectedGroupIndex, setSelectedGroupIndex] = useState<number | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -51,7 +53,7 @@ const StoriesBar: React.FC = () => {
               )}
             </div>
             <span className="text-xs text-muted-foreground truncate w-16 text-center">
-              Your Story
+              {t('common.yourStory')}
             </span>
           </motion.button>
         )}

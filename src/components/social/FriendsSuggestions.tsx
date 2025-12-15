@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useFriends, UserProfile } from '@/hooks/useFriends';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface FriendsSuggestionsProps {
   city?: string;
@@ -23,6 +24,7 @@ const FriendsSuggestions: React.FC<FriendsSuggestionsProps> = ({
   limit = 3 
 }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { followUser, getConnectionStatus } = useFriends();
   const [loading, setLoading] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
@@ -51,7 +53,7 @@ const FriendsSuggestions: React.FC<FriendsSuggestionsProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-secondary" />
-          <h2 className="font-display font-bold text-lg">People You May Know</h2>
+          <h2 className="font-display font-bold text-lg">{t('common.peopleYouMayKnow')}</h2>
         </div>
       </div>
       
@@ -99,11 +101,11 @@ const FriendsSuggestions: React.FC<FriendsSuggestionsProps> = ({
                 {loading === suggestion.id ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : isFollowing ? (
-                  'Following'
+                  t('common.following')
                 ) : (
                   <>
                     <UserPlus className="w-4 h-4" />
-                    Follow
+                    {t('common.follow')}
                   </>
                 )}
               </Button>
