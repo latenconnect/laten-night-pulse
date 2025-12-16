@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useHaptics } from '@/hooks/useHaptics';
 import { usePersonalization } from '@/hooks/usePersonalization';
 import { useAgeVerification } from '@/hooks/useAgeVerification';
+import { useLanguage } from '@/context/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { EventQA } from '@/components/EventQA';
 import { EventChat } from '@/components/EventChat';
@@ -29,11 +30,11 @@ import {
 } from "@/components/ui/dialog";
 
 const REPORT_REASONS = [
-  'Fake or misleading event',
-  'Inappropriate content',
-  'Safety concerns',
-  'Spam or scam',
-  'Other',
+  'reportReasonFake',
+  'reportReasonInappropriate',
+  'reportReasonSafety',
+  'reportReasonSpam',
+  'reportReasonOther',
 ];
 
 const EventDetails: React.FC = () => {
