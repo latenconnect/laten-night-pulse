@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useClubById } from '@/hooks/useClubById';
 import { useNearbyClubs } from '@/hooks/useNearbyClubs';
+import { useLanguage } from '@/context/LanguageContext';
 import ClubCard from '@/components/ClubCard';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -29,6 +30,7 @@ const ClubDetails: React.FC = () => {
   const navigate = useNavigate();
   const { club, loading } = useClubById(id);
   const { clubs: nearbyClubs, loading: nearbyLoading } = useNearbyClubs(club?.city, id, 6);
+  const { t } = useLanguage();
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [showFullscreen, setShowFullscreen] = useState(false);
 
@@ -56,14 +58,14 @@ const ClubDetails: React.FC = () => {
       if (navigator.share && navigator.canShare(shareData)) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success('Link copied to clipboard!');
+      await navigator.clipboard.writeText(shareUrl);
+        toast.success(t('events.linkCopied'));
       }
     } catch (err) {
       // User cancelled share or error occurred
       if ((err as Error).name !== 'AbortError') {
         await navigator.clipboard.writeText(shareUrl);
-        toast.success('Link copied to clipboard!');
+        toast.success(t('events.linkCopied'));
       }
     }
   };
@@ -103,10 +105,10 @@ const ClubDetails: React.FC = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <MapPin className="w-16 h-16 text-muted-foreground mb-4" />
-        <h1 className="text-xl font-semibold mb-2">Venue not found</h1>
-        <p className="text-muted-foreground mb-6">This venue may have been removed or doesn't exist.</p>
+        <h1 className="text-xl font-semibold mb-2">{t('venues.venueNotFound')}</h1>
+        <p className="text-muted-foreground mb-6">{t('venues.venueNotFoundDesc')}</p>
         <Button onClick={() => navigate('/explore')} variant="neon">
-          Back to Explore
+          {t('venues.backToExplore')}
         </Button>
       </div>
     );
@@ -213,7 +215,7 @@ const ClubDetails: React.FC = () => {
               <div className="flex items-center gap-1.5">
                 <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                 <span className="font-semibold">{club.rating.toFixed(1)}</span>
-                <span className="text-muted-foreground text-sm">rating</span>
+                <span className="text-muted-foreground text-sm">{t('venues.rating')}</span>
               </div>
             )}
             
@@ -241,7 +243,7 @@ const ClubDetails: React.FC = () => {
                 <MapPin className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Address</p>
+                <p className="text-sm text-muted-foreground mb-1">{t('venues.address')}</p>
                 <p className="font-medium">{club.address}</p>
               </div>
             </div>
@@ -257,7 +259,7 @@ const ClubDetails: React.FC = () => {
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-muted-foreground">Opening Hours</p>
+                  <p className="text-sm text-muted-foreground">{t('venues.openingHours')}</p>
                   {club.opening_hours.open_now !== undefined && (
                     <span className={cn(
                       'text-xs font-medium px-2 py-0.5 rounded-full',
@@ -265,7 +267,7 @@ const ClubDetails: React.FC = () => {
                         ? 'bg-green-500/20 text-green-400' 
                         : 'bg-red-500/20 text-red-400'
                     )}>
-                      {club.opening_hours.open_now ? 'Open now' : 'Closed'}
+                      {club.opening_hours.open_now ? t('venues.openNow') : t('venues.closed')}
                     </span>
                   )}
                 </div>
@@ -289,7 +291,7 @@ const ClubDetails: React.FC = () => {
               club.business_status === 'OPERATIONAL' ? 'bg-green-500' : 'bg-amber-500'
             )} />
             <span className="text-sm text-muted-foreground">
-              {club.business_status === 'OPERATIONAL' ? 'Currently Operating' : club.business_status.replace(/_/g, ' ').toLowerCase()}
+              {club.business_status === 'OPERATIONAL' ? t('venues.currentlyOperating') : club.business_status.replace(/_/g, ' ').toLowerCase()}
             </span>
           </div>
         )}
@@ -297,7 +299,7 @@ const ClubDetails: React.FC = () => {
         {/* Photo Thumbnails */}
         {photos.length > 1 && (
           <div>
-            <p className="text-sm text-muted-foreground mb-3">Photos ({photos.length})</p>
+            <p className="text-sm text-muted-foreground mb-3">{t('venues.photos')} ({photos.length})</p>
             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
               {photos.map((photo, index) => (
                 <button
@@ -329,7 +331,7 @@ const ClubDetails: React.FC = () => {
           <section className="pt-4">
             <div className="flex items-center gap-2 mb-4">
               <Building2 className="w-5 h-5 text-cyan-400" />
-              <h2 className="font-display font-bold text-lg">Nearby in {club.city}</h2>
+              <h2 className="font-display font-bold text-lg">{t('venues.nearbyIn')} {club.city}</h2>
             </div>
             <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
               {nearbyClubs.map((nearbyClub, index) => (
@@ -357,7 +359,7 @@ const ClubDetails: React.FC = () => {
           className="w-full gap-2"
         >
           <ExternalLink className="w-5 h-5" />
-          Get Directions
+          {t('venues.getDirections')}
         </Button>
       </div>
 

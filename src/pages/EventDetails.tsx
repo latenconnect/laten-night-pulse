@@ -98,10 +98,12 @@ const EventDetails: React.FC = () => {
     }
   };
   
+  const { t } = useLanguage();
+  
   if (!event) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Event not found</p>
+        <p className="text-muted-foreground">{t('events.eventNotFound')}</p>
       </div>
     );
   }
@@ -112,7 +114,7 @@ const EventDetails: React.FC = () => {
   const handleLike = async () => {
     await lightTap();
     if (!user) {
-      toast.error('Please sign in to save events');
+      toast.error(t('events.signInToSave'));
       navigate('/auth');
       return;
     }
@@ -132,7 +134,7 @@ const EventDetails: React.FC = () => {
   const handleRSVP = async () => {
     await mediumTap();
     if (!user) {
-      toast.error('Please sign in to RSVP');
+      toast.error(t('events.signInToRsvp'));
       navigate('/auth');
       return;
     }
@@ -157,12 +159,12 @@ const EventDetails: React.FC = () => {
 
   const handleReport = async () => {
     if (!selectedReason) {
-      toast.error('Please select a reason');
+      toast.error(t('events.pleaseSelectReason'));
       return;
     }
     
     if (!liabilityAcknowledged) {
-      toast.error('Please acknowledge the liability disclaimer');
+      toast.error(t('events.pleaseAcknowledgeLiability'));
       return;
     }
     
@@ -186,7 +188,7 @@ const EventDetails: React.FC = () => {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copied to clipboard!');
+      toast.success(t('events.linkCopied'));
     }
   };
 
@@ -258,7 +260,7 @@ const EventDetails: React.FC = () => {
             {event.hostAvatar && (
               <img src={event.hostAvatar} alt={event.hostName} className="w-8 h-8 rounded-full" />
             )}
-            <span className="text-muted-foreground">Hosted by <span className="text-foreground">{event.hostName}</span></span>
+            <span className="text-muted-foreground">{t('events.hostedBy')} <span className="text-foreground">{event.hostName}</span></span>
           </div>
         </div>
 
@@ -267,30 +269,30 @@ const EventDetails: React.FC = () => {
           <div className="glass-card p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Calendar className="w-4 h-4" />
-              <span className="text-xs">Date</span>
+              <span className="text-xs">{t('events.date')}</span>
             </div>
             <p className="font-semibold">{format(event.startTime, 'EEEE, MMM d')}</p>
           </div>
           <div className="glass-card p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Clock className="w-4 h-4" />
-              <span className="text-xs">Time</span>
+              <span className="text-xs">{t('events.time')}</span>
             </div>
             <p className="font-semibold">{format(event.startTime, 'h:mm a')}</p>
           </div>
           <div className="glass-card p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Ticket className="w-4 h-4" />
-              <span className="text-xs">Entry</span>
+              <span className="text-xs">{t('events.entry')}</span>
             </div>
-            <p className="font-semibold">{event.price ? `${event.price} Ft` : 'Free Entry'}</p>
+            <p className="font-semibold">{event.price ? `${event.price} Ft` : t('events.freeEntry')}</p>
           </div>
           <div className="glass-card p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Shield className="w-4 h-4" />
-              <span className="text-xs">Age</span>
+              <span className="text-xs">{t('events.age')}</span>
             </div>
-            <p className="font-semibold">{event.ageLimit}+ Only</p>
+            <p className="font-semibold">{event.ageLimit}+</p>
           </div>
         </div>
 
@@ -299,10 +301,10 @@ const EventDetails: React.FC = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" />
-              <span className="font-semibold">{event.currentRSVP} going</span>
+              <span className="font-semibold">{event.currentRSVP} {t('events.going')}</span>
             </div>
             <span className="text-sm text-muted-foreground">
-              {event.expectedAttendance - event.currentRSVP} spots left
+              {event.expectedAttendance - event.currentRSVP} {t('events.spotsLeft')}
             </span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -319,13 +321,13 @@ const EventDetails: React.FC = () => {
         <div className="glass-card p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
             <MapPin className="w-5 h-5 text-primary" />
-            <span className="font-semibold">Location</span>
+            <span className="font-semibold">{t('events.location')}</span>
           </div>
           <p className="text-foreground mb-1">{event.location.name}</p>
           <p className="text-sm text-muted-foreground mb-4">{event.location.address}, {event.location.city}</p>
           <Button variant="outline" className="w-full gap-2">
             <Navigation className="w-4 h-4" />
-            Get Directions
+            {t('events.getDirections')}
           </Button>
         </div>
 
@@ -333,7 +335,7 @@ const EventDetails: React.FC = () => {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Info className="w-5 h-5 text-primary" />
-            <span className="font-semibold">About</span>
+            <span className="font-semibold">{t('events.about')}</span>
           </div>
           <p className="text-muted-foreground leading-relaxed">{event.description}</p>
         </div>
@@ -341,7 +343,7 @@ const EventDetails: React.FC = () => {
         {/* Dress Code */}
         {event.dressCode && (
           <div className="glass-card p-4 mb-6">
-            <span className="text-xs text-muted-foreground uppercase tracking-wider">Dress Code</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('events.dressCode')}</span>
             <p className="font-semibold mt-1">{event.dressCode}</p>
           </div>
         )}
@@ -362,15 +364,15 @@ const EventDetails: React.FC = () => {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-primary" />
-                Age Verification Required
+                {t('events.ageVerificationRequired')}
               </DialogTitle>
               <DialogDescription>
-                You must verify you're 18+ to attend events on Laten.
+                {t('events.ageVerificationRsvpDesc')}
               </DialogDescription>
             </DialogHeader>
             <div className="flex gap-3 mt-4">
               <Button variant="outline" className="flex-1" onClick={() => setVerifyDialogOpen(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button 
                 variant="neon" 
@@ -378,7 +380,7 @@ const EventDetails: React.FC = () => {
                 onClick={handleVerifyAge}
                 disabled={verificationLoading}
               >
-                {verificationLoading ? 'Loading...' : 'Verify Now'}
+                {verificationLoading ? t('common.loading') : t('events.verifyNow')}
               </Button>
             </div>
           </DialogContent>
@@ -389,17 +391,17 @@ const EventDetails: React.FC = () => {
           <DialogTrigger asChild>
             <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <Flag className="w-4 h-4" />
-              Report this event
+              {t('events.reportThisEvent')}
             </button>
           </DialogTrigger>
           <DialogContent className="bg-card border-border">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-destructive" />
-                Report Event
+                {t('events.reportEvent')}
               </DialogTitle>
               <DialogDescription>
-                Help us keep Laten safe. Select a reason for reporting this event.
+                {t('events.reportEventDesc')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2 mt-4">
@@ -414,7 +416,7 @@ const EventDetails: React.FC = () => {
                       : 'bg-muted hover:bg-muted/80 border border-transparent'
                   )}
                 >
-                  {reason}
+                  {t(`events.${reason}`)}
                 </button>
               ))}
             </div>
@@ -429,10 +431,7 @@ const EventDetails: React.FC = () => {
                   className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <span className="text-xs text-muted-foreground leading-relaxed">
-                  I understand that Laten is a platform for event discovery only. I acknowledge that Laten 
-                  is not responsible for the events listed, their hosts, or any incidents that may occur. 
-                  I am submitting this report in good faith and understand that false reports may result 
-                  in account suspension.
+                  {t('events.liabilityText')}
                 </span>
               </label>
             </div>
@@ -443,7 +442,7 @@ const EventDetails: React.FC = () => {
                 setSelectedReason('');
                 setLiabilityAcknowledged(false);
               }}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button 
                 variant="destructive" 
@@ -451,7 +450,7 @@ const EventDetails: React.FC = () => {
                 onClick={handleReport}
                 disabled={!selectedReason || !liabilityAcknowledged}
               >
-                Submit Report
+                {t('events.submitReport')}
               </Button>
             </div>
           </DialogContent>
@@ -462,9 +461,9 @@ const EventDetails: React.FC = () => {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent z-50">
         <div className="glass-card p-3 flex items-center gap-3">
           <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Entry Price</p>
+            <p className="text-sm text-muted-foreground">{t('events.entryPrice')}</p>
             <p className="font-display font-bold text-xl">
-              {event.price ? `${event.price} Ft` : 'Free'}
+              {event.price ? `${event.price} Ft` : t('common.free')}
             </p>
           </div>
           <Button
@@ -473,7 +472,7 @@ const EventDetails: React.FC = () => {
             onClick={handleRSVP}
             className="min-w-32"
           >
-            {isGoing ? 'Going ✓' : "I'm Going"}
+            {isGoing ? t('events.goingCheck') : t('events.imGoing')}
           </Button>
         </div>
       </div>

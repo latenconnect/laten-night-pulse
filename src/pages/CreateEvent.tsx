@@ -9,6 +9,7 @@ import BottomNav from '@/components/BottomNav';
 import { useHost, useCreateEvent } from '@/hooks/useHost';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { CohostManager } from '@/components/CohostManager';
 import { toast } from 'sonner';
 import { useAgeVerification } from '@/hooks/useAgeVerification';
@@ -19,6 +20,7 @@ const CreateEvent: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { selectedCity } = useApp();
+  const { t } = useLanguage();
   const { host, applyAsHost, isVerifiedHost, isPendingHost, loading: hostLoading } = useHost();
   const { createEvent, canCreateEvent } = useCreateEvent();
   const { startVerification, loading: verificationLoading } = useAgeVerification();
@@ -61,7 +63,7 @@ const CreateEvent: React.FC = () => {
     const result = await startVerification();
     if (result?.url) {
       window.open(result.url, '_blank');
-      toast.info('Complete verification in the new tab.');
+      toast.info(t('events.completeVerification'));
     }
   };
 
@@ -71,7 +73,7 @@ const CreateEvent: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.date || !formData.time || !formData.location_name) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('host.fillRequiredFields'));
       return;
     }
 
@@ -103,20 +105,20 @@ const CreateEvent: React.FC = () => {
       <div className="min-h-screen bg-background pb-24">
         <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="font-display font-bold text-xl">Create Event</h1>
+            <h1 className="font-display font-bold text-xl">{t('host.createEvent')}</h1>
           </div>
         </header>
         <div className="flex flex-col items-center justify-center px-4 py-20">
           <Lock className="w-16 h-16 text-muted-foreground mb-4" />
-          <h2 className="font-display font-bold text-xl mb-2">Sign in Required</h2>
+          <h2 className="font-display font-bold text-xl mb-2">{t('host.signInRequired')}</h2>
           <p className="text-muted-foreground text-center mb-6">
-            You need to sign in and become a verified host to create events.
+            {t('host.signInRequiredDesc')}
           </p>
           <Button variant="neon" onClick={() => navigate('/auth')}>
-            Sign In
+            {t('auth.signIn')}
           </Button>
         </div>
         <BottomNav />
@@ -130,23 +132,23 @@ const CreateEvent: React.FC = () => {
       <div className="min-h-screen bg-background pb-24">
         <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="font-display font-bold text-xl">Create Event</h1>
+            <h1 className="font-display font-bold text-xl">{t('host.createEvent')}</h1>
           </div>
         </header>
         <div className="flex flex-col items-center justify-center px-4 py-20">
           <ShieldAlert className="w-16 h-16 text-primary mb-4" />
-          <h2 className="font-display font-bold text-xl mb-2">Age Verification Required</h2>
+          <h2 className="font-display font-bold text-xl mb-2">{t('events.ageVerificationRequired')}</h2>
           <p className="text-muted-foreground text-center mb-6">
-            You must verify you're 18+ to create events on Laten.
+            {t('host.ageVerificationCreateDesc')}
           </p>
           <Button variant="neon" onClick={handleVerifyAge} disabled={verificationLoading}>
             {verificationLoading ? (
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
             ) : null}
-            Verify My Age
+            {t('host.verifyMyAge')}
           </Button>
         </div>
         <BottomNav />
@@ -162,7 +164,7 @@ const CreateEvent: React.FC = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-display font-bold text-xl">Create Event</h1>
+          <h1 className="font-display font-bold text-xl">{t('host.createEvent')}</h1>
         </div>
       </header>
 
@@ -192,18 +194,18 @@ const CreateEvent: React.FC = () => {
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-sm">
-                  {isPendingHost ? 'Verification Pending' : 'Host Verification Required'}
+                  {isPendingHost ? t('host.verificationPending') : t('host.hostVerificationRequired')}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {isPendingHost 
-                    ? 'Your application is being reviewed'
-                    : 'Apply to become a host to create events'
+                    ? t('host.applicationBeingReviewed')
+                    : t('host.applyToBecomeHost')
                   }
                 </p>
               </div>
               {!isPendingHost && !host && (
                 <Button variant="outline" size="sm" onClick={applyAsHost}>
-                  Apply
+                  {t('host.apply')}
                 </Button>
               )}
             </div>
@@ -217,13 +219,13 @@ const CreateEvent: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/20 border border-secondary/30 w-fit"
           >
             <Check className="w-4 h-4 text-secondary" />
-            <span className="text-sm font-medium text-secondary">Verified Host</span>
+            <span className="text-sm font-medium text-secondary">{t('host.verifiedHost')}</span>
           </motion.div>
         )}
 
         {/* Cover Image */}
         <div>
-          <label className="text-sm text-muted-foreground mb-2 block">Cover Image</label>
+          <label className="text-sm text-muted-foreground mb-2 block">{t('host.coverImage')}</label>
           <motion.div
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
@@ -233,17 +235,17 @@ const CreateEvent: React.FC = () => {
             )}
           >
             <Camera className="w-10 h-10 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground">Upload cover photo</p>
-            <p className="text-xs text-muted-foreground mt-1">Recommended: 1920x1080px</p>
+            <p className="text-sm text-muted-foreground">{t('host.uploadCoverPhoto')}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('host.recommendedSize')}</p>
           </motion.div>
         </div>
 
         {/* Event Name */}
         <div>
-          <label className="text-sm text-muted-foreground mb-2 block">Event Name *</label>
+          <label className="text-sm text-muted-foreground mb-2 block">{t('host.eventNameRequired')}</label>
           <input
             type="text"
-            placeholder="Enter event name..."
+            placeholder={t('host.enterEventName')}
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
             disabled={!canCreateEvent}
@@ -253,7 +255,7 @@ const CreateEvent: React.FC = () => {
 
         {/* Event Type */}
         <div>
-          <label className="text-sm text-muted-foreground mb-2 block">Event Type</label>
+          <label className="text-sm text-muted-foreground mb-2 block">{t('host.eventType')}</label>
           <div className="grid grid-cols-3 gap-2">
             {EVENT_TYPES.map((type) => (
               <button
@@ -277,7 +279,7 @@ const CreateEvent: React.FC = () => {
         {/* Date & Time */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Date *</label>
+            <label className="text-sm text-muted-foreground mb-2 block">{t('host.dateRequired')}</label>
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
@@ -290,7 +292,7 @@ const CreateEvent: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Time *</label>
+            <label className="text-sm text-muted-foreground mb-2 block">{t('host.timeRequired')}</label>
             <div className="relative">
               <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
@@ -306,12 +308,12 @@ const CreateEvent: React.FC = () => {
 
         {/* Location */}
         <div>
-          <label className="text-sm text-muted-foreground mb-2 block">Venue Name *</label>
+          <label className="text-sm text-muted-foreground mb-2 block">{t('host.venueNameRequired')}</label>
           <div className="relative">
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="e.g., Szimpla Kert, Akvárium Klub..."
+              placeholder={t('host.venueNamePlaceholder')}
               value={formData.location_name}
               onChange={(e) => handleChange('location_name', e.target.value)}
               disabled={!canCreateEvent}
@@ -322,7 +324,7 @@ const CreateEvent: React.FC = () => {
 
         {/* City */}
         <div>
-          <label className="text-sm text-muted-foreground mb-2 block">City</label>
+          <label className="text-sm text-muted-foreground mb-2 block">{t('host.city')}</label>
           <select 
             value={formData.city}
             onChange={(e) => handleChange('city', e.target.value)}
@@ -338,12 +340,12 @@ const CreateEvent: React.FC = () => {
         {/* Price & Age */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Entry Price (Ft)</label>
+            <label className="text-sm text-muted-foreground mb-2 block">{t('host.entryPriceFt')}</label>
             <div className="relative">
               <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="number"
-                placeholder="0 = Free"
+                placeholder={t('host.freeEquals')}
                 value={formData.price}
                 onChange={(e) => handleChange('price', e.target.value)}
                 disabled={!canCreateEvent}
@@ -352,7 +354,7 @@ const CreateEvent: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Age Limit</label>
+            <label className="text-sm text-muted-foreground mb-2 block">{t('host.ageLimitLabel')}</label>
             <div className="relative">
               <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <select 
@@ -371,11 +373,11 @@ const CreateEvent: React.FC = () => {
 
         {/* Description */}
         <div>
-          <label className="text-sm text-muted-foreground mb-2 block">Description</label>
+          <label className="text-sm text-muted-foreground mb-2 block">{t('host.description')}</label>
           <div className="relative">
             <Info className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
             <textarea
-              placeholder="Tell people about your event..."
+              placeholder={t('host.tellAboutEvent')}
               rows={4}
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
@@ -387,7 +389,7 @@ const CreateEvent: React.FC = () => {
 
         {/* Max Capacity */}
         <div>
-          <label className="text-sm text-muted-foreground mb-2 block">Expected Attendance (Optional)</label>
+          <label className="text-sm text-muted-foreground mb-2 block">{t('host.expectedAttendance')}</label>
           <input
             type="number"
             placeholder="e.g., 200"
@@ -421,9 +423,9 @@ const CreateEvent: React.FC = () => {
           {submitting ? (
             <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
           ) : (
-            <>
+              <>
               <Plus className="w-5 h-5" />
-              Create Event
+              {t('host.createEvent')}
             </>
           )}
         </Button>
