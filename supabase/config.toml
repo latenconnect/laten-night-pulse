@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.translate-i18n]
 verify_jwt = true
+
+[functions.generate-club-profiles]
+verify_jwt = false

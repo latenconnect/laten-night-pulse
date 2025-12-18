@@ -18,7 +18,7 @@ export const useNearbyClubs = (city: string | undefined, excludeId: string | und
       try {
         const { data, error } = await supabase
           .from('clubs')
-          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type')
+          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type, description, services, highlights, music_genres, crowd_info')
           .eq('is_active', true)
           .eq('city', city)
           .in('venue_type', ['night_club', 'club', 'bar', 'pub', 'lounge'])
@@ -30,7 +30,8 @@ export const useNearbyClubs = (city: string | undefined, excludeId: string | und
 
         setClubs((data || []).map(club => ({
           ...club,
-          opening_hours: club.opening_hours as OpeningHours | null
+          opening_hours: club.opening_hours as OpeningHours | null,
+          crowd_info: club.crowd_info as Club['crowd_info']
         })));
       } catch (err) {
         console.error('Error fetching nearby clubs:', err);

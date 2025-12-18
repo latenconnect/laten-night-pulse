@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Club, OpeningHours } from './useClubs';
+import { Club, OpeningHours, CrowdInfo } from './useClubs';
 
 export const useClubById = (id: string | undefined) => {
   const [club, setClub] = useState<Club | null>(null);
@@ -20,7 +20,7 @@ export const useClubById = (id: string | undefined) => {
       try {
         const { data, error: fetchError } = await supabase
           .from('clubs')
-          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type')
+          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type, description, services, highlights, music_genres, crowd_info')
           .eq('id', id)
           .single();
 
@@ -29,7 +29,8 @@ export const useClubById = (id: string | undefined) => {
         if (data) {
           setClub({
             ...data,
-            opening_hours: data.opening_hours as OpeningHours | null
+            opening_hours: data.opening_hours as OpeningHours | null,
+            crowd_info: data.crowd_info as CrowdInfo | null
           });
         }
       } catch (err) {

@@ -88,6 +88,11 @@ export const useFeaturedClubs = (city?: string, limit: number = 5) => {
         setClubs((data || []).map(club => ({
           ...club,
           opening_hours: club.opening_hours as Club['opening_hours'],
+          crowd_info: null,
+          description: null,
+          services: null,
+          highlights: null,
+          music_genres: null,
         })));
       }
       setLoading(false);

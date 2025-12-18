@@ -379,20 +379,25 @@ export type Database = {
           city: string
           country: string | null
           created_at: string | null
+          crowd_info: Json | null
+          description: string | null
           google_maps_uri: string | null
           google_place_id: string
+          highlights: string[] | null
           id: string
           is_active: boolean | null
           is_featured: boolean | null
           last_updated: string | null
           latitude: number
           longitude: number
+          music_genres: string[] | null
           name: string
           opening_hours: Json | null
           owner_id: string | null
           photos: string[] | null
           price_level: number | null
           rating: number | null
+          services: string[] | null
           venue_type: string | null
         }
         Insert: {
@@ -401,20 +406,25 @@ export type Database = {
           city: string
           country?: string | null
           created_at?: string | null
+          crowd_info?: Json | null
+          description?: string | null
           google_maps_uri?: string | null
           google_place_id: string
+          highlights?: string[] | null
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
           last_updated?: string | null
           latitude: number
           longitude: number
+          music_genres?: string[] | null
           name: string
           opening_hours?: Json | null
           owner_id?: string | null
           photos?: string[] | null
           price_level?: number | null
           rating?: number | null
+          services?: string[] | null
           venue_type?: string | null
         }
         Update: {
@@ -423,20 +433,25 @@ export type Database = {
           city?: string
           country?: string | null
           created_at?: string | null
+          crowd_info?: Json | null
+          description?: string | null
           google_maps_uri?: string | null
           google_place_id?: string
+          highlights?: string[] | null
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
           last_updated?: string | null
           latitude?: number
           longitude?: number
+          music_genres?: string[] | null
           name?: string
           opening_hours?: Json | null
           owner_id?: string | null
           photos?: string[] | null
           price_level?: number | null
           rating?: number | null
+          services?: string[] | null
           venue_type?: string | null
         }
         Relationships: []
