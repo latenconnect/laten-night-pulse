@@ -17,12 +17,22 @@ export interface DecryptedMessage {
   content: string;
   createdAt: string;
   readAt: string | null;
+  editedAt: string | null;
+  isDeleted: boolean;
   isMine: boolean;
   messageType: 'text' | 'image' | 'file';
   fileUrl?: string;
   fileName?: string;
   fileSize?: number;
   fileMimeType?: string;
+  reactions?: MessageReaction[];
+}
+
+export interface MessageReaction {
+  id: string;
+  emoji: string;
+  userId: string;
+  isMine: boolean;
 }
 
 export interface Conversation {
@@ -256,9 +266,11 @@ export const useConversationMessages = (conversationId: string | null, otherUser
               return {
                 id: msg.id,
                 senderId: msg.sender_id,
-                content,
+                content: msg.is_deleted ? '[Message deleted]' : content,
                 createdAt: msg.created_at,
                 readAt: msg.read_at,
+                editedAt: msg.edited_at,
+                isDeleted: msg.is_deleted || false,
                 isMine,
                 messageType: (msg.message_type || 'text') as 'text' | 'image' | 'file',
                 fileUrl: msg.file_url,
@@ -274,6 +286,8 @@ export const useConversationMessages = (conversationId: string | null, otherUser
                 content: '[Unable to decrypt]',
                 createdAt: msg.created_at,
                 readAt: msg.read_at,
+                editedAt: null,
+                isDeleted: false,
                 isMine: msg.sender_id === user.id,
                 messageType: 'text' as const,
               };
@@ -588,6 +602,269 @@ export const useCreateConversation = () => {
     onError: (error) => {
       console.error('Failed to create conversation:', error);
       toast.error('Failed to start conversation');
+    },
+  });
+};
+
+// Hook for total unread message count
+export const useTotalUnreadCount = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['dm-total-unread', user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+
+      // Get all conversation IDs for user
+      const { data: conversations } = await supabase
+        .from('dm_conversations')
+        .select('id')
+        .or(`participant_1.eq.${user.id},participant_2.eq.${user.id}`);
+
+      if (!conversations || conversations.length === 0) return 0;
+
+      const conversationIds = conversations.map(c => c.id);
+
+      const { count } = await supabase
+        .from('direct_messages')
+        .select('*', { count: 'exact', head: true })
+        .in('conversation_id', conversationIds)
+        .neq('sender_id', user.id)
+        .is('read_at', null)
+        .eq('is_deleted', false);
+
+      return count || 0;
+    },
+    enabled: !!user,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+};
+
+// Hook for message reactions
+export const useMessageReactions = (conversationId: string | null) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch reactions for conversation
+  const { data: reactions } = useQuery({
+    queryKey: ['dm-reactions', conversationId],
+    queryFn: async () => {
+      if (!conversationId) return [];
+
+      // Get all messages for conversation first
+      const { data: messages } = await supabase
+        .from('direct_messages')
+        .select('id')
+        .eq('conversation_id', conversationId);
+
+      if (!messages || messages.length === 0) return [];
+
+      const messageIds = messages.map(m => m.id);
+      
+      const { data: reactionData, error: reactionError } = await supabase
+        .from('dm_message_reactions')
+        .select('*')
+        .in('message_id', messageIds);
+
+      if (reactionError) throw reactionError;
+      return reactionData || [];
+    },
+    enabled: !!conversationId,
+  });
+
+  // Add reaction
+  const addReaction = useMutation({
+    mutationFn: async ({ messageId, emoji }: { messageId: string; emoji: string }) => {
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('dm_message_reactions')
+        .insert({
+          message_id: messageId,
+          user_id: user.id,
+          emoji,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dm-reactions', conversationId] });
+    },
+  });
+
+  // Remove reaction
+  const removeReaction = useMutation({
+    mutationFn: async ({ messageId, emoji }: { messageId: string; emoji: string }) => {
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('dm_message_reactions')
+        .delete()
+        .eq('message_id', messageId)
+        .eq('user_id', user.id)
+        .eq('emoji', emoji);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dm-reactions', conversationId] });
+    },
+  });
+
+  // Toggle reaction
+  const toggleReaction = useCallback(async (messageId: string, emoji: string) => {
+    if (!user || !reactions) return;
+
+    const existingReaction = reactions.find(
+      r => r.message_id === messageId && r.user_id === user.id && r.emoji === emoji
+    );
+
+    if (existingReaction) {
+      await removeReaction.mutateAsync({ messageId, emoji });
+    } else {
+      await addReaction.mutateAsync({ messageId, emoji });
+    }
+  }, [user, reactions, addReaction, removeReaction]);
+
+  // Get reactions for a specific message
+  const getReactionsForMessage = useCallback((messageId: string): MessageReaction[] => {
+    if (!reactions || !user) return [];
+    
+    return reactions
+      .filter(r => r.message_id === messageId)
+      .map(r => ({
+        id: r.id,
+        emoji: r.emoji,
+        userId: r.user_id,
+        isMine: r.user_id === user.id,
+      }));
+  }, [reactions, user]);
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const channel = supabase
+      .channel(`reactions-${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'dm_message_reactions',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['dm-reactions', conversationId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId, queryClient]);
+
+  return {
+    toggleReaction,
+    getReactionsForMessage,
+    isLoading: addReaction.isPending || removeReaction.isPending,
+  };
+};
+
+// Hook for editing messages
+export const useEditMessage = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { publicKey: myPublicKey } = useEncryptionKeys();
+
+  return useMutation({
+    mutationFn: async ({
+      messageId,
+      conversationId,
+      newContent,
+      recipientPublicKey,
+    }: {
+      messageId: string;
+      conversationId: string;
+      newContent: string;
+      recipientPublicKey: string;
+    }) => {
+      if (!user || !myPublicKey) throw new Error('Not authenticated');
+
+      const privateKey = getPrivateKey(user.id);
+      if (!privateKey) throw new Error('No private key');
+
+      // Re-encrypt the new content
+      const { encryptedForSender, encryptedForRecipient } = await encryptForConversation(
+        newContent,
+        privateKey,
+        myPublicKey,
+        recipientPublicKey
+      );
+
+      const { error } = await supabase
+        .from('direct_messages')
+        .update({
+          encrypted_content_sender: encryptedForSender.ciphertext,
+          encrypted_content_recipient: encryptedForRecipient.ciphertext,
+          nonce_sender: encryptedForSender.nonce,
+          nonce_recipient: encryptedForRecipient.nonce,
+          edited_at: new Date().toISOString(),
+        })
+        .eq('id', messageId)
+        .eq('sender_id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['dm-messages', variables.conversationId] });
+      toast.success('Message edited');
+    },
+    onError: (error) => {
+      console.error('Failed to edit message:', error);
+      toast.error('Failed to edit message');
+    },
+  });
+};
+
+// Hook for deleting messages
+export const useDeleteMessage = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      messageId,
+      conversationId,
+    }: {
+      messageId: string;
+      conversationId: string;
+    }) => {
+      if (!user) throw new Error('Not authenticated');
+
+      // Soft delete - mark as deleted
+      const { error } = await supabase
+        .from('direct_messages')
+        .update({
+          is_deleted: true,
+          encrypted_content_sender: '',
+          encrypted_content_recipient: '',
+        })
+        .eq('id', messageId)
+        .eq('sender_id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['dm-messages', variables.conversationId] });
+      toast.success('Message deleted');
+    },
+    onError: (error) => {
+      console.error('Failed to delete message:', error);
+      toast.error('Failed to delete message');
     },
   });
 };

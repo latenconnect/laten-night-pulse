@@ -1,10 +1,11 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Map, Compass, Plus, Music, User } from 'lucide-react';
+import { Map, Compass, Plus, Music, User, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useLanguage } from '@/context/LanguageContext';
+import { useTotalUnreadCount } from '@/hooks/useDirectMessages';
 
 const navItems = [
   { icon: Map, labelKey: 'nav.map', path: '/map' },

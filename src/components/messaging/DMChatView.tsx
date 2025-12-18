@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Lock, ArrowLeft, MoreVertical, Shield, User, Image, Paperclip, Check, CheckCheck, X } from 'lucide-react';
+import { Send, Lock, ArrowLeft, MoreVertical, Shield, User, Image, Paperclip, Check, CheckCheck, X, Smile, Pencil, Trash2 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   useConversationMessages, 
   useSendMessage, 
@@ -14,6 +15,9 @@ import {
   useEncryptionKeys,
   useTypingIndicator,
   useUploadDMFile,
+  useMessageReactions,
+  useEditMessage,
+  useDeleteMessage,
   DecryptedMessage 
 } from '@/hooks/useDirectMessages';
 import { useLanguage } from '@/context/LanguageContext';
@@ -33,13 +37,31 @@ interface DMChatViewProps {
   onClose: () => void;
 }
 
-const MessageBubble = ({ message }: { message: DecryptedMessage }) => {
+const EMOJI_OPTIONS = ['❤️', '👍', '😂', '😮', '😢', '🔥'];
+
+interface MessageBubbleProps {
+  message: DecryptedMessage;
+  onReact: (emoji: string) => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  reactions: { emoji: string; count: number; isMine: boolean }[];
+}
+
+const MessageBubble = ({ message, onReact, onEdit, onDelete, reactions }: MessageBubbleProps) => {
+  const [showActions, setShowActions] = useState(false);
+
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
     return format(date, 'HH:mm');
   };
 
   const renderContent = () => {
+    if (message.isDeleted) {
+      return (
+        <p className="text-sm italic opacity-60">{message.content}</p>
+      );
+    }
+
     if (message.messageType === 'image' && message.fileUrl) {
       return (
         <div className="space-y-1">
@@ -80,42 +102,129 @@ const MessageBubble = ({ message }: { message: DecryptedMessage }) => {
     return <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>;
   };
 
+  // Group reactions by emoji
+  const groupedReactions = reactions.reduce((acc, r) => {
+    const existing = acc.find(g => g.emoji === r.emoji);
+    if (existing) {
+      existing.count += r.count;
+      existing.isMine = existing.isMine || r.isMine;
+    } else {
+      acc.push({ ...r });
+    }
+    return acc;
+  }, [] as { emoji: string; count: number; isMine: boolean }[]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        'flex gap-2 max-w-[80%]',
+        'flex gap-2 max-w-[80%] group relative',
         message.isMine ? 'ml-auto flex-row-reverse' : ''
       )}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
     >
-      <div
-        className={cn(
-          'rounded-2xl px-4 py-2',
-          message.isMine
-            ? 'bg-primary text-primary-foreground rounded-br-md'
-            : 'bg-card border border-border rounded-bl-md'
+      {/* Actions menu */}
+      <AnimatePresence>
+        {showActions && !message.isDeleted && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className={cn(
+              'absolute top-0 flex items-center gap-1 bg-card border border-border rounded-lg p-1 shadow-lg z-10',
+              message.isMine ? 'right-full mr-2' : 'left-full ml-2'
+            )}
+          >
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <Smile className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2" side="top">
+                <div className="flex gap-1">
+                  {EMOJI_OPTIONS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => onReact(emoji)}
+                      className="text-xl hover:scale-125 transition-transform p-1"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+            {message.isMine && message.messageType === 'text' && (
+              <>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit}>
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={onDelete}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+          </motion.div>
         )}
-      >
-        {renderContent()}
-        <div className={cn(
-          'flex items-center gap-1 mt-1',
-          message.isMine ? 'justify-end' : ''
-        )}>
-          <span className={cn(
-            'text-[10px]',
-            message.isMine ? 'text-primary-foreground/70' : 'text-muted-foreground'
-          )}>
-            {formatTime(message.createdAt)}
-          </span>
-          {message.isMine && (
-            message.readAt ? (
-              <CheckCheck className="w-3 h-3 text-primary-foreground/70" />
-            ) : (
-              <Check className="w-3 h-3 text-primary-foreground/70" />
-            )
+      </AnimatePresence>
+
+      <div className="flex flex-col">
+        <div
+          className={cn(
+            'rounded-2xl px-4 py-2',
+            message.isMine
+              ? 'bg-primary text-primary-foreground rounded-br-md'
+              : 'bg-card border border-border rounded-bl-md'
           )}
+        >
+          {renderContent()}
+          <div className={cn(
+            'flex items-center gap-1 mt-1',
+            message.isMine ? 'justify-end' : ''
+          )}>
+            <span className={cn(
+              'text-[10px]',
+              message.isMine ? 'text-primary-foreground/70' : 'text-muted-foreground'
+            )}>
+              {formatTime(message.createdAt)}
+              {message.editedAt && ' (edited)'}
+            </span>
+            {message.isMine && (
+              message.readAt ? (
+                <CheckCheck className="w-3 h-3 text-primary-foreground/70" />
+              ) : (
+                <Check className="w-3 h-3 text-primary-foreground/70" />
+              )
+            )}
+          </div>
         </div>
+
+        {/* Reactions display */}
+        {groupedReactions.length > 0 && (
+          <div className={cn(
+            'flex flex-wrap gap-1 mt-1',
+            message.isMine ? 'justify-end' : ''
+          )}>
+            {groupedReactions.map((r) => (
+              <button
+                key={r.emoji}
+                onClick={() => onReact(r.emoji)}
+                className={cn(
+                  'flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors',
+                  r.isMine 
+                    ? 'bg-primary/20 border-primary/30' 
+                    : 'bg-card border-border hover:bg-muted'
+                )}
+              >
+                <span>{r.emoji}</span>
+                {r.count > 1 && <span className="text-muted-foreground">{r.count}</span>}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -176,7 +285,6 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
   const { t } = useLanguage();
   const { user } = useAuth();
   
-  // Fetch user profile for sender name
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
@@ -186,9 +294,11 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
     },
     enabled: !!user,
   });
+
   const [newMessage, setNewMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [editingMessage, setEditingMessage] = useState<DecryptedMessage | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -198,10 +308,13 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
   const { data: recipientPublicKey, isLoading: keyLoading } = useUserPublicKey(participantId);
   const { publicKey: myPublicKey, hasKeys, initializeKeys, isInitializing } = useEncryptionKeys();
   const { isOtherTyping, setTyping } = useTypingIndicator(conversationId, participantId);
+  const { toggleReaction, getReactionsForMessage } = useMessageReactions(conversationId);
   const sendMessage = useSendMessage();
   const uploadFile = useUploadDMFile();
+  const editMessage = useEditMessage();
+  const deleteMessage = useDeleteMessage();
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -215,7 +328,14 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
     }
   }, [isOpen]);
 
-  // Handle typing indicator
+  // Set edit message content
+  useEffect(() => {
+    if (editingMessage) {
+      setNewMessage(editingMessage.content);
+      inputRef.current?.focus();
+    }
+  }, [editingMessage]);
+
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
     
@@ -226,7 +346,6 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
     }
   }, [setTyping]);
 
-  // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -259,6 +378,19 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
     if ((!newMessage.trim() && !selectedFile) || !recipientPublicKey || sendMessage.isPending) return;
 
     setTyping(false);
+
+    // Handle edit mode
+    if (editingMessage) {
+      await editMessage.mutateAsync({
+        messageId: editingMessage.id,
+        conversationId,
+        newContent: newMessage.trim(),
+        recipientPublicKey,
+      });
+      setEditingMessage(null);
+      setNewMessage('');
+      return;
+    }
 
     let fileData;
     if (selectedFile) {
@@ -294,6 +426,16 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
       e.preventDefault();
       handleSend();
     }
+    if (e.key === 'Escape' && editingMessage) {
+      setEditingMessage(null);
+      setNewMessage('');
+    }
+  };
+
+  const handleDelete = (message: DecryptedMessage) => {
+    if (confirm('Delete this message? This cannot be undone.')) {
+      deleteMessage.mutate({ messageId: message.id, conversationId });
+    }
   };
 
   // Group messages by date
@@ -307,7 +449,7 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
   }, {} as Record<string, DecryptedMessage[]>);
 
   const canSendMessage = hasKeys && recipientPublicKey && !keyLoading;
-  const isSending = sendMessage.isPending || uploadFile.isPending;
+  const isSending = sendMessage.isPending || uploadFile.isPending || editMessage.isPending;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -384,10 +526,31 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
               {Object.entries(groupedMessages).map(([date, msgs]) => (
                 <div key={date}>
                   <DateDivider date={new Date(date)} />
-                  <div className="space-y-2">
-                    {msgs.map((msg) => (
-                      <MessageBubble key={msg.id} message={msg} />
-                    ))}
+                  <div className="space-y-3">
+                    {msgs.map((msg) => {
+                      const reactions = getReactionsForMessage(msg.id);
+                      const groupedReactions = reactions.reduce((acc, r) => {
+                        const existing = acc.find(g => g.emoji === r.emoji);
+                        if (existing) {
+                          existing.count++;
+                          existing.isMine = existing.isMine || r.isMine;
+                        } else {
+                          acc.push({ emoji: r.emoji, count: 1, isMine: r.isMine });
+                        }
+                        return acc;
+                      }, [] as { emoji: string; count: number; isMine: boolean }[]);
+
+                      return (
+                        <MessageBubble 
+                          key={msg.id} 
+                          message={msg}
+                          onReact={(emoji) => toggleReaction(msg.id, emoji)}
+                          onEdit={() => setEditingMessage(msg)}
+                          onDelete={() => handleDelete(msg)}
+                          reactions={groupedReactions}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -399,6 +562,27 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
             </div>
           )}
         </ScrollArea>
+
+        {/* Edit mode indicator */}
+        {editingMessage && (
+          <div className="px-4 py-2 border-t border-border bg-primary/10 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-primary" />
+              <span className="text-sm">Editing message</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6"
+              onClick={() => {
+                setEditingMessage(null);
+                setNewMessage('');
+              }}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
 
         {/* File preview */}
         {selectedFile && (
@@ -439,21 +623,23 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
               onChange={handleFileSelect}
               className="hidden"
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={!canSendMessage || isSending}
-              className="shrink-0"
-            >
-              <Image className="w-5 h-5" />
-            </Button>
+            {!editingMessage && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!canSendMessage || isSending}
+                className="shrink-0"
+              >
+                <Image className="w-5 h-5" />
+              </Button>
+            )}
             <Input
               ref={inputRef}
               value={newMessage}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder={canSendMessage ? "Type a message..." : "Waiting for encryption..."}
+              placeholder={editingMessage ? "Edit message..." : canSendMessage ? "Type a message..." : "Waiting for encryption..."}
               disabled={!canSendMessage || isSending}
               className="flex-1"
             />
