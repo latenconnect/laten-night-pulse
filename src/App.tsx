@@ -39,6 +39,9 @@ import DJDashboard from "./pages/DJDashboard";
 import BartenderMarketplace from "./pages/BartenderMarketplace";
 import BartenderProfile from "./pages/BartenderProfile";
 import BartenderDashboard from "./pages/BartenderDashboard";
+import Professionals from "./pages/Professionals";
+import ProfessionalProfile from "./pages/ProfessionalProfile";
+import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import { SearchContext } from "@/context/SearchContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 
@@ -81,11 +84,15 @@ const AppContent = () => {
         <Route path="/friends" element={<Friends />} />
         <Route path="/saved" element={<SavedEvents />} />
         <Route path="/create" element={<CreateEvent />} />
-        {/* DJ Marketplace routes */}
+        {/* Professionals Marketplace routes */}
+        <Route path="/professionals" element={<Professionals />} />
+        <Route path="/professional/:professionalId" element={<ProfessionalProfile />} />
+        <Route path="/professional/dashboard" element={<ProfessionalDashboard />} />
+        {/* Legacy DJ routes - redirect to professionals */}
         <Route path="/djs" element={<DJMarketplace />} />
         <Route path="/dj/:djId" element={<DJProfile />} />
         <Route path="/dj/dashboard" element={<DJDashboard />} />
-        {/* Bartender Marketplace routes */}
+        {/* Legacy Bartender routes - redirect to professionals */}
         <Route path="/bartenders" element={<BartenderMarketplace />} />
         <Route path="/bartender/:bartenderId" element={<BartenderProfile />} />
         <Route path="/bartender/dashboard" element={<BartenderDashboard />} />
