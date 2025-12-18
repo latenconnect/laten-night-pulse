@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SearchContext } from '@/context/SearchContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { DMInbox } from '@/components/messaging';
 
 interface MobileHeaderProps {
   title?: string;
@@ -68,6 +69,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
       
       <div className="flex justify-end items-center gap-1">
         {showLanguage && <LanguageSwitcher />}
+        <DMInbox />
         {showSearch && searchContext && (
           <motion.div whileTap={{ scale: 0.9 }}>
             <Button

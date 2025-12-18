@@ -435,6 +435,50 @@ export type Database = {
         }
         Relationships: []
       }
+      direct_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          encrypted_content_recipient: string
+          encrypted_content_sender: string
+          id: string
+          nonce_recipient: string
+          nonce_sender: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          encrypted_content_recipient: string
+          encrypted_content_sender: string
+          id?: string
+          nonce_recipient: string
+          nonce_sender: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          encrypted_content_recipient?: string
+          encrypted_content_sender?: string
+          id?: string
+          nonce_recipient?: string
+          nonce_sender?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "dm_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dj_availability: {
         Row: {
           created_at: string | null
@@ -698,6 +742,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dm_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          participant_1: string
+          participant_2: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          participant_1: string
+          participant_2: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          participant_1?: string
+          participant_2?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       event_analytics: {
         Row: {
@@ -1481,6 +1549,30 @@ export type Database = {
           id?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_encryption_keys: {
+        Row: {
+          id: string
+          key_created_at: string
+          public_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          key_created_at?: string
+          public_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          key_created_at?: string
+          public_key?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
