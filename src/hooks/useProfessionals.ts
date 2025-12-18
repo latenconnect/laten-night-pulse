@@ -414,3 +414,45 @@ export function useProfessionalBookings(professionalId?: string) {
     enabled: !!professionalId,
   });
 }
+
+export function useMyProfessionalSubscription() {
+  const { data: profile } = useMyProfessionalProfile();
+  
+  return useQuery({
+    queryKey: ['my-professional-subscription', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('professional_subscriptions')
+        .select('*')
+        .eq('professional_id', profile.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as ProfessionalSubscription | null;
+    },
+    enabled: !!profile?.id,
+  });
+}
+
+export function useMyProfessionalBookings() {
+  const { data: profile } = useMyProfessionalProfile();
+  
+  return useQuery({
+    queryKey: ['my-professional-bookings', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+
+      const { data, error } = await supabase
+        .from('professional_bookings')
+        .select('*')
+        .eq('professional_id', profile.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as ProfessionalBooking[];
+    },
+    enabled: !!profile?.id,
+  });
+}

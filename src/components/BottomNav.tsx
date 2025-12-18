@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Map, Compass, Plus, Music, User, MessageCircle } from 'lucide-react';
+import { Map, Compass, Plus, Briefcase, User, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useLanguage } from '@/context/LanguageContext';
@@ -11,7 +11,7 @@ const navItems = [
   { icon: Map, labelKey: 'nav.map', path: '/map' },
   { icon: Compass, labelKey: 'nav.explore', path: '/explore' },
   { icon: Plus, labelKey: 'host.createEvent', path: '/create', isSpecial: true },
-  { icon: Music, labelKey: 'dj.browseDJs', path: '/djs' },
+  { icon: Briefcase, labelKey: 'nav.professionals', path: '/professionals' },
   { icon: User, labelKey: 'nav.profile', path: '/profile' },
 ];
 
