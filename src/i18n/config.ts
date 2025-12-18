@@ -30,20 +30,24 @@ Object.keys(translations).forEach((lang) => {
   resources[lang] = { translation: (translations as Record<string, Record<string, unknown>>)[lang] };
 });
 
-// Initialize synchronously
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: getInitialLanguage(),
-    fallbackLng: 'en',
-    interpolation: {
-      escapeValue: false, // React already escapes
-    },
-    returnNull: false,
-    returnEmptyString: false,
-    initImmediate: true, // Initialize synchronously
-  });
+// Initialize i18n synchronously
+if (!i18n.isInitialized) {
+  i18n
+    .use(initReactI18next)
+    .init({
+      resources,
+      lng: getInitialLanguage(),
+      fallbackLng: 'en',
+      interpolation: {
+        escapeValue: false, // React already escapes
+      },
+      returnNull: false,
+      returnEmptyString: false,
+      react: {
+        useSuspense: false, // Disable suspense to prevent async issues
+      },
+    });
+}
 
 // Sync language changes to localStorage and html lang attribute
 i18n.on('languageChanged', (lng) => {

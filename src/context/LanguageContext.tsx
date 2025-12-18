@@ -1,5 +1,4 @@
 import React, { createContext, useContext, ReactNode, useCallback, useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n/config';
 
 export type Language = 'en' | 'hu' | 'zh' | 'vi' | 'fr' | 'it' | 'es' | 'de' | 'ko';
@@ -15,41 +14,65 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { t: i18nT, i18n: i18nInstance, ready } = useTranslation();
   const [isReady, setIsReady] = useState(i18n.isInitialized);
+  const [language, setLanguageState] = useState<Language>((i18n.language as Language) || 'en');
 
   useEffect(() => {
-    if (i18n.isInitialized) {
+    const checkReady = () => {
+      if (i18n.isInitialized) {
+        setIsReady(true);
+        setLanguageState((i18n.language as Language) || 'en');
+      }
+    };
+    
+    // Check immediately
+    checkReady();
+    
+    // Listen for initialization
+    const handleInit = () => {
       setIsReady(true);
-    } else {
-      const handleInit = () => setIsReady(true);
-      i18n.on('initialized', handleInit);
-      return () => {
-        i18n.off('initialized', handleInit);
-      };
-    }
+      setLanguageState((i18n.language as Language) || 'en');
+    };
+    
+    const handleLanguageChange = (lng: string) => {
+      setLanguageState((lng as Language) || 'en');
+    };
+    
+    i18n.on('initialized', handleInit);
+    i18n.on('languageChanged', handleLanguageChange);
+    
+    return () => {
+      i18n.off('initialized', handleInit);
+      i18n.off('languageChanged', handleLanguageChange);
+    };
   }, []);
 
-  const language = (i18nInstance.language as Language) || 'en';
-
   const setLanguage = useCallback((lang: Language) => {
-    i18nInstance.changeLanguage(lang);
-  }, [i18nInstance]);
+    i18n.changeLanguage(lang);
+  }, []);
 
   const t = useCallback((key: string): string => {
-    if (!isReady) return key;
-    const result = i18nT(key, { returnObjects: false });
-    return typeof result === 'string' ? result : key;
-  }, [i18nT, isReady]);
+    if (!isReady || !i18n.isInitialized) return key;
+    try {
+      const result = i18n.t(key, { returnObjects: false });
+      return typeof result === 'string' ? result : key;
+    } catch {
+      return key;
+    }
+  }, [isReady]);
 
   const tArray = useCallback((key: string): string[] => {
-    if (!isReady) return [];
-    const result = i18nT(key, { returnObjects: true });
-    if (Array.isArray(result)) {
-      return result.filter((item): item is string => typeof item === 'string');
+    if (!isReady || !i18n.isInitialized) return [];
+    try {
+      const result = i18n.t(key, { returnObjects: true });
+      if (Array.isArray(result)) {
+        return result.filter((item): item is string => typeof item === 'string');
+      }
+      return [];
+    } catch {
+      return [];
     }
-    return [];
-  }, [i18nT, isReady]);
+  }, [isReady]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, tArray, isReady }}>
