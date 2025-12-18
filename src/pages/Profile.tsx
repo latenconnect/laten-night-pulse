@@ -4,9 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Settings, ChevronRight, Calendar, Heart, MapPin, 
   Bell, Shield, LogOut, Sparkles, User as UserIcon, LayoutDashboard, 
-  BadgeCheck, ShieldCheck, Loader2, Globe
+  BadgeCheck, ShieldCheck, Loader2, Globe, Trash2, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import HostApplicationCard from '@/components/HostApplicationCard';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -33,6 +44,8 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const { startVerification, loading: verificationLoading } = useAgeVerification();
+
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   // Check admin role server-side
   useEffect(() => {
@@ -85,6 +98,30 @@ const Profile: React.FC = () => {
     await signOut();
     toast.success('Signed out successfully');
     navigate('/auth');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    setDeletingAccount(true);
+    try {
+      const { error } = await supabase.rpc('delete_user_account', {
+        user_id_to_delete: user.id
+      });
+      
+      if (error) throw error;
+      
+      // Sign out and delete from auth
+      await supabase.auth.signOut();
+      
+      toast.success('Your account has been deleted successfully');
+      navigate('/auth');
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      toast.error(error.message || 'Failed to delete account. Please try again.');
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   const menuItems = [
@@ -291,7 +328,7 @@ const Profile: React.FC = () => {
 
       {/* Sign Out */}
       {user && (
-        <section className="px-4 mt-6 mb-4">
+        <section className="px-4 mt-6 space-y-3">
           <Button 
             variant="ghost" 
             className="w-full text-destructive hover:text-destructive gap-2 touch-target"
@@ -300,6 +337,52 @@ const Profile: React.FC = () => {
             <LogOut className="w-5 h-5" />
             {t('profile.signOut')}
           </Button>
+          
+          {/* Delete Account */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="w-full text-muted-foreground hover:text-destructive gap-2 touch-target"
+              >
+                <Trash2 className="w-5 h-5" />
+                {t('profile.deleteAccount') || 'Delete Account'}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="max-w-sm mx-4">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="w-5 h-5" />
+                  {t('profile.deleteAccountTitle') || 'Delete Your Account?'}
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-left space-y-2">
+                  <p>{t('profile.deleteAccountWarning') || 'This action cannot be undone. All your data will be permanently deleted, including:'}</p>
+                  <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
+                    <li>Your profile and settings</li>
+                    <li>All messages and conversations</li>
+                    <li>Event RSVPs and saved events</li>
+                    <li>DJ/Bartender profiles and bookings</li>
+                    <li>Stories and social connections</li>
+                  </ul>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('common.cancel') || 'Cancel'}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteAccount}
+                  disabled={deletingAccount}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deletingAccount ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-2" />
+                  )}
+                  {t('profile.deleteAccount') || 'Delete Account'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </section>
       )}
     </MobileLayout>

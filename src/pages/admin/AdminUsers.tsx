@@ -14,7 +14,6 @@ import { format } from 'date-fns';
 interface UserProfile {
   id: string;
   display_name: string | null;
-  email: string | null;
   city: string | null;
   created_at: string;
   roles?: string[];
@@ -56,12 +55,12 @@ const AdminUsers = () => {
     try {
       let query = supabase
         .from('profiles')
-        .select('id, display_name, email, city, created_at')
+        .select('id, display_name, city, created_at')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (search) {
-        query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%`);
+        query = query.ilike('display_name', `%${search}%`);
       }
 
       const { data: profiles, error } = await query;
@@ -199,7 +198,7 @@ const AdminUsers = () => {
                           )}
                         </div>
                         <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          <span>{profile.email}</span>
+                          <span>ID: {profile.id.slice(0, 8)}...</span>
                           {profile.city && <span>• {profile.city}</span>}
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
