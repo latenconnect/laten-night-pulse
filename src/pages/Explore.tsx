@@ -1,7 +1,7 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles, Building2, ChevronDown, Star, Users, Music, Wine } from 'lucide-react';
+import { Search, Filter, MapPin, TrendingUp, Calendar, Sparkles, Building2, ChevronDown, Star, Users, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,8 +12,7 @@ import {
 import EventCard from '@/components/EventCard';
 import ClubCard from '@/components/ClubCard';
 import ForYouSection from '@/components/ForYouSection';
-import BartendersShowcase from '@/components/BartendersShowcase';
-import DJsShowcase from '@/components/DJsShowcase';
+import ProfessionalsShowcase from '@/components/ProfessionalsShowcase';
 import FeaturedTalentSection from '@/components/FeaturedTalentSection';
 import StoriesBar from '@/components/stories/StoriesBar';
 import FeaturedBadge from '@/components/FeaturedBadge';
@@ -199,11 +198,8 @@ const Explore: React.FC = () => {
         {/* Featured Talent Section (Premium DJs & Bartenders) */}
         <FeaturedTalentSection />
 
-        {/* Bartenders Showcase */}
-        <BartendersShowcase limit={5} />
-
-        {/* DJs Showcase */}
-        <DJsShowcase limit={5} />
+        {/* Professionals Showcase */}
+        <ProfessionalsShowcase limit={6} />
 
         {/* Friend Activity Feed */}
         {user && <SocialActivityFeed limit={3} />}
@@ -314,34 +310,31 @@ const Explore: React.FC = () => {
           )}
         </section>
 
-        {/* Hire Talent Section */}
+        {/* Find Professionals CTA */}
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <h2 className="font-display font-bold text-xl">{t('explore.hireTalent') || 'Hire Talent'}</h2>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() => navigate('/djs')}
-              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-card to-card border border-primary/30 p-5 text-left group"
-            >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-              <Music className="w-8 h-8 text-primary mb-3" />
-              <h3 className="font-semibold text-foreground">{t('dj.browseDJs')}</h3>
-              <p className="text-xs text-muted-foreground mt-1">{t('dj.findPerfectDJ') || 'Find your perfect DJ'}</p>
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() => navigate('/bartenders')}
-              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-secondary/20 via-card to-card border border-secondary/30 p-5 text-left group"
-            >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-secondary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-              <Wine className="w-8 h-8 text-secondary mb-3" />
-              <h3 className="font-semibold text-foreground">{t('bartender.browseBartenders')}</h3>
-              <p className="text-xs text-muted-foreground mt-1">{t('bartender.findPerfectBartender') || 'Find your perfect bartender'}</p>
-            </motion.button>
-          </div>
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate('/professionals')}
+            className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-card to-card border border-primary/30 p-6 text-left group"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/20 transition-colors" />
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center">
+                  <Briefcase className="w-7 h-7 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-lg text-foreground">
+                    {t('professionals.hireProfessionals') || 'Hire Professionals'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {t('professionals.djBartenderPhotographer') || 'DJs, Bartenders, Photographers & more'}
+                  </p>
+                </div>
+              </div>
+              <ChevronDown className="w-5 h-5 text-muted-foreground -rotate-90" />
+            </div>
+          </motion.button>
         </section>
 
         {/* This Week */}
