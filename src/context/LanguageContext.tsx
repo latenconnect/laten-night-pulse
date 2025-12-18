@@ -81,10 +81,17 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   );
 };
 
+// Default fallback for when context is not yet ready
+const defaultContext: LanguageContextType = {
+  language: 'en',
+  setLanguage: () => {},
+  t: (key: string) => key,
+  tArray: () => [],
+  isReady: false,
+};
+
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
+  // Return default context instead of throwing to handle initialization race conditions
+  return context || defaultContext;
 };
