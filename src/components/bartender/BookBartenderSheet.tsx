@@ -48,9 +48,15 @@ export const BookBartenderSheet = ({ bartender, isOpen, onClose }: BookBartender
       return;
     }
 
+    // Get booker's display name from user metadata
+    const bookerName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'Someone';
+
     try {
       await createBooking.mutateAsync({
         bartender_profile_id: bartender.id,
+        bartenderUserId: bartender.user_id,
+        bartenderName: bartender.bartender_name,
+        bookerName,
         event_date: format(eventDate, 'yyyy-MM-dd'),
         event_type: eventType,
         event_location: eventLocation || null,

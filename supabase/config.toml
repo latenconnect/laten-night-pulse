@@ -3,6 +3,9 @@ project_id = "huigwbyctzjictnaycjj"
 [functions.send-notification]
 verify_jwt = true
 
+[functions.send-booking-notification]
+verify_jwt = true
+
 [functions.import-clubs]
 verify_jwt = true
 

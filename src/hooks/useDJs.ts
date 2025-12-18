@@ -303,19 +303,39 @@ export const useCreateBookingRequest = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (request: Omit<BookingRequest, 'id' | 'user_id' | 'status' | 'dj_response' | 'created_at'>) => {
+    mutationFn: async (request: Omit<BookingRequest, 'id' | 'user_id' | 'status' | 'dj_response' | 'created_at'> & { 
+      djUserId: string; 
+      djName: string;
+      bookerName: string;
+    }) => {
       if (!user) throw new Error('Must be logged in');
+
+      const { djUserId, djName, bookerName, ...bookingData } = request;
 
       const { data, error } = await supabase
         .from('dj_booking_requests')
         .insert({
-          ...request,
+          ...bookingData,
           user_id: user.id,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Send push notification to the DJ (fire and forget)
+      supabase.functions.invoke('send-booking-notification', {
+        body: {
+          type: 'dj_booking',
+          professionalUserId: djUserId,
+          professionalName: djName,
+          bookerName,
+          eventDate: bookingData.event_date,
+          eventType: bookingData.event_type,
+          eventLocation: bookingData.event_location,
+        },
+      }).catch(err => console.log('Notification send failed:', err));
+
       return data;
     },
     onSuccess: () => {
