@@ -48,9 +48,15 @@ export const BookDJSheet = ({ dj, isOpen, onClose }: BookDJSheetProps) => {
       return;
     }
 
+    // Get booker's display name from user metadata
+    const bookerName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'Someone';
+
     try {
       await createBooking.mutateAsync({
         dj_profile_id: dj.id,
+        djUserId: dj.user_id,
+        djName: dj.dj_name,
+        bookerName,
         event_date: format(eventDate, 'yyyy-MM-dd'),
         event_type: eventType,
         event_location: eventLocation || null,

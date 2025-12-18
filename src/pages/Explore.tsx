@@ -41,7 +41,7 @@ const Explore: React.FC = () => {
   const navigate = useNavigate();
   const { selectedCity, setSelectedCity } = useApp();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, isReady: translationsReady } = useLanguage();
   const searchContext = useContext(SearchContext);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,7 +78,11 @@ const Explore: React.FC = () => {
     <div className="px-4 py-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('common.currentLocation')}</p>
+          {!translationsReady ? (
+            <Skeleton className="h-3 w-20 mb-1" />
+          ) : (
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('common.currentLocation')}</p>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-1 hover:opacity-80 transition-opacity">
@@ -125,7 +129,7 @@ const Explore: React.FC = () => {
       >
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <div className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-xl text-left text-muted-foreground touch-target">
-          {t('common.search')}...
+          {!translationsReady ? <Skeleton className="h-4 w-24 inline-block" /> : `${t('common.search')}...`}
         </div>
         <kbd className="hidden md:inline-flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
           ⌘K
@@ -144,7 +148,7 @@ const Explore: React.FC = () => {
               : 'bg-card border border-border text-muted-foreground hover:border-primary/50'
           )}
         >
-          {t('explore.allEvents')}
+          {!translationsReady ? <Skeleton className="h-4 w-16 inline-block" /> : t('explore.allEvents')}
         </motion.button>
         {EVENT_TYPES.map((type) => (
           <motion.button
@@ -200,7 +204,9 @@ const Explore: React.FC = () => {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-            <h2 className="font-display font-bold text-xl">{t('home.featured')} {t('common.tonight')}</h2>
+            <h2 className="font-display font-bold text-xl">
+              {!translationsReady ? <Skeleton className="h-5 w-32 inline-block" /> : `${t('home.featured')} ${t('common.tonight')}`}
+            </h2>
             <FeaturedBadge variant="sponsored" size="sm" />
           </div>
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
@@ -225,7 +231,9 @@ const Explore: React.FC = () => {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-secondary" />
-            <h2 className="font-display font-bold text-xl">{t('home.trending')} {selectedCity}</h2>
+            <h2 className="font-display font-bold text-xl">
+              {!translationsReady ? <Skeleton className="h-5 w-36 inline-block" /> : `${t('home.trending')} ${selectedCity}`}
+            </h2>
           </div>
           <div className="grid gap-4">
             {filteredEvents.slice(0, 3).map((event, index) => (
@@ -249,7 +257,9 @@ const Explore: React.FC = () => {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Building2 className="w-5 h-5 text-cyan-400" />
-            <h2 className="font-display font-bold text-xl">{t('explore.popularVenues')}</h2>
+            <h2 className="font-display font-bold text-xl">
+              {!translationsReady ? <Skeleton className="h-5 w-32 inline-block" /> : t('explore.popularVenues')}
+            </h2>
             {featuredClubs.length > 0 && (
               <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">
                 {featuredClubs.length} Promoted

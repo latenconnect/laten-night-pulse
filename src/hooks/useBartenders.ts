@@ -296,19 +296,39 @@ export const useCreateBartenderBookingRequest = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (request: Omit<BartenderBookingRequest, 'id' | 'user_id' | 'status' | 'bartender_response' | 'created_at'>) => {
+    mutationFn: async (request: Omit<BartenderBookingRequest, 'id' | 'user_id' | 'status' | 'bartender_response' | 'created_at'> & {
+      bartenderUserId: string;
+      bartenderName: string;
+      bookerName: string;
+    }) => {
       if (!user) throw new Error('Must be logged in');
+
+      const { bartenderUserId, bartenderName, bookerName, ...bookingData } = request;
 
       const { data, error } = await supabase
         .from('bartender_booking_requests')
         .insert({
-          ...request,
+          ...bookingData,
           user_id: user.id,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Send push notification to the bartender (fire and forget)
+      supabase.functions.invoke('send-booking-notification', {
+        body: {
+          type: 'bartender_booking',
+          professionalUserId: bartenderUserId,
+          professionalName: bartenderName,
+          bookerName,
+          eventDate: bookingData.event_date,
+          eventType: bookingData.event_type,
+          eventLocation: bookingData.event_location,
+        },
+      }).catch(err => console.log('Notification send failed:', err));
+
       return data;
     },
     onSuccess: () => {
