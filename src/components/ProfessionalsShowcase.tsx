@@ -11,6 +11,26 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useApp } from '@/context/AppContext';
 import { cn } from '@/lib/utils';
 
+// Showcase fallback images
+import djImage1 from '@/assets/showcase/dj-1.jpg';
+import djImage2 from '@/assets/showcase/dj-2.jpg';
+import bartenderImage1 from '@/assets/showcase/bartender-1.jpg';
+import bartenderImage2 from '@/assets/showcase/bartender-2.jpg';
+import professionalImage1 from '@/assets/showcase/professional-1.jpg';
+import professionalImage2 from '@/assets/showcase/professional-2.jpg';
+
+const showcaseFallbacks: Record<ProfessionType, string[]> = {
+  dj: [djImage1, djImage2],
+  bartender: [bartenderImage1, bartenderImage2],
+  photographer: [professionalImage1, professionalImage2],
+  security: [professionalImage1, professionalImage2],
+};
+
+const getShowcaseFallback = (type: ProfessionType, index: number) => {
+  const images = showcaseFallbacks[type] || showcaseFallbacks.dj;
+  return images[index % images.length];
+};
+
 interface ProfessionalsShowcaseProps {
   limit?: number;
 }
@@ -139,7 +159,7 @@ const ProfessionalsShowcase: React.FC<ProfessionalsShowcaseProps> = ({ limit = 6
                   <div className="relative">
                     <Avatar className={cn("h-14 w-14 border-2 shadow-lg", colors.border)}>
                       <AvatarImage 
-                        src={professional.profile_photo || undefined} 
+                        src={professional.profile_photo || getShowcaseFallback(professional.profession_type, index)} 
                         alt={professional.display_name}
                         className="object-cover"
                       />
