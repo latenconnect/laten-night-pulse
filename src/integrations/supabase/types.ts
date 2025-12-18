@@ -1332,6 +1332,285 @@ export type Database = {
         }
         Relationships: []
       }
+      professional_availability: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          is_available: boolean | null
+          notes: string | null
+          professional_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          is_available?: boolean | null
+          notes?: string | null
+          professional_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_available?: boolean | null
+          notes?: string | null
+          professional_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_availability_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_bookings: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string | null
+          currency: string | null
+          event_date: string
+          event_description: string | null
+          event_location: string | null
+          event_type: string
+          id: string
+          message: string | null
+          professional_id: string
+          professional_response: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          currency?: string | null
+          event_date: string
+          event_description?: string | null
+          event_location?: string | null
+          event_type: string
+          id?: string
+          message?: string | null
+          professional_id: string
+          professional_response?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          currency?: string | null
+          event_date?: string
+          event_description?: string | null
+          event_location?: string | null
+          event_type?: string
+          id?: string
+          message?: string | null
+          professional_id?: string
+          professional_response?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_reviews: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          id: string
+          professional_id: string
+          rating: number
+          review: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          professional_id: string
+          rating: number
+          review?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          professional_id?: string
+          rating?: number
+          review?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "professional_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_reviews_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          created_at: string | null
+          currency: string
+          expires_at: string | null
+          id: string
+          price_cents: number
+          professional_id: string
+          started_at: string | null
+          status: string
+          stripe_subscription_id: string | null
+          tier: string
+          updated_at: string | null
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          price_cents?: number
+          professional_id: string
+          started_at?: string | null
+          status?: string
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+        }
+        Update: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          price_cents?: number
+          professional_id?: string
+          started_at?: string | null
+          status?: string
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_subscriptions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: true
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professionals: {
+        Row: {
+          bio: string | null
+          city: string
+          country: string | null
+          created_at: string | null
+          currency: string | null
+          display_name: string
+          experience_level: string | null
+          genres: string[] | null
+          id: string
+          instagram_url: string | null
+          is_active: boolean | null
+          is_verified: boolean | null
+          mixcloud_url: string | null
+          preferred_event_types: string[] | null
+          price_max: number | null
+          price_min: number | null
+          profession_type: Database["public"]["Enums"]["profession_type"]
+          profile_photo: string | null
+          rating: number | null
+          review_count: number | null
+          skills: string[] | null
+          soundcloud_url: string | null
+          updated_at: string | null
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          bio?: string | null
+          city?: string
+          country?: string | null
+          created_at?: string | null
+          currency?: string | null
+          display_name: string
+          experience_level?: string | null
+          genres?: string[] | null
+          id?: string
+          instagram_url?: string | null
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          mixcloud_url?: string | null
+          preferred_event_types?: string[] | null
+          price_max?: number | null
+          price_min?: number | null
+          profession_type: Database["public"]["Enums"]["profession_type"]
+          profile_photo?: string | null
+          rating?: number | null
+          review_count?: number | null
+          skills?: string[] | null
+          soundcloud_url?: string | null
+          updated_at?: string | null
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          bio?: string | null
+          city?: string
+          country?: string | null
+          created_at?: string | null
+          currency?: string | null
+          display_name?: string
+          experience_level?: string | null
+          genres?: string[] | null
+          id?: string
+          instagram_url?: string | null
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          mixcloud_url?: string | null
+          preferred_event_types?: string[] | null
+          price_max?: number | null
+          price_min?: number | null
+          profession_type?: Database["public"]["Enums"]["profession_type"]
+          profile_photo?: string | null
+          rating?: number | null
+          review_count?: number | null
+          skills?: string[] | null
+          soundcloud_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age_verified: boolean | null
@@ -1900,6 +2179,7 @@ export type Database = {
       boost_status: "pending" | "active" | "completed" | "cancelled"
       club_verification_status: "pending" | "verified" | "rejected"
       event_type: "club" | "house_party" | "university" | "festival" | "public"
+      profession_type: "dj" | "bartender" | "photographer" | "security"
       subscription_status: "active" | "cancelled" | "expired" | "trial"
       subscription_tier: "basic" | "boost" | "ultimate"
       ticket_status: "available" | "sold" | "used" | "refunded" | "cancelled"
@@ -2035,6 +2315,7 @@ export const Constants = {
       boost_status: ["pending", "active", "completed", "cancelled"],
       club_verification_status: ["pending", "verified", "rejected"],
       event_type: ["club", "house_party", "university", "festival", "public"],
+      profession_type: ["dj", "bartender", "photographer", "security"],
       subscription_status: ["active", "cancelled", "expired", "trial"],
       subscription_tier: ["basic", "boost", "ultimate"],
       ticket_status: ["available", "sold", "used", "refunded", "cancelled"],
