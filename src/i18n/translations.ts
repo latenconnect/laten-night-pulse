@@ -85,6 +85,7 @@ export const translations = {
       eventTypes: 'Event Types',
       priceRange: 'Price Range',
       dateRange: 'Date Range',
+      hireTalent: 'Hire Talent',
     },
     // Events
     events: {
@@ -333,6 +334,7 @@ export const translations = {
       perGig: 'per gig',
       reviews: 'Reviews',
       noReviews: 'No reviews yet',
+      findPerfectDJ: 'Find your perfect DJ',
     },
     // Bartender Marketplace
     bartender: {
@@ -369,6 +371,7 @@ export const translations = {
       chatWithClients: 'Chat with clients',
       getRatingsReviews: 'Get ratings and reviews',
       prioritySupport: 'Priority support',
+      findPerfectBartender: 'Find your perfect bartender',
     },
   },
   hu: {
@@ -439,6 +442,7 @@ export const translations = {
       eventTypes: 'Eseménytípusok',
       priceRange: 'Ártartomány',
       dateRange: 'Dátum tartomány',
+      hireTalent: 'Tehetség bérlése',
     },
     events: {
       rsvp: 'Részvétel',
@@ -672,6 +676,7 @@ export const translations = {
       perGig: 'fellépésenként',
       reviews: 'Értékelések',
       noReviews: 'Még nincs értékelés',
+      findPerfectDJ: 'Találd meg a tökéletes DJ-t',
     },
     bartender: {
       marketplace: 'Bártender Piactér',
@@ -707,6 +712,7 @@ export const translations = {
       chatWithClients: 'Csevegés ügyfelekkel',
       getRatingsReviews: 'Értékelések és vélemények',
       prioritySupport: 'Kiemelt támogatás',
+      findPerfectBartender: 'Találd meg a tökéletes bártendert',
     },
   },
   zh: {
@@ -777,6 +783,7 @@ export const translations = {
       eventTypes: '事件类型',
       priceRange: '价格范围',
       dateRange: '日期范围',
+      hireTalent: '聘请人才',
     },
     events: {
       rsvp: '敬请回复',
@@ -1010,6 +1017,7 @@ export const translations = {
       perGig: '每G',
       reviews: '评论',
       noReviews: '暂无评论',
+      findPerfectDJ: '找到你的完美DJ',
     },
     bartender: {
       marketplace: '调酒师市场',
@@ -1045,6 +1053,7 @@ export const translations = {
       chatWithClients: '与客户聊天',
       getRatingsReviews: '获得评分和评论',
       prioritySupport: '优先支持',
+      findPerfectBartender: '找到你的完美调酒师',
     },
   },
   vi: {
@@ -1115,6 +1124,7 @@ export const translations = {
       eventTypes: 'Các loại sự kiện',
       priceRange: 'Khoảng giá',
       dateRange: 'Khoảng thời gian',
+      hireTalent: 'Thuê tài năng',
     },
     events: {
       rsvp: 'RSVP',
@@ -1348,6 +1358,7 @@ export const translations = {
       perGig: 'mỗi gigabyte',
       reviews: 'Đánh giá',
       noReviews: 'Chưa có đánh giá nào.',
+      findPerfectDJ: 'Tìm DJ hoàn hảo của bạn',
     },
     bartender: {
       marketplace: 'Chợ Bartender',
@@ -1383,6 +1394,7 @@ export const translations = {
       chatWithClients: 'Trò chuyện với khách hàng',
       getRatingsReviews: 'Nhận đánh giá và nhận xét',
       prioritySupport: 'Hỗ trợ ưu tiên',
+      findPerfectBartender: 'Tìm bartender hoàn hảo của bạn',
     },
   },
   fr: {
@@ -1453,6 +1465,7 @@ export const translations = {
       eventTypes: 'Types d\'événements',
       priceRange: 'Gamme de prix',
       dateRange: 'Période couverte',
+      hireTalent: 'Engager des talents',
     },
     events: {
       rsvp: 'RSVP',
@@ -1686,6 +1699,7 @@ export const translations = {
       perGig: 'par concert',
       reviews: 'Avis',
       noReviews: 'Aucun avis pour le moment',
+      findPerfectDJ: 'Trouvez votre DJ idéal',
     },
     bartender: {
       marketplace: 'Marché des Bartenders',
@@ -1721,6 +1735,7 @@ export const translations = {
       chatWithClients: 'Discuter avec les clients',
       getRatingsReviews: 'Obtenir des notes et avis',
       prioritySupport: 'Support prioritaire',
+      findPerfectBartender: 'Trouvez votre bartender idéal',
     },
   },
   it: {
@@ -1791,6 +1806,7 @@ export const translations = {
       eventTypes: 'Tipi di eventi',
       priceRange: 'Fascia di prezzo',
       dateRange: 'Intervallo di date',
+      hireTalent: 'Assumere talenti',
     },
     events: {
       rsvp: 'Rispondi',
@@ -2024,6 +2040,7 @@ export const translations = {
       perGig: 'per concerto',
       reviews: 'Recensioni',
       noReviews: 'Nessuna recensione ancora',
+      findPerfectDJ: 'Trova il tuo DJ perfetto',
     },
     bartender: {
       marketplace: 'Mercato dei Bartender',
@@ -2059,6 +2076,7 @@ export const translations = {
       chatWithClients: 'Chattare con i clienti',
       getRatingsReviews: 'Ottenere valutazioni e recensioni',
       prioritySupport: 'Supporto prioritario',
+      findPerfectBartender: 'Trova il tuo bartender perfetto',
     },
   },
   es: {
@@ -2129,6 +2147,7 @@ export const translations = {
       eventTypes: 'Tipos de eventos',
       priceRange: 'Gama de precios',
       dateRange: 'Rango de fechas',
+      hireTalent: 'Contratar talento',
     },
     events: {
       rsvp: 'RSVP',
@@ -2362,6 +2381,7 @@ export const translations = {
       perGig: 'por concierto',
       reviews: 'Reseñas',
       noReviews: 'Aún no hay reseñas',
+      findPerfectDJ: 'Encuentra tu DJ perfecto',
     },
     bartender: {
       marketplace: 'Mercado de Bartenders',
@@ -2397,6 +2417,7 @@ export const translations = {
       chatWithClients: 'Chatear con clientes',
       getRatingsReviews: 'Obtener calificaciones y reseñas',
       prioritySupport: 'Soporte prioritario',
+      findPerfectBartender: 'Encuentra tu bartender perfecto',
     },
   },
   de: {
@@ -2467,6 +2488,7 @@ export const translations = {
       eventTypes: 'Ereignistypen',
       priceRange: 'Preisklasse',
       dateRange: 'Datumsbereich',
+      hireTalent: 'Talente einstellen',
     },
     events: {
       rsvp: 'Bitte um Rückmeldung',
@@ -2700,6 +2722,7 @@ export const translations = {
       perGig: 'pro Gigabyte',
       reviews: 'Rezensionen',
       noReviews: 'Noch keine Bewertungen',
+      findPerfectDJ: 'Finden Sie Ihren perfekten DJ',
     },
     bartender: {
       marketplace: 'Bartender-Marktplatz',
@@ -2735,6 +2758,7 @@ export const translations = {
       chatWithClients: 'Mit Kunden chatten',
       getRatingsReviews: 'Bewertungen erhalten',
       prioritySupport: 'Prioritäts-Support',
+      findPerfectBartender: 'Finden Sie Ihren perfekten Bartender',
     },
   },
   ko: {
@@ -2805,6 +2829,7 @@ export const translations = {
       eventTypes: '이벤트 유형',
       priceRange: '가격대',
       dateRange: '날짜 범위',
+      hireTalent: '인재 채용',
     },
     events: {
       rsvp: '참석 여부 회신',
@@ -3038,6 +3063,7 @@ export const translations = {
       perGig: '기가바이트당',
       reviews: '리뷰',
       noReviews: '아직 리뷰가 없습니다.',
+      findPerfectDJ: '완벽한 DJ를 찾으세요',
     },
     bartender: {
       marketplace: '바텐더 마켓플레이스',
@@ -3073,6 +3099,7 @@ export const translations = {
       chatWithClients: '고객과 채팅',
       getRatingsReviews: '평점 및 리뷰 받기',
       prioritySupport: '우선 지원',
+      findPerfectBartender: '완벽한 바텐더를 찾으세요',
     },
   },
 };
