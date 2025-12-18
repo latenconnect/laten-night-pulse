@@ -12,6 +12,7 @@ import {
 import EventCard from '@/components/EventCard';
 import ClubCard from '@/components/ClubCard';
 import ForYouSection from '@/components/ForYouSection';
+import FeaturedTalentSection from '@/components/FeaturedTalentSection';
 import StoriesBar from '@/components/stories/StoriesBar';
 import FeaturedBadge from '@/components/FeaturedBadge';
 import MobileLayout from '@/components/layouts/MobileLayout';
@@ -188,6 +189,9 @@ const Explore: React.FC = () => {
           loading={feedLoading} 
           hasPersonalization={hasPersonalization}
         />
+
+        {/* Featured Talent Section (Premium DJs & Bartenders) */}
+        <FeaturedTalentSection />
 
         {/* Friend Activity Feed */}
         {user && <SocialActivityFeed limit={3} />}

@@ -86,6 +86,7 @@ export const translations = {
       priceRange: 'Price Range',
       dateRange: 'Date Range',
       hireTalent: 'Hire Talent',
+      featuredTalent: 'Featured Talent',
     },
     // Events
     events: {
@@ -443,6 +444,7 @@ export const translations = {
       priceRange: 'Ártartomány',
       dateRange: 'Dátum tartomány',
       hireTalent: 'Tehetség bérlése',
+      featuredTalent: 'Kiemelt Tehetségek',
     },
     events: {
       rsvp: 'Részvétel',
@@ -784,6 +786,7 @@ export const translations = {
       priceRange: '价格范围',
       dateRange: '日期范围',
       hireTalent: '聘请人才',
+      featuredTalent: '精选人才',
     },
     events: {
       rsvp: '敬请回复',
@@ -1125,6 +1128,7 @@ export const translations = {
       priceRange: 'Khoảng giá',
       dateRange: 'Khoảng thời gian',
       hireTalent: 'Thuê tài năng',
+      featuredTalent: 'Tài năng nổi bật',
     },
     events: {
       rsvp: 'RSVP',
@@ -1466,6 +1470,7 @@ export const translations = {
       priceRange: 'Gamme de prix',
       dateRange: 'Période couverte',
       hireTalent: 'Engager des talents',
+      featuredTalent: 'Talents en vedette',
     },
     events: {
       rsvp: 'RSVP',
@@ -1807,6 +1812,7 @@ export const translations = {
       priceRange: 'Fascia di prezzo',
       dateRange: 'Intervallo di date',
       hireTalent: 'Assumere talenti',
+      featuredTalent: 'Talenti in primo piano',
     },
     events: {
       rsvp: 'Rispondi',
@@ -2148,6 +2154,7 @@ export const translations = {
       priceRange: 'Gama de precios',
       dateRange: 'Rango de fechas',
       hireTalent: 'Contratar talento',
+      featuredTalent: 'Talento destacado',
     },
     events: {
       rsvp: 'RSVP',
@@ -2489,6 +2496,7 @@ export const translations = {
       priceRange: 'Preisklasse',
       dateRange: 'Datumsbereich',
       hireTalent: 'Talente einstellen',
+      featuredTalent: 'Ausgewählte Talente',
     },
     events: {
       rsvp: 'Bitte um Rückmeldung',
@@ -2830,6 +2838,7 @@ export const translations = {
       priceRange: '가격대',
       dateRange: '날짜 범위',
       hireTalent: '인재 채용',
+      featuredTalent: '추천 인재',
     },
     events: {
       rsvp: '참석 여부 회신',
