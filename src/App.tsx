@@ -31,6 +31,8 @@ import AdminHosts from "./pages/admin/AdminHosts";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminImport from "./pages/admin/AdminImport";
+import AdminDJs from "./pages/admin/AdminDJs";
+import AdminBartenders from "./pages/admin/AdminBartenders";
 import DJMarketplace from "./pages/DJMarketplace";
 import DJProfile from "./pages/DJProfile";
 import DJDashboard from "./pages/DJDashboard";
@@ -95,6 +97,8 @@ const AppContent = () => {
         <Route path="/admin/hosts" element={<AdminHosts />} />
         <Route path="/admin/events" element={<AdminEvents />} />
         <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/djs" element={<AdminDJs />} />
+        <Route path="/admin/bartenders" element={<AdminBartenders />} />
         <Route path="/admin/import" element={<AdminImport />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
