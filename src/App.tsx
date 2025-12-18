@@ -34,6 +34,9 @@ import AdminImport from "./pages/admin/AdminImport";
 import DJMarketplace from "./pages/DJMarketplace";
 import DJProfile from "./pages/DJProfile";
 import DJDashboard from "./pages/DJDashboard";
+import BartenderMarketplace from "./pages/BartenderMarketplace";
+import BartenderProfile from "./pages/BartenderProfile";
+import BartenderDashboard from "./pages/BartenderDashboard";
 import { SearchContext } from "@/context/SearchContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 
@@ -80,6 +83,10 @@ const AppContent = () => {
         <Route path="/djs" element={<DJMarketplace />} />
         <Route path="/dj/:djId" element={<DJProfile />} />
         <Route path="/dj/dashboard" element={<DJDashboard />} />
+        {/* Bartender Marketplace routes */}
+        <Route path="/bartenders" element={<BartenderMarketplace />} />
+        <Route path="/bartender/:bartenderId" element={<BartenderProfile />} />
+        <Route path="/bartender/dashboard" element={<BartenderDashboard />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         {/* Admin routes */}
