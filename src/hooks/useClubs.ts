@@ -8,6 +8,13 @@ export interface OpeningHours {
   open_now?: boolean;
 }
 
+export interface CrowdInfo {
+  age_range?: string;
+  dress_code?: string;
+  atmosphere?: string;
+  best_for?: string;
+}
+
 export interface Club {
   id: string;
   name: string;
@@ -22,6 +29,11 @@ export interface Club {
   business_status: string | null;
   opening_hours: OpeningHours | null;
   venue_type: string | null;
+  description: string | null;
+  services: string[] | null;
+  highlights: string[] | null;
+  music_genres: string[] | null;
+  crowd_info: CrowdInfo | null;
 }
 
 export const useClubs = (limit?: number, filterByCity?: boolean, prioritizeNightlife?: boolean) => {
@@ -38,7 +50,7 @@ export const useClubs = (limit?: number, filterByCity?: boolean, prioritizeNight
       try {
         let query = supabase
           .from('clubs')
-          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type')
+          .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type, description, services, highlights, music_genres, crowd_info')
           .eq('is_active', true)
           .order('rating', { ascending: false, nullsFirst: false });
 
@@ -60,10 +72,11 @@ export const useClubs = (limit?: number, filterByCity?: boolean, prioritizeNight
 
         if (fetchError) throw fetchError;
         
-        // Map data to Club type with proper opening_hours casting
+        // Map data to Club type with proper casting
         const mappedClubs: Club[] = (data || []).map(club => ({
           ...club,
-          opening_hours: club.opening_hours as OpeningHours | null
+          opening_hours: club.opening_hours as OpeningHours | null,
+          crowd_info: club.crowd_info as CrowdInfo | null
         }));
         setClubs(mappedClubs);
       } catch (err) {

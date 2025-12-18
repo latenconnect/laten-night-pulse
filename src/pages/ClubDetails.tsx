@@ -14,8 +14,13 @@ import {
   Clock,
   Copy,
   Check,
-  Building2
+  Building2,
+  Music,
+  Sparkles,
+  Users,
+  Tag
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useClubById } from '@/hooks/useClubById';
@@ -234,6 +239,124 @@ const ClubDetails: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Description */}
+        {club.description && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card p-4"
+          >
+            <p className="text-foreground leading-relaxed">{club.description}</p>
+          </motion.div>
+        )}
+
+        {/* Highlights */}
+        {club.highlights && club.highlights.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <h3 className="font-semibold text-sm">{t('venues.highlights') || 'Highlights'}</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {club.highlights.map((highlight: string, index: number) => (
+                <Badge key={index} variant="secondary" className="bg-amber-500/10 text-amber-300 border-amber-500/20">
+                  {highlight}
+                </Badge>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Music Genres */}
+        {club.music_genres && club.music_genres.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-2">
+              <Music className="w-4 h-4 text-primary" />
+              <h3 className="font-semibold text-sm">{t('venues.musicGenres') || 'Music'}</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {club.music_genres.map((genre: string, index: number) => (
+                <Badge key={index} variant="outline" className="border-primary/30 text-primary">
+                  {genre}
+                </Badge>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Services */}
+        {club.services && club.services.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-2">
+              <Tag className="w-4 h-4 text-secondary" />
+              <h3 className="font-semibold text-sm">{t('venues.services') || 'Services & Amenities'}</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {club.services.map((service: string, index: number) => (
+                <Badge key={index} variant="secondary" className="bg-muted">
+                  {service}
+                </Badge>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Crowd Info */}
+        {club.crowd_info && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="glass-card p-4"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="w-4 h-4 text-cyan-400" />
+              <h3 className="font-semibold text-sm">{t('venues.crowdInfo') || 'What to Expect'}</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {club.crowd_info.age_range && (
+                <div>
+                  <p className="text-xs text-muted-foreground">{t('venues.ageRange') || 'Age Range'}</p>
+                  <p className="text-sm font-medium">{club.crowd_info.age_range}</p>
+                </div>
+              )}
+              {club.crowd_info.dress_code && (
+                <div>
+                  <p className="text-xs text-muted-foreground">{t('venues.dressCode') || 'Dress Code'}</p>
+                  <p className="text-sm font-medium">{club.crowd_info.dress_code}</p>
+                </div>
+              )}
+              {club.crowd_info.atmosphere && (
+                <div>
+                  <p className="text-xs text-muted-foreground">{t('venues.atmosphere') || 'Atmosphere'}</p>
+                  <p className="text-sm font-medium">{club.crowd_info.atmosphere}</p>
+                </div>
+              )}
+              {club.crowd_info.best_for && (
+                <div>
+                  <p className="text-xs text-muted-foreground">{t('venues.bestFor') || 'Best For'}</p>
+                  <p className="text-sm font-medium">{club.crowd_info.best_for}</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* Address Card */}
         {club.address && (
