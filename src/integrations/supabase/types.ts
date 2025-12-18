@@ -14,6 +14,264 @@ export type Database = {
   }
   public: {
     Tables: {
+      bartender_availability: {
+        Row: {
+          bartender_profile_id: string
+          created_at: string | null
+          date: string
+          id: string
+          is_available: boolean | null
+          notes: string | null
+        }
+        Insert: {
+          bartender_profile_id: string
+          created_at?: string | null
+          date: string
+          id?: string
+          is_available?: boolean | null
+          notes?: string | null
+        }
+        Update: {
+          bartender_profile_id?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_available?: boolean | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bartender_availability_bartender_profile_id_fkey"
+            columns: ["bartender_profile_id"]
+            isOneToOne: false
+            referencedRelation: "bartender_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bartender_booking_requests: {
+        Row: {
+          bartender_profile_id: string
+          bartender_response: string | null
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string | null
+          currency: string | null
+          event_date: string
+          event_description: string | null
+          event_location: string | null
+          event_type: string
+          id: string
+          message: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bartender_profile_id: string
+          bartender_response?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          currency?: string | null
+          event_date: string
+          event_description?: string | null
+          event_location?: string | null
+          event_type: string
+          id?: string
+          message?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bartender_profile_id?: string
+          bartender_response?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          currency?: string | null
+          event_date?: string
+          event_description?: string | null
+          event_location?: string | null
+          event_type?: string
+          id?: string
+          message?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bartender_booking_requests_bartender_profile_id_fkey"
+            columns: ["bartender_profile_id"]
+            isOneToOne: false
+            referencedRelation: "bartender_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bartender_profiles: {
+        Row: {
+          bartender_name: string
+          bio: string | null
+          city: string
+          created_at: string | null
+          currency: string | null
+          experience_level: string | null
+          id: string
+          instagram_url: string | null
+          is_active: boolean | null
+          preferred_event_types: string[] | null
+          price_max: number | null
+          price_min: number | null
+          profile_photo: string | null
+          rating: number | null
+          review_count: number | null
+          skills: string[]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bartender_name: string
+          bio?: string | null
+          city?: string
+          created_at?: string | null
+          currency?: string | null
+          experience_level?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_active?: boolean | null
+          preferred_event_types?: string[] | null
+          price_max?: number | null
+          price_min?: number | null
+          profile_photo?: string | null
+          rating?: number | null
+          review_count?: number | null
+          skills?: string[]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bartender_name?: string
+          bio?: string | null
+          city?: string
+          created_at?: string | null
+          currency?: string | null
+          experience_level?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_active?: boolean | null
+          preferred_event_types?: string[] | null
+          price_max?: number | null
+          price_min?: number | null
+          profile_photo?: string | null
+          rating?: number | null
+          review_count?: number | null
+          skills?: string[]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bartender_reviews: {
+        Row: {
+          bartender_profile_id: string
+          booking_id: string | null
+          created_at: string | null
+          id: string
+          rating: number
+          review: string | null
+          user_id: string
+        }
+        Insert: {
+          bartender_profile_id: string
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          rating: number
+          review?: string | null
+          user_id: string
+        }
+        Update: {
+          bartender_profile_id?: string
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+          review?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bartender_reviews_bartender_profile_id_fkey"
+            columns: ["bartender_profile_id"]
+            isOneToOne: false
+            referencedRelation: "bartender_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bartender_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bartender_booking_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bartender_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          bartender_profile_id: string
+          created_at: string | null
+          currency: string
+          expires_at: string | null
+          id: string
+          price_cents: number
+          started_at: string | null
+          status: string
+          stripe_subscription_id: string | null
+          tier: string
+          updated_at: string | null
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          bartender_profile_id: string
+          created_at?: string | null
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          price_cents?: number
+          started_at?: string | null
+          status?: string
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+        }
+        Update: {
+          auto_renew?: boolean | null
+          bartender_profile_id?: string
+          created_at?: string | null
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          price_cents?: number
+          started_at?: string | null
+          status?: string
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bartender_subscriptions_bartender_profile_id_fkey"
+            columns: ["bartender_profile_id"]
+            isOneToOne: true
+            referencedRelation: "bartender_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_analytics: {
         Row: {
           clicks: number | null
