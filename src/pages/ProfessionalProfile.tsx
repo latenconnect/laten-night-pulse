@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import { useLanguage } from '@/context/LanguageContext';
 import { useProfessionalProfile, useProfessionalReviews } from '@/hooks/useProfessionals';
+import { BookProfessionalSheet } from '@/components/professionals/BookProfessionalSheet';
 import { format } from 'date-fns';
 
 const professionIcons: Record<string, React.ElementType> = {
@@ -296,6 +297,13 @@ const ProfessionalProfilePage = () => {
             {t('professionals.bookNow')}
           </Button>
         </div>
+
+        {/* Booking Sheet */}
+        <BookProfessionalSheet
+          professional={professional}
+          isOpen={showBookingSheet}
+          onClose={() => setShowBookingSheet(false)}
+        />
       </div>
     </MobileLayout>
   );
