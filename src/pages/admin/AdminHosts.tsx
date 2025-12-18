@@ -20,9 +20,8 @@ interface Host {
   verified_at: string | null;
   profile?: {
     display_name: string;
-    email: string;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 const AdminHosts = () => {
@@ -76,7 +75,7 @@ const AdminHosts = () => {
       const userIds = [...new Set((data || []).map(h => h.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, display_name, email, avatar_url')
+        .select('id, display_name, avatar_url')
         .in('id', userIds);
 
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
@@ -199,7 +198,7 @@ const AdminHosts = () => {
                           {host.profile?.display_name || 'Unknown User'}
                         </CardTitle>
                         <p className="text-sm text-muted-foreground">
-                          {host.profile?.email}
+                          ID: {host.user_id.slice(0, 8)}...
                         </p>
                       </div>
                     </div>

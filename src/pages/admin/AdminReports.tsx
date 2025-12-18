@@ -25,8 +25,7 @@ interface Report {
   };
   reporter?: {
     display_name: string;
-    email: string;
-  };
+  } | null;
 }
 
 const AdminReports = () => {
@@ -86,7 +85,7 @@ const AdminReports = () => {
       const reporterIds = [...new Set((data || []).map(r => r.reporter_id))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, display_name, email')
+        .select('id, display_name')
         .in('id', reporterIds);
 
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);

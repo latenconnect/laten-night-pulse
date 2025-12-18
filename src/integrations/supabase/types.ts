@@ -317,8 +317,10 @@ export type Database = {
         Row: {
           admin_notes: string | null
           business_email: string
+          business_email_encrypted: string | null
           business_name: string
           business_phone: string | null
+          business_phone_encrypted: string | null
           club_id: string
           created_at: string | null
           id: string
@@ -331,8 +333,10 @@ export type Database = {
         Insert: {
           admin_notes?: string | null
           business_email: string
+          business_email_encrypted?: string | null
           business_name: string
           business_phone?: string | null
+          business_phone_encrypted?: string | null
           club_id: string
           created_at?: string | null
           id?: string
@@ -345,8 +349,10 @@ export type Database = {
         Update: {
           admin_notes?: string | null
           business_email?: string
+          business_email_encrypted?: string | null
           business_name?: string
           business_phone?: string | null
+          business_phone_encrypted?: string | null
           club_id?: string
           created_at?: string | null
           id?: string
@@ -1337,7 +1343,6 @@ export type Database = {
           date_of_birth: string | null
           didit_session_id: string | null
           display_name: string | null
-          email: string | null
           id: string
           updated_at: string | null
         }
@@ -1351,7 +1356,6 @@ export type Database = {
           date_of_birth?: string | null
           didit_session_id?: string | null
           display_name?: string | null
-          email?: string | null
           id: string
           updated_at?: string | null
         }
@@ -1365,7 +1369,6 @@ export type Database = {
           date_of_birth?: string | null
           didit_session_id?: string | null
           display_name?: string | null
-          email?: string | null
           id?: string
           updated_at?: string | null
         }
@@ -1872,6 +1875,10 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_stories: { Args: never; Returns: undefined }
+      delete_user_account: {
+        Args: { user_id_to_delete: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
