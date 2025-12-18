@@ -12,6 +12,7 @@ import {
 import EventCard from '@/components/EventCard';
 import ClubCard from '@/components/ClubCard';
 import ForYouSection from '@/components/ForYouSection';
+import BartendersShowcase from '@/components/BartendersShowcase';
 import FeaturedTalentSection from '@/components/FeaturedTalentSection';
 import StoriesBar from '@/components/stories/StoriesBar';
 import FeaturedBadge from '@/components/FeaturedBadge';
@@ -196,6 +197,9 @@ const Explore: React.FC = () => {
 
         {/* Featured Talent Section (Premium DJs & Bartenders) */}
         <FeaturedTalentSection />
+
+        {/* Bartenders Showcase */}
+        <BartendersShowcase limit={5} />
 
         {/* Friend Activity Feed */}
         {user && <SocialActivityFeed limit={3} />}
