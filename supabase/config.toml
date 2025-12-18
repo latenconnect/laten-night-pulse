@@ -1,5 +1,8 @@
 project_id = "huigwbyctzjictnaycjj"
 
+[functions.send-dm-notification]
+verify_jwt = true
+
 [functions.send-notification]
 verify_jwt = true
 
