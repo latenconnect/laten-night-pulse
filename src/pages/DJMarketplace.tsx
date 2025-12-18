@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Music, Search, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Music, Search, Plus, Sparkles, Radio, TrendingUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import { DJCard } from '@/components/dj/DJCard';
 import { DJFilters } from '@/components/dj/DJFilters';
@@ -13,6 +12,7 @@ import { useApp } from '@/context/AppContext';
 import { useDJs, DJFilters as DJFiltersType, useMyDJProfile } from '@/hooks/useDJs';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 const DJMarketplace = () => {
   const { t } = useLanguage();
@@ -22,6 +22,7 @@ const DJMarketplace = () => {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<DJFiltersType>({ city: selectedCity });
+  const [activeTab, setActiveTab] = useState<'discover' | 'trending'>('discover');
   
   const { djs, isLoading } = useDJs(filters);
   const { data: myProfile } = useMyDJProfile();
@@ -31,94 +32,173 @@ const DJMarketplace = () => {
     dj.genres.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  // Sort by rating for trending
+  const trendingDJs = [...filteredDJs].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  const displayDJs = activeTab === 'trending' ? trendingDJs : filteredDJs;
+
   return (
     <MobileLayout>
       <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/50 px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Music className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold text-foreground">{t('djMarketplace')}</h1>
+        {/* Sleek Header */}
+        <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-background/80 backdrop-blur-xl border-b border-border/30">
+          <div className="px-4 pt-4 pb-3">
+            {/* Title Row */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20">
+                    <Music className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                  <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background animate-pulse" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-foreground tracking-tight">
+                    {t('dj.findDJ') || 'Find DJs'}
+                  </h1>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedCity || 'All cities'}
+                  </p>
+                </div>
+              </div>
+              {user && (
+                <Button 
+                  size="sm" 
+                  onClick={() => navigate('/dj/dashboard')}
+                  className="gap-1.5 rounded-full shadow-lg shadow-primary/20"
+                >
+                  <Plus className="h-4 w-4" />
+                  {myProfile ? t('dj.djDashboard') || 'Dashboard' : t('dj.becomeDJ') || 'Become DJ'}
+                </Button>
+              )}
             </div>
-            {user && (
-              <Button 
-                size="sm" 
-                onClick={() => navigate('/dj/dashboard')}
-                className="gap-1"
+
+            {/* Search with glow effect */}
+            <div className="relative mb-3">
+              <div className="absolute inset-0 bg-primary/5 rounded-xl blur-xl" />
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t('dj.findPerfectDJ') || 'Search by name or genre...'}
+                  className="pl-11 h-12 bg-card/60 backdrop-blur-sm border-border/30 rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Filters */}
+            <DJFilters filters={filters} onFiltersChange={setFilters} />
+          </div>
+
+          {/* Tabs */}
+          <div className="px-4 pb-3">
+            <div className="flex gap-2 p-1 bg-muted/30 rounded-xl">
+              <button
+                onClick={() => setActiveTab('discover')}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+                  activeTab === 'discover'
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
               >
-                <Plus className="h-4 w-4" />
-                {myProfile ? t('djDashboard') : t('becomeDJ')}
-              </Button>
-            )}
+                <Sparkles className="h-4 w-4" />
+                {t('home.forYou') || 'For You'}
+              </button>
+              <button
+                onClick={() => setActiveTab('trending')}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+                  activeTab === 'trending'
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <TrendingUp className="h-4 w-4" />
+                {t('home.trending') || 'Trending'}
+              </button>
+            </div>
           </div>
-
-          {/* Search */}
-          <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('searchDJs')}
-              className="pl-10 bg-muted/50 border-border/50"
-            />
-          </div>
-
-          {/* Filters */}
-          <DJFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
         {/* Content */}
-        <div className="p-4">
-          <Tabs defaultValue="browse" className="w-full">
-            <TabsList className="w-full mb-4">
-              <TabsTrigger value="browse" className="flex-1">{t('browseDJs')}</TabsTrigger>
-              <TabsTrigger value="tonight" className="flex-1">{t('availableTonight')}</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="browse" className="space-y-3">
-              {isLoading ? (
-                [...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-32 w-full rounded-xl" />
-                ))
-              ) : filteredDJs.length > 0 ? (
-                <motion.div 
-                  className="space-y-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  {filteredDJs.map((dj, index) => (
-                    <motion.div
-                      key={dj.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <DJCard dj={dj} />
-                    </motion.div>
-                  ))}
-                </motion.div>
-              ) : (
-                <div className="text-center py-12">
-                  <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="font-medium text-foreground mb-2">{t('noDJsFound')}</h3>
-                  <p className="text-sm text-muted-foreground">{t('tryDifferentFilters')}</p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="tonight" className="space-y-3">
+        <div className="p-4 pb-24">
+          <AnimatePresence mode="wait">
+            {isLoading ? (
               <motion.div
+                key="loading"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-12"
+                exit={{ opacity: 0 }}
+                className="space-y-4"
               >
-                <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="font-medium text-foreground mb-2">{t('checkBackLater')}</h3>
-                <p className="text-sm text-muted-foreground">{t('djsUpdateAvailability')}</p>
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex gap-4 p-4 bg-card/50 rounded-2xl">
+                    <Skeleton className="h-24 w-24 rounded-xl flex-shrink-0" />
+                    <div className="flex-1 space-y-3">
+                      <Skeleton className="h-5 w-2/3" />
+                      <Skeleton className="h-4 w-1/3" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </motion.div>
-            </TabsContent>
-          </Tabs>
+            ) : displayDJs.length > 0 ? (
+              <motion.div 
+                key="content"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4"
+              >
+                {displayDJs.map((dj, index) => (
+                  <motion.div
+                    key={dj.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05, duration: 0.3 }}
+                  >
+                    <DJCard dj={dj} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="text-center py-16"
+              >
+                {/* Animated empty state */}
+                <div className="relative w-24 h-24 mx-auto mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-2xl animate-pulse" />
+                  <div className="relative w-24 h-24 bg-gradient-to-br from-primary/10 to-muted rounded-full flex items-center justify-center">
+                    <Radio className="h-10 w-10 text-primary/60" />
+                  </div>
+                </div>
+                <h3 className="font-semibold text-lg text-foreground mb-2">
+                  {t('dj.noDJsFound') || 'No DJs found'}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
+                  {t('dj.tryDifferentFilters') || 'Try adjusting your filters or search for a different genre'}
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilters({});
+                  }}
+                  className="rounded-full"
+                >
+                  {t('common.tryAgain') || 'Clear filters'}
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </MobileLayout>
