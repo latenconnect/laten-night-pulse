@@ -22,6 +22,7 @@ import SavedEvents from "./pages/SavedEvents";
 import CreateEvent from "./pages/CreateEvent";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import ClubDetails from "./pages/ClubDetails";
 import Friends from "./pages/Friends";
@@ -98,6 +99,7 @@ const AppContent = () => {
         <Route path="/bartender/dashboard" element={<BartenderDashboard />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/support" element={<Support />} />
         {/* Admin routes */}
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/reports" element={<AdminReports />} />
