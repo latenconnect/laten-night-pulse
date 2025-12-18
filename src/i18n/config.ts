@@ -30,6 +30,7 @@ Object.keys(translations).forEach((lang) => {
   resources[lang] = { translation: (translations as Record<string, Record<string, unknown>>)[lang] };
 });
 
+// Initialize synchronously
 i18n
   .use(initReactI18next)
   .init({
@@ -41,6 +42,7 @@ i18n
     },
     returnNull: false,
     returnEmptyString: false,
+    initImmediate: true, // Initialize synchronously
   });
 
 // Sync language changes to localStorage and html lang attribute
