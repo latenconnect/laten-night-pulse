@@ -11,6 +11,26 @@ import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 import type { ProfessionType } from '@/hooks/useProfessionals';
 
+// Showcase fallback images
+import djImage1 from '@/assets/showcase/dj-1.jpg';
+import djImage2 from '@/assets/showcase/dj-2.jpg';
+import bartenderImage1 from '@/assets/showcase/bartender-1.jpg';
+import bartenderImage2 from '@/assets/showcase/bartender-2.jpg';
+import professionalImage1 from '@/assets/showcase/professional-1.jpg';
+import professionalImage2 from '@/assets/showcase/professional-2.jpg';
+
+const showcaseFallbacks: Record<ProfessionType, string[]> = {
+  dj: [djImage1, djImage2],
+  bartender: [bartenderImage1, bartenderImage2],
+  photographer: [professionalImage1, professionalImage2],
+  security: [professionalImage1, professionalImage2],
+};
+
+const getShowcaseFallback = (type: ProfessionType, index: number) => {
+  const images = showcaseFallbacks[type] || showcaseFallbacks.dj;
+  return images[index % images.length];
+};
+
 const professionConfig: Record<ProfessionType, { icon: React.ElementType; gradient: string; border: string }> = {
   dj: { icon: Music, gradient: 'from-primary/20 via-card to-card', border: 'border-primary/30 hover:border-primary/50' },
   bartender: { icon: Wine, gradient: 'from-secondary/20 via-card to-card', border: 'border-secondary/30 hover:border-secondary/50' },
@@ -93,7 +113,7 @@ const FeaturedTalentSection: React.FC = () => {
 
               <div className="flex items-start gap-3">
                 <Avatar className="h-12 w-12 border-2 border-primary/50">
-                  <AvatarImage src={professional.profile_photo || undefined} alt={professional.display_name} />
+                  <AvatarImage src={professional.profile_photo || getShowcaseFallback(professional.profession_type, index)} alt={professional.display_name} />
                   <AvatarFallback className="bg-primary/20 text-primary">
                     <Icon className="w-5 h-5" />
                   </AvatarFallback>
