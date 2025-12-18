@@ -49,28 +49,43 @@ interface MessageBubbleProps {
 
 const MessageBubble = ({ message, onReact, onEdit, onDelete, reactions }: MessageBubbleProps) => {
   const [showActions, setShowActions] = useState(false);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
     return format(date, 'HH:mm');
   };
 
+  const handleTouchStart = () => {
+    longPressTimer.current = setTimeout(() => {
+      setShowActions(true);
+    }, 500);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+  };
+
   const renderContent = () => {
     if (message.isDeleted) {
       return (
-        <p className="text-sm italic opacity-60">{message.content}</p>
+        <p className="text-sm italic text-muted-foreground">This message was deleted</p>
       );
     }
 
     if (message.messageType === 'image' && message.fileUrl) {
       return (
-        <div className="space-y-1">
-          <img 
-            src={message.fileUrl} 
-            alt="Shared image" 
-            className="max-w-[200px] rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => window.open(message.fileUrl, '_blank')}
-          />
+        <div className="space-y-2">
+          <div className="relative overflow-hidden rounded-xl">
+            <img 
+              src={message.fileUrl} 
+              alt="Shared image" 
+              className="max-w-[220px] rounded-xl cursor-pointer hover:opacity-90 transition-all duration-200"
+              onClick={() => window.open(message.fileUrl, '_blank')}
+            />
+          </div>
           {message.content && message.content !== '[Image]' && (
             <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
           )}
@@ -80,150 +95,190 @@ const MessageBubble = ({ message, onReact, onEdit, onDelete, reactions }: Messag
 
     if (message.messageType === 'file' && message.fileUrl) {
       return (
-        <div className="flex items-center gap-2">
-          <Paperclip className="w-4 h-4 shrink-0" />
-          <a 
-            href={message.fileUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm underline hover:no-underline truncate max-w-[150px]"
-          >
-            {message.fileName || 'Download file'}
-          </a>
-          {message.fileSize && (
-            <span className="text-xs opacity-70">
-              ({(message.fileSize / 1024).toFixed(1)} KB)
-            </span>
-          )}
+        <div className="flex items-center gap-3 p-2 rounded-xl bg-background/20">
+          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+            <Paperclip className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <a 
+              href={message.fileUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm font-medium hover:underline truncate block"
+            >
+              {message.fileName || 'Download file'}
+            </a>
+            {message.fileSize && (
+              <span className="text-xs opacity-70">
+                {(message.fileSize / 1024).toFixed(1)} KB
+              </span>
+            )}
+          </div>
         </div>
       );
     }
 
-    return <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>;
+    return <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>;
   };
-
-  // Group reactions by emoji
-  const groupedReactions = reactions.reduce((acc, r) => {
-    const existing = acc.find(g => g.emoji === r.emoji);
-    if (existing) {
-      existing.count += r.count;
-      existing.isMine = existing.isMine || r.isMine;
-    } else {
-      acc.push({ ...r });
-    }
-    return acc;
-  }, [] as { emoji: string; count: number; isMine: boolean }[]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className={cn(
-        'flex gap-2 max-w-[80%] group relative',
+        'flex gap-2 max-w-[85%] group relative',
         message.isMine ? 'ml-auto flex-row-reverse' : ''
       )}
-      onMouseEnter={() => setShowActions(true)}
+      onMouseEnter={() => !message.isDeleted && setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
-      {/* Actions menu */}
+      {/* Actions menu - Apple-style floating bubble */}
       <AnimatePresence>
         {showActions && !message.isDeleted && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
             className={cn(
-              'absolute top-0 flex items-center gap-1 bg-card border border-border rounded-lg p-1 shadow-lg z-10',
-              message.isMine ? 'right-full mr-2' : 'left-full ml-2'
+              'absolute -top-12 flex items-center gap-0.5 bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl p-1.5 shadow-xl z-20',
+              message.isMine ? 'right-0' : 'left-0'
             )}
           >
+            {EMOJI_OPTIONS.slice(0, 4).map((emoji) => (
+              <motion.button
+                key={emoji}
+                whileTap={{ scale: 0.85 }}
+                onClick={() => {
+                  onReact(emoji);
+                  setShowActions(false);
+                }}
+                className="text-lg hover:scale-110 transition-transform p-1.5 rounded-full hover:bg-muted/50"
+              >
+                {emoji}
+              </motion.button>
+            ))}
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Smile className="w-4 h-4" />
-                </Button>
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  className="p-1.5 rounded-full hover:bg-muted/50"
+                >
+                  <Smile className="w-4 h-4 text-muted-foreground" />
+                </motion.button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" side="top">
-                <div className="flex gap-1">
+              <PopoverContent className="w-auto p-2 bg-card/95 backdrop-blur-xl border-border/50" side="top" align="center">
+                <div className="flex flex-wrap gap-1 max-w-[180px]">
                   {EMOJI_OPTIONS.map((emoji) => (
-                    <button
+                    <motion.button
                       key={emoji}
-                      onClick={() => onReact(emoji)}
-                      className="text-xl hover:scale-125 transition-transform p-1"
+                      whileTap={{ scale: 0.85 }}
+                      onClick={() => {
+                        onReact(emoji);
+                        setShowActions(false);
+                      }}
+                      className="text-xl hover:scale-125 transition-transform p-1.5 rounded-lg hover:bg-muted/50"
                     >
                       {emoji}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </PopoverContent>
             </Popover>
             {message.isMine && message.messageType === 'text' && (
               <>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit}>
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={onDelete}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="w-px h-5 bg-border/50 mx-0.5" />
+                <motion.button 
+                  whileTap={{ scale: 0.85 }}
+                  onClick={() => {
+                    onEdit();
+                    setShowActions(false);
+                  }}
+                  className="p-1.5 rounded-full hover:bg-muted/50"
+                >
+                  <Pencil className="w-4 h-4 text-muted-foreground" />
+                </motion.button>
+                <motion.button 
+                  whileTap={{ scale: 0.85 }}
+                  onClick={() => {
+                    onDelete();
+                    setShowActions(false);
+                  }}
+                  className="p-1.5 rounded-full hover:bg-destructive/10"
+                >
+                  <Trash2 className="w-4 h-4 text-destructive" />
+                </motion.button>
               </>
             )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-1">
+        {/* Message bubble */}
         <div
           className={cn(
-            'rounded-2xl px-4 py-2',
+            'rounded-[20px] px-4 py-2.5 shadow-sm',
             message.isMine
               ? 'bg-primary text-primary-foreground rounded-br-md'
-              : 'bg-card border border-border rounded-bl-md'
+              : 'bg-card border border-border/50 rounded-bl-md'
           )}
         >
           {renderContent()}
-          <div className={cn(
-            'flex items-center gap-1 mt-1',
-            message.isMine ? 'justify-end' : ''
-          )}>
-            <span className={cn(
-              'text-[10px]',
-              message.isMine ? 'text-primary-foreground/70' : 'text-muted-foreground'
-            )}>
-              {formatTime(message.createdAt)}
-              {message.editedAt && ' (edited)'}
-            </span>
-            {message.isMine && (
-              message.readAt ? (
-                <CheckCheck className="w-3 h-3 text-primary-foreground/70" />
-              ) : (
-                <Check className="w-3 h-3 text-primary-foreground/70" />
-              )
-            )}
-          </div>
         </div>
 
-        {/* Reactions display */}
-        {groupedReactions.length > 0 && (
-          <div className={cn(
-            'flex flex-wrap gap-1 mt-1',
-            message.isMine ? 'justify-end' : ''
-          )}>
-            {groupedReactions.map((r) => (
-              <button
-                key={r.emoji}
+        {/* Meta info */}
+        <div className={cn(
+          'flex items-center gap-1.5 px-1',
+          message.isMine ? 'justify-end' : ''
+        )}>
+          <span className="text-[11px] text-muted-foreground/70">
+            {formatTime(message.createdAt)}
+          </span>
+          {message.editedAt && (
+            <span className="text-[10px] text-muted-foreground/50">• edited</span>
+          )}
+          {message.isMine && (
+            <div className="flex items-center">
+              {message.readAt ? (
+                <CheckCheck className="w-3.5 h-3.5 text-primary" />
+              ) : (
+                <Check className="w-3.5 h-3.5 text-muted-foreground/50" />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Reactions - pill style like iMessage */}
+        {reactions.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={cn(
+              'flex flex-wrap gap-1',
+              message.isMine ? 'justify-end' : ''
+            )}
+          >
+            {reactions.map((r, index) => (
+              <motion.button
+                key={`${r.emoji}-${index}`}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => onReact(r.emoji)}
                 className={cn(
-                  'flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors',
+                  'flex items-center gap-1 px-2 py-1 rounded-full text-xs backdrop-blur-sm transition-all duration-200',
                   r.isMine 
-                    ? 'bg-primary/20 border-primary/30' 
-                    : 'bg-card border-border hover:bg-muted'
+                    ? 'bg-primary/20 border border-primary/30 shadow-[0_0_10px_hsla(270,91%,65%,0.2)]' 
+                    : 'bg-card/80 border border-border/50 hover:bg-muted/50'
                 )}
               >
                 <span>{r.emoji}</span>
-                {r.count > 1 && <span className="text-muted-foreground">{r.count}</span>}
-              </button>
+                {r.count > 1 && <span className="text-muted-foreground font-medium">{r.count}</span>}
+              </motion.button>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </motion.div>
@@ -234,14 +289,14 @@ const DateDivider = ({ date }: { date: Date }) => {
   const getDateLabel = () => {
     if (isToday(date)) return 'Today';
     if (isYesterday(date)) return 'Yesterday';
-    return format(date, 'MMM d, yyyy');
+    return format(date, 'MMMM d, yyyy');
   };
 
   return (
-    <div className="flex items-center gap-3 my-4">
-      <div className="flex-1 h-px bg-border" />
-      <span className="text-xs text-muted-foreground">{getDateLabel()}</span>
-      <div className="flex-1 h-px bg-border" />
+    <div className="flex items-center justify-center my-6">
+      <span className="text-[11px] font-medium text-muted-foreground/60 bg-muted/30 backdrop-blur-sm px-3 py-1 rounded-full">
+        {getDateLabel()}
+      </span>
     </div>
   );
 };
@@ -251,26 +306,29 @@ const TypingIndicator = ({ name }: { name: string }) => (
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -10 }}
-    className="flex items-center gap-2 text-muted-foreground text-sm pl-2"
+    className="flex items-center gap-2 px-4 py-2"
   >
-    <div className="flex gap-1">
-      <motion.span
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ repeat: Infinity, duration: 1, delay: 0 }}
-        className="w-1.5 h-1.5 bg-muted-foreground rounded-full"
-      />
-      <motion.span
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
-        className="w-1.5 h-1.5 bg-muted-foreground rounded-full"
-      />
-      <motion.span
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
-        className="w-1.5 h-1.5 bg-muted-foreground rounded-full"
-      />
+    <div className="flex items-center gap-1.5 bg-card border border-border/50 rounded-full px-3 py-2">
+      <div className="flex gap-0.5">
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            animate={{ 
+              y: [0, -4, 0],
+              opacity: [0.5, 1, 0.5] 
+            }}
+            transition={{ 
+              repeat: Infinity, 
+              duration: 0.8, 
+              delay: i * 0.15,
+              ease: "easeInOut"
+            }}
+            className="w-1.5 h-1.5 bg-muted-foreground rounded-full"
+          />
+        ))}
+      </div>
+      <span className="text-xs text-muted-foreground ml-1">{name}</span>
     </div>
-    <span>{name} is typing...</span>
   </motion.div>
 );
 
@@ -453,57 +511,85 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card/50">
-          <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
+      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-background">
+        {/* Header - iOS style */}
+        <div className="flex items-center gap-3 px-2 py-3 border-b border-border/50 bg-card/80 backdrop-blur-xl safe-top-padding">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onClose} 
+            className="shrink-0 h-9 w-9 rounded-full"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Avatar className="w-10 h-10">
-            <AvatarImage src={participantAvatar || undefined} />
-            <AvatarFallback>
-              <User className="w-5 h-5" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold truncate">{participantName}</h3>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Lock className="w-3 h-3" />
-              <span>End-to-end encrypted</span>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="relative">
+              <Avatar className="w-10 h-10 ring-2 ring-primary/20">
+                <AvatarImage src={participantAvatar || undefined} />
+                <AvatarFallback className="bg-muted">
+                  <User className="w-5 h-5 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-card" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-[15px] truncate">{participantName}</h3>
+              <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Lock className="w-3 h-3" />
+                <span>End-to-end encrypted</span>
+              </div>
             </div>
           </div>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9 rounded-full">
             <MoreVertical className="w-5 h-5" />
           </Button>
         </div>
 
         {/* Messages */}
         <ScrollArea ref={scrollRef} className="flex-1 px-4">
-          {/* Encryption notice */}
-          <div className="flex flex-col items-center gap-2 py-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Shield className="w-6 h-6 text-primary" />
+          {/* Encryption notice - Modern card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center gap-3 py-8 text-center"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center backdrop-blur-sm border border-border/50">
+              <Shield className="w-7 h-7 text-primary" />
             </div>
-            <p className="text-sm text-muted-foreground max-w-[250px]">
-              Messages are end-to-end encrypted. Only you and {participantName} can read them.
-            </p>
-          </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium">End-to-end encrypted</p>
+              <p className="text-xs text-muted-foreground max-w-[220px]">
+                Only you and {participantName} can read these messages
+              </p>
+            </div>
+          </motion.div>
 
           {/* Initialize keys if needed */}
           {!hasKeys && !isInitializing && (
-            <div className="flex flex-col items-center gap-3 py-6">
-              <p className="text-sm text-muted-foreground text-center">
-                Set up secure messaging to start chatting
-              </p>
-              <Button onClick={initializeKeys} variant="neon" size="sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center gap-4 py-8"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                <Lock className="w-8 h-8 text-primary" />
+              </div>
+              <div className="text-center space-y-1">
+                <h4 className="font-semibold">Set Up Secure Messaging</h4>
+                <p className="text-sm text-muted-foreground max-w-[240px]">
+                  Enable end-to-end encryption to start private conversations
+                </p>
+              </div>
+              <Button onClick={initializeKeys} variant="default" className="rounded-full px-6">
                 <Lock className="w-4 h-4 mr-2" />
-                Enable Secure Messaging
+                Enable Encryption
               </Button>
-            </div>
+            </motion.div>
           )}
 
           {isInitializing && (
-            <div className="flex flex-col items-center gap-2 py-6">
+            <div className="flex flex-col items-center gap-3 py-8">
+              <div className="w-16 h-16 rounded-2xl bg-muted animate-pulse" />
               <Skeleton className="w-32 h-4" />
               <p className="text-sm text-muted-foreground">Setting up encryption...</p>
             </div>
@@ -514,7 +600,7 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
             <div className="space-y-4 py-4">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className={cn('flex gap-2', i % 2 === 0 ? '' : 'justify-end')}>
-                  <Skeleton className={cn('h-16 rounded-2xl', i % 2 === 0 ? 'w-48' : 'w-36')} />
+                  <Skeleton className={cn('h-14 rounded-[20px]', i % 2 === 0 ? 'w-48' : 'w-36')} />
                 </div>
               ))}
             </div>
@@ -522,11 +608,11 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
 
           {/* Messages list */}
           {!isLoading && hasKeys && (
-            <div className="space-y-2 py-4">
+            <div className="space-y-1 py-4">
               {Object.entries(groupedMessages).map(([date, msgs]) => (
                 <div key={date}>
                   <DateDivider date={new Date(date)} />
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {msgs.map((msg) => {
                       const reactions = getReactionsForMessage(msg.id);
                       const groupedReactions = reactions.reduce((acc, r) => {
@@ -563,59 +649,88 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
           )}
         </ScrollArea>
 
-        {/* Edit mode indicator */}
-        {editingMessage && (
-          <div className="px-4 py-2 border-t border-border bg-primary/10 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Pencil className="w-4 h-4 text-primary" />
-              <span className="text-sm">Editing message</span>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6"
-              onClick={() => {
-                setEditingMessage(null);
-                setNewMessage('');
-              }}
+        {/* Edit mode indicator - iOS style banner */}
+        <AnimatePresence>
+          {editingMessage && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-t border-border/50 bg-primary/5 overflow-hidden"
             >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
-
-        {/* File preview */}
-        {selectedFile && (
-          <div className="px-4 py-2 border-t border-border bg-card/50">
-            <div className="flex items-center gap-2">
-              {previewUrl ? (
-                <img src={previewUrl} alt="Preview" className="w-16 h-16 object-cover rounded-lg" />
-              ) : (
-                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                  <Paperclip className="w-6 h-6 text-muted-foreground" />
+              <div className="flex items-center justify-between px-4 py-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-8 bg-primary rounded-full" />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium text-primary">Editing</span>
+                    <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      {editingMessage.content}
+                    </span>
+                  </div>
                 </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{selectedFile.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {(selectedFile.size / 1024).toFixed(1)} KB
-                </p>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 rounded-full"
+                  onClick={() => {
+                    setEditingMessage(null);
+                    setNewMessage('');
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={clearSelectedFile}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Input */}
-        <div className="p-4 border-t border-border bg-card/50">
+        {/* File preview - Modern card */}
+        <AnimatePresence>
+          {selectedFile && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-t border-border/50 bg-card/50 overflow-hidden"
+            >
+              <div className="flex items-center gap-3 p-3">
+                {previewUrl ? (
+                  <div className="relative">
+                    <img src={previewUrl} alt="Preview" className="w-14 h-14 object-cover rounded-xl" />
+                    <div className="absolute inset-0 ring-1 ring-inset ring-border/50 rounded-xl" />
+                  </div>
+                ) : (
+                  <div className="w-14 h-14 bg-muted rounded-xl flex items-center justify-center">
+                    <Paperclip className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(selectedFile.size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={clearSelectedFile}
+                  className="h-8 w-8 rounded-full"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Input - iOS style */}
+        <div className="p-3 border-t border-border/50 bg-card/80 backdrop-blur-xl safe-bottom-nav">
           {!recipientPublicKey && !keyLoading && (
-            <p className="text-sm text-muted-foreground text-center mb-2">
-              {participantName} hasn't set up secure messaging yet
+            <p className="text-xs text-muted-foreground text-center mb-2 px-4">
+              {participantName} hasn't enabled secure messaging yet
             </p>
           )}
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -624,33 +739,39 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
               className="hidden"
             />
             {!editingMessage && (
-              <Button
-                variant="ghost"
-                size="icon"
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={!canSendMessage || isSending}
-                className="shrink-0"
+                className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50"
               >
                 <Image className="w-5 h-5" />
-              </Button>
+              </motion.button>
             )}
-            <Input
-              ref={inputRef}
-              value={newMessage}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              placeholder={editingMessage ? "Edit message..." : canSendMessage ? "Type a message..." : "Waiting for encryption..."}
-              disabled={!canSendMessage || isSending}
-              className="flex-1"
-            />
-            <Button
+            <div className="flex-1 relative">
+              <Input
+                ref={inputRef}
+                value={newMessage}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder={editingMessage ? "Edit message..." : canSendMessage ? "Message" : "Waiting for encryption..."}
+                disabled={!canSendMessage || isSending}
+                className="rounded-full bg-muted/50 border-0 pr-4 pl-4 h-10 text-[15px] placeholder:text-muted-foreground/60"
+              />
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={handleSend}
               disabled={(!newMessage.trim() && !selectedFile) || !canSendMessage || isSending}
-              size="icon"
-              variant="neon"
+              className={cn(
+                "shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200",
+                (newMessage.trim() || selectedFile) && canSendMessage && !isSending
+                  ? "bg-primary text-primary-foreground shadow-[0_0_15px_hsla(270,91%,65%,0.4)]"
+                  : "bg-muted/50 text-muted-foreground"
+              )}
             >
               <Send className="w-4 h-4" />
-            </Button>
+            </motion.button>
           </div>
         </div>
       </SheetContent>
