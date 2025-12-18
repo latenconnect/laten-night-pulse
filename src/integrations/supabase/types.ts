@@ -441,7 +441,12 @@ export type Database = {
           created_at: string
           encrypted_content_recipient: string
           encrypted_content_sender: string
+          file_mime_type: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
           id: string
+          message_type: string
           nonce_recipient: string
           nonce_sender: string
           read_at: string | null
@@ -452,7 +457,12 @@ export type Database = {
           created_at?: string
           encrypted_content_recipient: string
           encrypted_content_sender: string
+          file_mime_type?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
+          message_type?: string
           nonce_recipient: string
           nonce_sender: string
           read_at?: string | null
@@ -463,7 +473,12 @@ export type Database = {
           created_at?: string
           encrypted_content_recipient?: string
           encrypted_content_sender?: string
+          file_mime_type?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
+          message_type?: string
           nonce_recipient?: string
           nonce_sender?: string
           read_at?: string | null
@@ -766,6 +781,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      dm_typing_indicators: {
+        Row: {
+          conversation_id: string
+          id: string
+          is_typing: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          is_typing?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          is_typing?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dm_typing_indicators_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "dm_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_analytics: {
         Row: {

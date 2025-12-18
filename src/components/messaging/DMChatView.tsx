@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Lock, ArrowLeft, MoreVertical, Shield, User } from 'lucide-react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Send, Lock, ArrowLeft, MoreVertical, Shield, User, Image, Paperclip, Check, CheckCheck, X } from 'lucide-react';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,11 +12,17 @@ import {
   useSendMessage, 
   useUserPublicKey,
   useEncryptionKeys,
+  useTypingIndicator,
+  useUploadDMFile,
   DecryptedMessage 
 } from '@/hooks/useDirectMessages';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { format, isToday, isYesterday } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface DMChatViewProps {
   conversationId: string;
@@ -27,10 +33,51 @@ interface DMChatViewProps {
   onClose: () => void;
 }
 
-const MessageBubble = ({ message, showAvatar }: { message: DecryptedMessage; showAvatar?: boolean }) => {
+const MessageBubble = ({ message }: { message: DecryptedMessage }) => {
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
     return format(date, 'HH:mm');
+  };
+
+  const renderContent = () => {
+    if (message.messageType === 'image' && message.fileUrl) {
+      return (
+        <div className="space-y-1">
+          <img 
+            src={message.fileUrl} 
+            alt="Shared image" 
+            className="max-w-[200px] rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => window.open(message.fileUrl, '_blank')}
+          />
+          {message.content && message.content !== '[Image]' && (
+            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+          )}
+        </div>
+      );
+    }
+
+    if (message.messageType === 'file' && message.fileUrl) {
+      return (
+        <div className="flex items-center gap-2">
+          <Paperclip className="w-4 h-4 shrink-0" />
+          <a 
+            href={message.fileUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-sm underline hover:no-underline truncate max-w-[150px]"
+          >
+            {message.fileName || 'Download file'}
+          </a>
+          {message.fileSize && (
+            <span className="text-xs opacity-70">
+              ({(message.fileSize / 1024).toFixed(1)} KB)
+            </span>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>;
   };
 
   return (
@@ -50,13 +97,25 @@ const MessageBubble = ({ message, showAvatar }: { message: DecryptedMessage; sho
             : 'bg-card border border-border rounded-bl-md'
         )}
       >
-        <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-        <p className={cn(
-          'text-[10px] mt-1',
-          message.isMine ? 'text-primary-foreground/70' : 'text-muted-foreground'
+        {renderContent()}
+        <div className={cn(
+          'flex items-center gap-1 mt-1',
+          message.isMine ? 'justify-end' : ''
         )}>
-          {formatTime(message.createdAt)}
-        </p>
+          <span className={cn(
+            'text-[10px]',
+            message.isMine ? 'text-primary-foreground/70' : 'text-muted-foreground'
+          )}>
+            {formatTime(message.createdAt)}
+          </span>
+          {message.isMine && (
+            message.readAt ? (
+              <CheckCheck className="w-3 h-3 text-primary-foreground/70" />
+            ) : (
+              <Check className="w-3 h-3 text-primary-foreground/70" />
+            )
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -78,6 +137,34 @@ const DateDivider = ({ date }: { date: Date }) => {
   );
 };
 
+const TypingIndicator = ({ name }: { name: string }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -10 }}
+    className="flex items-center gap-2 text-muted-foreground text-sm pl-2"
+  >
+    <div className="flex gap-1">
+      <motion.span
+        animate={{ opacity: [0.4, 1, 0.4] }}
+        transition={{ repeat: Infinity, duration: 1, delay: 0 }}
+        className="w-1.5 h-1.5 bg-muted-foreground rounded-full"
+      />
+      <motion.span
+        animate={{ opacity: [0.4, 1, 0.4] }}
+        transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
+        className="w-1.5 h-1.5 bg-muted-foreground rounded-full"
+      />
+      <motion.span
+        animate={{ opacity: [0.4, 1, 0.4] }}
+        transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
+        className="w-1.5 h-1.5 bg-muted-foreground rounded-full"
+      />
+    </div>
+    <span>{name} is typing...</span>
+  </motion.div>
+);
+
 export const DMChatView: React.FC<DMChatViewProps> = ({
   conversationId,
   participantId,
@@ -87,21 +174,39 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
   onClose,
 }) => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  
+  // Fetch user profile for sender name
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase.from('profiles').select('display_name').eq('id', user.id).single();
+      return data;
+    },
+    enabled: !!user,
+  });
   const [newMessage, setNewMessage] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastTypingTime = useRef<number>(0);
 
   const { messages, isLoading } = useConversationMessages(conversationId, participantId);
   const { data: recipientPublicKey, isLoading: keyLoading } = useUserPublicKey(participantId);
   const { publicKey: myPublicKey, hasKeys, initializeKeys, isInitializing } = useEncryptionKeys();
+  const { isOtherTyping, setTyping } = useTypingIndicator(conversationId, participantId);
   const sendMessage = useSendMessage();
+  const uploadFile = useUploadDMFile();
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isOtherTyping]);
 
   // Focus input when opening
   useEffect(() => {
@@ -110,17 +215,78 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
     }
   }, [isOpen]);
 
+  // Handle typing indicator
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    
+    const now = Date.now();
+    if (now - lastTypingTime.current > 2000) {
+      setTyping(true);
+      lastTypingTime.current = now;
+    }
+  }, [setTyping]);
+
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File too large. Maximum size is 10MB.');
+      return;
+    }
+
+    setSelectedFile(file);
+
+    if (file.type.startsWith('image/')) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  const clearSelectedFile = () => {
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSend = async () => {
-    if (!newMessage.trim() || !recipientPublicKey || sendMessage.isPending) return;
+    if ((!newMessage.trim() && !selectedFile) || !recipientPublicKey || sendMessage.isPending) return;
+
+    setTyping(false);
+
+    let fileData;
+    if (selectedFile) {
+      try {
+        fileData = await uploadFile.mutateAsync(selectedFile);
+      } catch {
+        return;
+      }
+    }
+
+    const messageType = selectedFile?.type.startsWith('image/') ? 'image' : selectedFile ? 'file' : 'text';
+    const messageContent = newMessage.trim() || (messageType === 'image' ? '[Image]' : '[File]');
 
     await sendMessage.mutateAsync({
       conversationId,
       recipientId: participantId,
       recipientPublicKey,
-      message: newMessage.trim(),
+      message: messageContent,
+      messageType,
+      fileUrl: fileData?.url,
+      fileName: fileData?.name,
+      fileSize: fileData?.size,
+      fileMimeType: fileData?.mimeType,
+      senderName: profile?.display_name || 'Someone',
     });
 
     setNewMessage('');
+    clearSelectedFile();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -141,6 +307,7 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
   }, {} as Record<string, DecryptedMessage[]>);
 
   const canSendMessage = hasKeys && recipientPublicKey && !keyLoading;
+  const isSending = sendMessage.isPending || uploadFile.isPending;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -224,9 +391,38 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
                   </div>
                 </div>
               ))}
+              
+              {/* Typing indicator */}
+              <AnimatePresence>
+                {isOtherTyping && <TypingIndicator name={participantName} />}
+              </AnimatePresence>
             </div>
           )}
         </ScrollArea>
+
+        {/* File preview */}
+        {selectedFile && (
+          <div className="px-4 py-2 border-t border-border bg-card/50">
+            <div className="flex items-center gap-2">
+              {previewUrl ? (
+                <img src={previewUrl} alt="Preview" className="w-16 h-16 object-cover rounded-lg" />
+              ) : (
+                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
+                  <Paperclip className="w-6 h-6 text-muted-foreground" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(selectedFile.size / 1024).toFixed(1)} KB
+                </p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={clearSelectedFile}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Input */}
         <div className="p-4 border-t border-border bg-card/50">
@@ -236,18 +432,34 @@ export const DMChatView: React.FC<DMChatViewProps> = ({
             </p>
           )}
           <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf,.doc,.docx,.txt"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!canSendMessage || isSending}
+              className="shrink-0"
+            >
+              <Image className="w-5 h-5" />
+            </Button>
             <Input
               ref={inputRef}
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder={canSendMessage ? "Type a message..." : "Waiting for encryption..."}
-              disabled={!canSendMessage || sendMessage.isPending}
+              disabled={!canSendMessage || isSending}
               className="flex-1"
             />
             <Button
               onClick={handleSend}
-              disabled={!newMessage.trim() || !canSendMessage || sendMessage.isPending}
+              disabled={(!newMessage.trim() && !selectedFile) || !canSendMessage || isSending}
               size="icon"
               variant="neon"
             >
