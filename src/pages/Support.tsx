@@ -129,12 +129,12 @@ const Support: React.FC = () => {
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3">
           <a 
-            href="mailto:support@laten.app" 
+            href="mailto:latenconnect@latenapp.com" 
             className="flex flex-col items-center gap-2 p-4 rounded-xl bg-card border border-border/50 hover:border-primary/50 transition-colors"
           >
             <Mail className="w-6 h-6 text-primary" />
             <span className="text-sm font-medium">Email Us</span>
-            <span className="text-xs text-muted-foreground">support@laten.app</span>
+            <span className="text-xs text-muted-foreground">latenconnect@latenapp.com</span>
           </a>
           <a 
             href="https://instagram.com/laten.app" 
