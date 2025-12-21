@@ -93,7 +93,7 @@ const EVENT_TYPES = [
   'Wedding', 'Corporate', 'Festival', 'Private Event'
 ];
 
-export const DJ_SUBSCRIPTION_PRICE = 4000; // HUF
+export const DJ_SUBSCRIPTION_PRICE = 15; // EUR
 
 export const useDJs = (filters?: DJFilters) => {
   const queryClient = useQueryClient();

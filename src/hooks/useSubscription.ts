@@ -18,13 +18,41 @@ export interface SubscriptionConfig {
   stripePriceId?: string;
 }
 
-// Subscription pricing configuration - ready for Stripe
+// Stripe Product & Price IDs
+export const STRIPE_PRODUCTS = {
+  dj: {
+    productId: 'prod_TdnvAia219rtSO',
+    priceId: 'price_1SgWJX0pDoPM38rzyMLDI7F7',
+  },
+  bartender: {
+    productId: 'prod_TdnwYmmUIal76I',
+    priceId: 'price_1SgWKs0pDoPM38rzgwmlBQlE',
+  },
+  professional: {
+    productId: 'prod_Tdnyd3McApSwtc',
+    priceId: 'price_1SgWN00pDoPM38rzSkYpOsR4',
+  },
+  venue_basic: {
+    productId: 'prod_Tdo0A4hfXONheD',
+    priceId: 'price_1SgWOB0pDoPM38rzAEFGra0c',
+  },
+  venue_boost: {
+    productId: 'prod_Tdo1e3kiPtTebJ',
+    priceId: 'price_1SgWPf0pDoPM38rzwbsmt8de',
+  },
+  party_boost: {
+    productId: 'prod_Te7JXXsqH06QCu',
+    priceId: 'price_1Sgp4n0pDoPM38rzfTeVwGjo',
+  },
+};
+
+// Subscription pricing configuration - synced with Stripe
 export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
   dj_standard: {
     type: 'dj',
     tier: 'standard',
-    priceInCents: 400000, // 4000 HUF
-    currency: 'HUF',
+    priceInCents: 1500, // €15
+    currency: 'EUR',
     interval: 'month',
     features: [
       'Appear in DJ search results',
@@ -33,12 +61,13 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Collect ratings & reviews',
       'Priority support',
     ],
+    stripePriceId: STRIPE_PRODUCTS.dj.priceId,
   },
   bartender_standard: {
     type: 'bartender',
     tier: 'standard',
-    priceInCents: 400000,
-    currency: 'HUF',
+    priceInCents: 1500, // €15
+    currency: 'EUR',
     interval: 'month',
     features: [
       'Appear in bartender search',
@@ -47,12 +76,13 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Collect ratings & reviews',
       'Priority support',
     ],
+    stripePriceId: STRIPE_PRODUCTS.bartender.priceId,
   },
   professional_standard: {
     type: 'professional',
     tier: 'standard',
-    priceInCents: 400000,
-    currency: 'HUF',
+    priceInCents: 1500, // €15
+    currency: 'EUR',
     interval: 'month',
     features: [
       'Appear in professional search',
@@ -61,12 +91,13 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Portfolio showcase',
       'Priority support',
     ],
+    stripePriceId: STRIPE_PRODUCTS.professional.priceId,
   },
   party_boost: {
     type: 'party_boost',
     tier: 'boost',
-    priceInCents: 800000, // 8000 HUF
-    currency: 'HUF',
+    priceInCents: 1000, // €10
+    currency: 'EUR',
     interval: 'month',
     features: [
       'Priority placement in feed',
@@ -76,6 +107,7 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Trending section visibility',
       'Social share templates',
     ],
+    stripePriceId: STRIPE_PRODUCTS.party_boost.priceId,
   },
 };
 
