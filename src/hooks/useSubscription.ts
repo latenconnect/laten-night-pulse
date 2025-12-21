@@ -4,9 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
-export type SubscriptionType = 'dj' | 'bartender' | 'professional' | 'venue';
+export type SubscriptionType = 'dj' | 'bartender' | 'professional' | 'party_boost';
 export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'trial' | 'inactive';
-export type SubscriptionTier = 'standard' | 'premium' | 'ultimate';
+export type SubscriptionTier = 'standard' | 'premium' | 'boost';
 
 export interface SubscriptionConfig {
   type: SubscriptionType;
@@ -62,18 +62,19 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Priority support',
     ],
   },
-  venue_boost: {
-    type: 'venue',
-    tier: 'premium',
-    priceInCents: 1500000, // 15000 HUF
+  party_boost: {
+    type: 'party_boost',
+    tier: 'boost',
+    priceInCents: 800000, // 8000 HUF
     currency: 'HUF',
     interval: 'month',
     features: [
-      'Featured venue badge',
-      'Priority in search results',
-      'Analytics dashboard',
-      'Event promotion tools',
-      'Dedicated support',
+      'Priority placement in feed',
+      'Featured party badge',
+      'Push notifications to nearby users',
+      'Real-time event analytics',
+      'Trending section visibility',
+      'Social share templates',
     ],
   },
 };
