@@ -90,7 +90,7 @@ export const BARTENDER_EVENT_TYPES = [
   'Corporate', 'Festival', 'Private Event', 'Bar Opening'
 ];
 
-export const BARTENDER_SUBSCRIPTION_PRICE = 4000; // HUF
+export const BARTENDER_SUBSCRIPTION_PRICE = 15; // EUR
 
 export const useBartenders = (filters?: BartenderFilters) => {
   const { data: bartenders, isLoading, error } = useQuery({

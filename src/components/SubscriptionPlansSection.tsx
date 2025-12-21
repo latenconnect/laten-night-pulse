@@ -1,23 +1,29 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Check, Sparkles, Music2, Wine, Camera, Rocket, Zap, Star, TrendingUp, Bell, Users } from 'lucide-react';
+import { Crown, Check, Music2, Wine, Camera, Rocket } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
-import { DJ_SUBSCRIPTION_PRICE } from '@/hooks/useDJs';
-import { BARTENDER_SUBSCRIPTION_PRICE } from '@/hooks/useBartenders';
 
-// Subscription tier configuration - ready for Stripe integration
+// Stripe Product & Price IDs (synced with Stripe dashboard)
+export const STRIPE_PRODUCTS = {
+  dj: { productId: 'prod_TdnvAia219rtSO', priceId: 'price_1SgWJX0pDoPM38rzyMLDI7F7' },
+  bartender: { productId: 'prod_TdnwYmmUIal76I', priceId: 'price_1SgWKs0pDoPM38rzgwmlBQlE' },
+  professional: { productId: 'prod_Tdnyd3McApSwtc', priceId: 'price_1SgWN00pDoPM38rzSkYpOsR4' },
+  party_boost: { productId: 'prod_Te7JXXsqH06QCu', priceId: 'price_1Sgp4n0pDoPM38rzfTeVwGjo' },
+};
+
+// Subscription tier configuration - synced with Stripe prices in EUR
 export const SUBSCRIPTION_TIERS = {
   dj: {
     id: 'dj_standard',
     name: 'DJ Subscription',
     icon: Music2,
-    price: DJ_SUBSCRIPTION_PRICE,
-    currency: 'HUF',
+    price: 15,
+    currency: 'EUR',
     interval: 'month',
     color: 'primary',
     features: [
@@ -27,14 +33,14 @@ export const SUBSCRIPTION_TIERS = {
       'Collect ratings & reviews',
       'Priority support',
     ],
-    stripePriceId: null, // Will be set after Stripe integration
+    stripePriceId: STRIPE_PRODUCTS.dj.priceId,
   },
   bartender: {
     id: 'bartender_standard',
     name: 'Bartender Subscription',
     icon: Wine,
-    price: BARTENDER_SUBSCRIPTION_PRICE,
-    currency: 'HUF',
+    price: 15,
+    currency: 'EUR',
     interval: 'month',
     color: 'amber',
     features: [
@@ -44,14 +50,14 @@ export const SUBSCRIPTION_TIERS = {
       'Collect ratings & reviews',
       'Priority support',
     ],
-    stripePriceId: null,
+    stripePriceId: STRIPE_PRODUCTS.bartender.priceId,
   },
   professional: {
     id: 'professional_standard',
     name: 'Professional Subscription',
     icon: Camera,
-    price: 4000,
-    currency: 'HUF',
+    price: 15,
+    currency: 'EUR',
     interval: 'month',
     color: 'cyan',
     features: [
@@ -61,14 +67,14 @@ export const SUBSCRIPTION_TIERS = {
       'Portfolio showcase',
       'Priority support',
     ],
-    stripePriceId: null,
+    stripePriceId: STRIPE_PRODUCTS.professional.priceId,
   },
   partyBoost: {
     id: 'party_boost',
     name: 'Party Boost',
     icon: Rocket,
-    price: 8000,
-    currency: 'HUF',
+    price: 10,
+    currency: 'EUR',
     interval: 'month',
     color: 'pink',
     features: [
@@ -79,7 +85,7 @@ export const SUBSCRIPTION_TIERS = {
       'Trending section visibility',
       'Social share templates',
     ],
-    stripePriceId: null,
+    stripePriceId: STRIPE_PRODUCTS.party_boost.priceId,
   },
 };
 
