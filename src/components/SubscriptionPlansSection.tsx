@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Check, Sparkles, Music2, Wine, Camera, Mic } from 'lucide-react';
+import { Crown, Check, Sparkles, Music2, Wine, Camera, Rocket, Zap, Star, TrendingUp, Bell, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,20 +63,21 @@ export const SUBSCRIPTION_TIERS = {
     ],
     stripePriceId: null,
   },
-  venue: {
-    id: 'venue_boost',
-    name: 'Venue Boost',
-    icon: Sparkles,
-    price: 15000,
+  partyBoost: {
+    id: 'party_boost',
+    name: 'Party Boost',
+    icon: Rocket,
+    price: 8000,
     currency: 'HUF',
     interval: 'month',
-    color: 'secondary',
+    color: 'pink',
     features: [
-      'Featured venue badge',
-      'Priority in search results',
-      'Analytics dashboard',
-      'Event promotion tools',
-      'Dedicated support',
+      'Priority placement in feed',
+      'Featured party badge',
+      'Push notifications to users',
+      'Real-time analytics',
+      'Trending section visibility',
+      'Social share templates',
     ],
     stripePriceId: null,
   },
@@ -124,6 +125,14 @@ const SubscriptionPlanCard: React.FC<SubscriptionPlanCardProps> = ({ tier, onSub
       badge: 'bg-secondary/20 text-secondary',
       button: 'bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70',
       check: 'text-secondary bg-secondary/20',
+    },
+    pink: {
+      border: 'border-pink-500/30 hover:border-pink-500/50',
+      bg: 'bg-gradient-to-br from-pink-500/10 to-purple-500/10',
+      icon: 'text-pink-500 bg-gradient-to-br from-pink-500/20 to-purple-500/20',
+      badge: 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400',
+      button: 'bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700',
+      check: 'text-pink-500 bg-pink-500/20',
     },
   };
   
@@ -214,8 +223,8 @@ export const SubscriptionPlansSection: React.FC = () => {
       case 'professional_standard':
         navigate('/professional/dashboard');
         break;
-      case 'venue_boost':
-        navigate('/venues');
+      case 'party_boost':
+        navigate('/create-event');
         break;
       default:
         navigate('/profile');
