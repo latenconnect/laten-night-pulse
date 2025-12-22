@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, useCallback, useEffect } from 'react';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
-export type SubscriptionType = 'dj' | 'bartender' | 'professional' | 'party_boost';
+export type SubscriptionType = 'dj' | 'bartender' | 'professional' | 'venue_basic' | 'venue_boost' | 'party_boost';
 export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'trial' | 'inactive';
-export type SubscriptionTier = 'standard' | 'premium' | 'boost';
+export type SubscriptionTier = 'standard' | 'premium' | 'boost' | 'basic';
 
 export interface SubscriptionConfig {
   type: SubscriptionType;
@@ -15,7 +15,8 @@ export interface SubscriptionConfig {
   currency: string;
   interval: 'month' | 'year';
   features: string[];
-  stripePriceId?: string;
+  stripePriceId: string;
+  stripeProductId: string;
 }
 
 // Stripe Product & Price IDs
@@ -62,6 +63,7 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Priority support',
     ],
     stripePriceId: STRIPE_PRODUCTS.dj.priceId,
+    stripeProductId: STRIPE_PRODUCTS.dj.productId,
   },
   bartender_standard: {
     type: 'bartender',
@@ -77,6 +79,7 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Priority support',
     ],
     stripePriceId: STRIPE_PRODUCTS.bartender.priceId,
+    stripeProductId: STRIPE_PRODUCTS.bartender.productId,
   },
   professional_standard: {
     type: 'professional',
@@ -92,6 +95,40 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Priority support',
     ],
     stripePriceId: STRIPE_PRODUCTS.professional.priceId,
+    stripeProductId: STRIPE_PRODUCTS.professional.productId,
+  },
+  venue_basic: {
+    type: 'venue_basic',
+    tier: 'basic',
+    priceInCents: 5000, // €50
+    currency: 'EUR',
+    interval: 'month',
+    features: [
+      'Claim venue listing',
+      'Create & manage events',
+      'Basic analytics dashboard',
+      'Respond to reviews',
+      'Upload venue photos',
+    ],
+    stripePriceId: STRIPE_PRODUCTS.venue_basic.priceId,
+    stripeProductId: STRIPE_PRODUCTS.venue_basic.productId,
+  },
+  venue_boost: {
+    type: 'venue_boost',
+    tier: 'boost',
+    priceInCents: 6500, // €65
+    currency: 'EUR',
+    interval: 'month',
+    features: [
+      'All Basic features',
+      'Priority search ranking',
+      'Featured venue badge',
+      'Advanced analytics',
+      'Push notifications to followers',
+      'Premium support',
+    ],
+    stripePriceId: STRIPE_PRODUCTS.venue_boost.priceId,
+    stripeProductId: STRIPE_PRODUCTS.venue_boost.productId,
   },
   party_boost: {
     type: 'party_boost',
@@ -108,49 +145,77 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Social share templates',
     ],
     stripePriceId: STRIPE_PRODUCTS.party_boost.priceId,
+    stripeProductId: STRIPE_PRODUCTS.party_boost.productId,
   },
 };
+
+interface ActiveSubscription {
+  stripeSubscriptionId: string;
+  subscriptionType: string;
+  productId: string;
+  priceId: string;
+  profileId?: string;
+  status: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+}
 
 interface UseSubscriptionReturn {
   loading: boolean;
   error: string | null;
-  createSubscription: (configKey: string, profileId: string) => Promise<boolean>;
+  subscriptions: ActiveSubscription[];
+  hasActiveSubscription: boolean;
+  createCheckout: (configKey: string, profileId: string) => Promise<boolean>;
   cancelSubscription: (subscriptionId: string, type: SubscriptionType) => Promise<boolean>;
   checkSubscriptionStatus: (profileId: string, type: SubscriptionType) => Promise<boolean>;
+  openCustomerPortal: () => Promise<boolean>;
+  refreshSubscriptions: () => void;
+  isSubscribed: (type: SubscriptionType) => boolean;
 }
 
-/**
- * Hook for managing subscriptions - prepared for Stripe integration
- * 
- * When Stripe is enabled, this hook will:
- * 1. Create a Stripe checkout session via edge function
- * 2. Redirect user to Stripe checkout
- * 3. Handle webhook callbacks to update subscription status
- * 
- * For now, it creates subscriptions directly in the database (for testing)
- */
 export const useSubscription = (): UseSubscriptionReturn => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch subscription status from Stripe via edge function
+  const { data: subscriptionData, refetch: refreshSubscriptions } = useQuery({
+    queryKey: ['stripe-subscriptions', user?.id],
+    queryFn: async () => {
+      if (!user) return { subscriptions: [], hasActiveSubscription: false };
+      
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) {
+        console.error('Error checking subscription:', error);
+        return { subscriptions: [], hasActiveSubscription: false };
+      }
+      
+      return data as { subscriptions: ActiveSubscription[]; hasActiveSubscription: boolean };
+    },
+    enabled: !!user,
+    staleTime: 60000, // Cache for 1 minute
+    refetchInterval: 60000, // Auto-refresh every minute
+  });
+
   /**
-   * Create a new subscription
-   * Ready for Stripe: Will call edge function to create checkout session
+   * Create a Stripe checkout session and redirect to payment
    */
-  const createSubscription = useCallback(async (
+  const createCheckout = useCallback(async (
     configKey: string, 
     profileId: string
   ): Promise<boolean> => {
     if (!user) {
       setError('Must be logged in to subscribe');
+      toast.error('Please log in to subscribe');
       return false;
     }
 
     const config = SUBSCRIPTION_CONFIGS[configKey];
     if (!config) {
       setError('Invalid subscription configuration');
+      toast.error('Invalid subscription plan');
       return false;
     }
 
@@ -158,124 +223,81 @@ export const useSubscription = (): UseSubscriptionReturn => {
     setError(null);
 
     try {
-      // TODO: When Stripe is integrated, replace with:
-      // const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-      //   body: { 
-      //     priceId: config.stripePriceId,
-      //     profileId,
-      //     type: config.type,
-      //     successUrl: `${window.location.origin}/subscription/success`,
-      //     cancelUrl: `${window.location.origin}/subscription/cancelled`,
-      //   }
-      // });
-      // if (data?.url) window.location.href = data.url;
+      const { data, error: invokeError } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          priceId: config.stripePriceId,
+          profileId,
+          subscriptionType: config.type,
+          successUrl: `${window.location.origin}/subscription/success`,
+          cancelUrl: `${window.location.origin}/subscription/cancelled`,
+        }
+      });
 
-      const expiresAt = new Date();
-      expiresAt.setMonth(expiresAt.getMonth() + 1);
-
-      const subscriptionData = {
-        status: 'active' as const,
-        tier: config.tier,
-        price_cents: config.priceInCents,
-        currency: config.currency,
-        started_at: new Date().toISOString(),
-        expires_at: expiresAt.toISOString(),
-        auto_renew: true,
-      };
-
-      // Handle each subscription type with proper typing
-      if (config.type === 'dj') {
-        const { error: insertError } = await supabase
-          .from('dj_subscriptions')
-          .upsert({
-            ...subscriptionData,
-            dj_profile_id: profileId,
-          }, { onConflict: 'dj_profile_id' });
-        if (insertError) throw insertError;
-      } else if (config.type === 'bartender') {
-        const { error: insertError } = await supabase
-          .from('bartender_subscriptions')
-          .upsert({
-            ...subscriptionData,
-            bartender_profile_id: profileId,
-          }, { onConflict: 'bartender_profile_id' });
-        if (insertError) throw insertError;
-      } else if (config.type === 'professional') {
-        const { error: insertError } = await supabase
-          .from('professional_subscriptions')
-          .upsert({
-            ...subscriptionData,
-            professional_id: profileId,
-          }, { onConflict: 'professional_id' });
-        if (insertError) throw insertError;
+      if (invokeError) {
+        throw new Error(invokeError.message || 'Failed to create checkout session');
       }
 
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: [`my-${config.type}-subscription`] });
-      
-      toast.success('Subscription activated successfully!');
-      return true;
+      if (data?.url) {
+        // Open Stripe checkout in new tab
+        window.open(data.url, '_blank');
+        toast.success('Redirecting to payment...');
+        return true;
+      } else {
+        throw new Error('No checkout URL received');
+      }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create subscription';
+      const message = err instanceof Error ? err.message : 'Failed to start checkout';
       setError(message);
       toast.error(message);
       return false;
     } finally {
       setLoading(false);
     }
-  }, [user, queryClient]);
+  }, [user]);
 
   /**
-   * Cancel an existing subscription
+   * Open Stripe Customer Portal for subscription management
    */
-  const cancelSubscription = useCallback(async (
-    subscriptionId: string,
-    type: SubscriptionType
-  ): Promise<boolean> => {
+  const openCustomerPortal = useCallback(async (): Promise<boolean> => {
     if (!user) {
-      setError('Must be logged in');
+      toast.error('Please log in to manage subscriptions');
       return false;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
-      // TODO: When Stripe is integrated, call edge function to cancel via Stripe API
-      
-      if (type === 'dj') {
-        const { error: updateError } = await supabase
-          .from('dj_subscriptions')
-          .update({ status: 'cancelled', auto_renew: false })
-          .eq('id', subscriptionId);
-        if (updateError) throw updateError;
-      } else if (type === 'bartender') {
-        const { error: updateError } = await supabase
-          .from('bartender_subscriptions')
-          .update({ status: 'cancelled', auto_renew: false })
-          .eq('id', subscriptionId);
-        if (updateError) throw updateError;
-      } else if (type === 'professional') {
-        const { error: updateError } = await supabase
-          .from('professional_subscriptions')
-          .update({ status: 'cancelled', auto_renew: false })
-          .eq('id', subscriptionId);
-        if (updateError) throw updateError;
+      const { data, error: invokeError } = await supabase.functions.invoke('customer-portal');
+
+      if (invokeError) {
+        throw new Error(invokeError.message || 'Failed to open customer portal');
       }
 
-      queryClient.invalidateQueries({ queryKey: [`my-${type}-subscription`] });
-      
-      toast.success('Subscription cancelled');
-      return true;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+        return true;
+      } else {
+        throw new Error('No portal URL received');
+      }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to cancel subscription';
-      setError(message);
+      const message = err instanceof Error ? err.message : 'Failed to open subscription management';
       toast.error(message);
       return false;
     } finally {
       setLoading(false);
     }
-  }, [user, queryClient]);
+  }, [user]);
+
+  /**
+   * Cancel an existing subscription via customer portal
+   */
+  const cancelSubscription = useCallback(async (
+    _subscriptionId: string,
+    _type: SubscriptionType
+  ): Promise<boolean> => {
+    // For cancellation, redirect to customer portal
+    return openCustomerPortal();
+  }, [openCustomerPortal]);
 
   /**
    * Check if a profile has an active subscription
@@ -311,6 +333,14 @@ export const useSubscription = (): UseSubscriptionReturn => {
           .maybeSingle();
         if (result.error) throw result.error;
         data = result.data;
+      } else if (type === 'venue_basic' || type === 'venue_boost') {
+        const result = await supabase
+          .from('venue_subscriptions')
+          .select('status, expires_at')
+          .eq('club_id', profileId)
+          .maybeSingle();
+        if (result.error) throw result.error;
+        data = result.data;
       }
 
       if (!data) return false;
@@ -326,12 +356,27 @@ export const useSubscription = (): UseSubscriptionReturn => {
     }
   }, []);
 
+  /**
+   * Check if user has active subscription of specific type
+   */
+  const isSubscribed = useCallback((type: SubscriptionType): boolean => {
+    if (!subscriptionData?.subscriptions) return false;
+    return subscriptionData.subscriptions.some(
+      sub => sub.subscriptionType === type && sub.status === 'active'
+    );
+  }, [subscriptionData]);
+
   return {
     loading,
     error,
-    createSubscription,
+    subscriptions: subscriptionData?.subscriptions || [],
+    hasActiveSubscription: subscriptionData?.hasActiveSubscription || false,
+    createCheckout,
     cancelSubscription,
     checkSubscriptionStatus,
+    openCustomerPortal,
+    refreshSubscriptions,
+    isSubscribed,
   };
 };
 
