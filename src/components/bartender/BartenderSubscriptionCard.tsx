@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { Crown, Check, AlertCircle } from 'lucide-react';
+import { Crown, Check, AlertCircle, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/LanguageContext';
 import { BARTENDER_SUBSCRIPTION_PRICE, BartenderSubscription } from '@/hooks/useBartenders';
+import { useSubscription } from '@/hooks/useSubscription';
 import { format } from 'date-fns';
 
 interface BartenderSubscriptionCardProps {
@@ -23,6 +24,7 @@ const SUBSCRIPTION_FEATURES = [
 
 export const BartenderSubscriptionCard = ({ subscription, onSubscribe, loading }: BartenderSubscriptionCardProps) => {
   const { t } = useLanguage();
+  const { openCustomerPortal, loading: portalLoading } = useSubscription();
 
   const isActive = subscription?.status === 'active' && 
     subscription.expires_at && 
@@ -58,9 +60,9 @@ export const BartenderSubscriptionCard = ({ subscription, onSubscribe, loading }
           {/* Price */}
           <div className="text-center py-4">
             <span className="text-4xl font-bold text-foreground">
-              {BARTENDER_SUBSCRIPTION_PRICE.toLocaleString()}
+              €{BARTENDER_SUBSCRIPTION_PRICE}
             </span>
-            <span className="text-muted-foreground ml-2">HUF / {t('month')}</span>
+            <span className="text-muted-foreground ml-2">/ {t('month')}</span>
           </div>
 
           {/* Features */}
@@ -99,8 +101,14 @@ export const BartenderSubscriptionCard = ({ subscription, onSubscribe, loading }
           )}
 
           {isActive && (
-            <Button variant="outline" className="w-full" disabled>
-              {t('subscribed')}
+            <Button 
+              variant="outline" 
+              className="w-full gap-2" 
+              onClick={openCustomerPortal}
+              disabled={portalLoading}
+            >
+              <Settings className="h-4 w-4" />
+              {portalLoading ? t('processing') : t('manageSubscription')}
             </Button>
           )}
 
