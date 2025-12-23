@@ -12,7 +12,7 @@ on:
         type: boolean
 
 env:
-  APP_ID: app.lovable.6a2687d61d7146e49501a7e4fcd69fac
+  APP_ID: com.laten.app
   APP_NAME: Laten
 
 jobs:
