@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "Laten",
+    "slug": "laten-night-pulse",
+    "version": "1.0.0",
+    "platforms": ["ios", "android"],
+    "orientation": "portrait",
+    "backgroundColor": "#ffffff",
+    "ios": {
+      "bundleIdentifier": "com.laten.app"
+    },
+    "android": {
+      "package": "com.laten.app"
+    }
+  }
+}
