@@ -1,0 +1,6 @@
+{
+  "appId": "com.laten.app",
+  "appName": "Laten",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
