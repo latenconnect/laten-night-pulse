@@ -1,0 +1,147 @@
+name: Apply EAS patch (create integrate/eas-build)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Branch to create/update'
+        required: false
+        default: 'integrate/eas-build'
+
+jobs:
+  apply-patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository (with write credentials)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create or switch to target branch
+        run: |
+          BR="${{ github.event.inputs.target_branch }}"
+          if git ls-remote --exit-code --heads origin "$BR"; then
+            git fetch origin $BR:$BR || true
+            git checkout "$BR"
+          else
+            git checkout -b "$BR"
+          fi
+
+      - name: Add eas.json
+        run: |
+          cat > eas.json <<'EOF'
+{
+  "build": {
+    "development": {
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "ios": { "simulator": false }
+    },
+    "production": {
+      "distribution": "store",
+      "android": { "buildType": "app-bundle" },
+      "ios": { "simulator": false }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
+EOF
+
+      - name: Add app.json if none exists
+        run: |
+          if [ -f app.json ] || [ -f app.config.js ]; then
+            echo "Expo config detected; skipping app.json write"
+          else
+            cat > app.json <<'EOF'
+{
+  "expo": {
+    "name": "Laten nightlife discovery app",
+    "slug": "laten-night-pulse",
+    "version": "1.0.0",
+    "ios": {
+      "bundleIdentifier": "com.laten.app"
+    }
+  }
+}
+EOF
+          fi
+
+      - name: Add EAS CI workflow template
+        run: |
+          mkdir -p .github/workflows
+          cat > .github/workflows/eas-build.yml <<'EOF'
+name: EAS Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'release/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Login to Expo (EAS)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli@latest login --token $EXPO_TOKEN
+
+      - name: EAS build (all platforms)
+        run: |
+          npx eas-cli@latest build --platform all --non-interactive
+EOF
+
+      - name: Merge EAS scripts into package.json (if present)
+        run: |
+          if [ -f package.json ]; then
+            node -e "
+const fs=require('fs');
+const p=JSON.parse(fs.readFileSync('package.json','utf8'));
+p.scripts = Object.assign({}, p.scripts || {}, {
+  'eas:build:all':'eas build --platform all',
+  'eas:build:android':'eas build --platform android',
+  'eas:build:ios':'eas build --platform ios',
+  'eas:submit:all':'eas submit --platform all'
+});
+fs.writeFileSync('package.json', JSON.stringify(p,null,2)+'\n');
+console.log('Merged eas scripts into package.json');
+"
+            git add package.json
+          else
+            echo "No package.json found; skipping"
+          fi
+
+      - name: Show changes
+        run: |
+          git add -A || true
+          git status --porcelain
+          git --no-pager diff --staged || true
+
+      - name: Commit changes if any
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore(eas): add eas.json, app config, CI template and eas scripts" || echo "nothing to commit"
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Push branch
+        run: |
+          BR="${{ github.event.inputs.target_branch }}"
+          git push origin HEAD:$BR --force
