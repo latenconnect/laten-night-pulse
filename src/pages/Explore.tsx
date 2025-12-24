@@ -21,7 +21,7 @@ import MobileLayout from '@/components/layouts/MobileLayout';
 import { LiveFeedHeader, SocialSignal } from '@/components/engagement';
 import { SocialActivityFeed, FriendsSuggestions } from '@/components/social';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { mockEvents, getFeaturedEvents } from '@/data/mockEvents';
+import { useEvents, transformDbEvent } from '@/hooks/useEvents';
 import { useApp } from '@/context/AppContext';
 import { SearchContext } from '@/context/SearchContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -59,15 +59,24 @@ const Explore: React.FC = () => {
     hasPersonalization 
   } = usePersonalizedFeed();
 
-  // Mock data as fallback
-  const mockFeaturedEvents = getFeaturedEvents();
-  const filteredEvents = mockEvents.filter(event => {
-    const matchesFilter = !activeFilter || event.type === activeFilter;
-    const matchesSearch = !searchQuery || 
-      event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.location.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  // Use real events hook
+  const { events: allDbEvents, loading: eventsLoading } = useEvents(selectedCity);
+
+  // Transform and filter events based on active filter and search
+  const filteredEvents = useMemo(() => {
+    return allDbEvents
+      .filter(event => {
+        const matchesFilter = !activeFilter || event.type === activeFilter;
+        const matchesSearch = !searchQuery || 
+          event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          event.location_name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesFilter && matchesSearch;
+      })
+      .map(transformDbEvent);
+  }, [allDbEvents, activeFilter, searchQuery]);
+
+  // Get featured events from the feed
+  const featuredEvents = dbFeaturedEvents?.map(transformDbEvent) || [];
 
   // Combine featured clubs with regular clubs, prioritizing featured
   const displayClubs = useMemo(() => {
@@ -215,7 +224,7 @@ const Explore: React.FC = () => {
             <FeaturedBadge variant="sponsored" size="sm" />
           </div>
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
-            {mockFeaturedEvents.map((event, index) => (
+            {featuredEvents.map((event, index) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, x: 20 }}

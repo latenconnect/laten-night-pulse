@@ -2,6 +2,61 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { Event } from '@/types';
+
+export interface DbEvent {
+  id: string;
+  name: string;
+  description: string | null;
+  type: string;
+  cover_image: string | null;
+  photos: string[] | null;
+  location_name: string;
+  location_address: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  city: string;
+  country: string | null;
+  start_time: string;
+  end_time: string | null;
+  price: number | null;
+  age_limit: number | null;
+  max_attendees: number | null;
+  expected_attendance: number | null;
+  actual_rsvp: number | null;
+  is_featured: boolean | null;
+  is_active: boolean | null;
+  safety_rules: string | null;
+  host_id: string;
+  created_at: string;
+}
+
+// Transform database event to frontend Event type
+export const transformDbEvent = (dbEvent: DbEvent): Event => ({
+  id: dbEvent.id,
+  name: dbEvent.name,
+  type: dbEvent.type as Event['type'],
+  description: dbEvent.description || '',
+  location: {
+    name: dbEvent.location_name,
+    address: dbEvent.location_address || '',
+    city: dbEvent.city,
+    lat: dbEvent.location_lat || 0,
+    lng: dbEvent.location_lng || 0,
+  },
+  coverImage: dbEvent.cover_image || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800',
+  startTime: new Date(dbEvent.start_time),
+  endTime: dbEvent.end_time ? new Date(dbEvent.end_time) : new Date(dbEvent.start_time),
+  price: dbEvent.price,
+  ageLimit: dbEvent.age_limit || 18,
+  expectedAttendance: dbEvent.expected_attendance || 100,
+  currentRSVP: dbEvent.actual_rsvp || 0,
+  hostId: dbEvent.host_id,
+  hostName: 'Host', // Would need to join with hosts table
+  isVerified: true,
+  isFeatured: dbEvent.is_featured || false,
+  createdAt: new Date(dbEvent.created_at),
+});
 
 export interface DbEvent {
   id: string;
@@ -60,6 +115,38 @@ export const useEvents = (city?: string) => {
   };
 
   return { events, loading, refetch: fetchEvents };
+};
+
+export const useEvent = (eventId?: string) => {
+  const [event, setEvent] = useState<DbEvent | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (eventId) {
+      fetchEvent();
+    } else {
+      setLoading(false);
+    }
+  }, [eventId]);
+
+  const fetchEvent = async () => {
+    if (!eventId) return;
+    
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('id', eventId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching event:', error);
+    } else {
+      setEvent(data);
+    }
+    setLoading(false);
+  };
+
+  return { event, loading, refetch: fetchEvent };
 };
 
 export const useSavedEvents = () => {

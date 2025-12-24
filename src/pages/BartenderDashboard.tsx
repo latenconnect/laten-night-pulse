@@ -13,8 +13,8 @@ import { BartenderSubscriptionCard } from '@/components/bartender/BartenderSubsc
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { useMyBartenderProfile, useMyBartenderSubscription, useBartenderBookingRequests } from '@/hooks/useBartenders';
+import { useSubscription } from '@/hooks/useSubscription';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
 
 const BartenderDashboard = () => {
   const navigate = useNavigate();
@@ -24,8 +24,7 @@ const BartenderDashboard = () => {
   const { data: profile, isLoading: profileLoading } = useMyBartenderProfile();
   const { data: subscription, isLoading: subscriptionLoading } = useMyBartenderSubscription();
   const { data: bookingRequests } = useBartenderBookingRequests();
-
-  const [subscribing, setSubscribing] = useState(false);
+  const { createCheckout, loading: checkoutLoading } = useSubscription();
 
   if (!user) {
     navigate('/auth');
@@ -33,10 +32,8 @@ const BartenderDashboard = () => {
   }
 
   const handleSubscribe = async () => {
-    setSubscribing(true);
-    // TODO: Integrate Stripe for actual payment
-    toast.info(t('paymentComingSoon'));
-    setSubscribing(false);
+    if (!profile) return;
+    await createCheckout('bartender_standard', profile.id);
   };
 
   const isSubscribed = subscription?.status === 'active' && 
@@ -214,7 +211,7 @@ const BartenderDashboard = () => {
                 <BartenderSubscriptionCard 
                   subscription={subscription || null}
                   onSubscribe={handleSubscribe}
-                  loading={subscribing}
+                  loading={checkoutLoading}
                 />
               </TabsContent>
             </Tabs>

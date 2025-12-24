@@ -4,7 +4,7 @@ import { ArrowLeft, Music, User, Calendar, MessageCircle, Crown } from 'lucide-r
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import MobileLayout from '@/components/layouts/MobileLayout';
@@ -13,8 +13,8 @@ import { DJSubscriptionCard } from '@/components/dj/DJSubscriptionCard';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { useMyDJProfile, useMyDJSubscription, useDJBookingRequests } from '@/hooks/useDJs';
+import { useSubscription } from '@/hooks/useSubscription';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
 
 const DJDashboard = () => {
   const navigate = useNavigate();
@@ -24,8 +24,7 @@ const DJDashboard = () => {
   const { data: profile, isLoading: profileLoading } = useMyDJProfile();
   const { data: subscription, isLoading: subscriptionLoading } = useMyDJSubscription();
   const { data: bookingRequests } = useDJBookingRequests();
-
-  const [subscribing, setSubscribing] = useState(false);
+  const { createCheckout, loading: checkoutLoading } = useSubscription();
 
   if (!user) {
     navigate('/auth');
@@ -33,10 +32,8 @@ const DJDashboard = () => {
   }
 
   const handleSubscribe = async () => {
-    setSubscribing(true);
-    // TODO: Integrate Stripe for actual payment
-    toast.info(t('paymentComingSoon'));
-    setSubscribing(false);
+    if (!profile) return;
+    await createCheckout('dj_standard', profile.id);
   };
 
   const isSubscribed = subscription?.status === 'active' && 
@@ -214,7 +211,7 @@ const DJDashboard = () => {
                 <DJSubscriptionCard 
                   subscription={subscription || null}
                   onSubscribe={handleSubscribe}
-                  loading={subscribing}
+                  loading={checkoutLoading}
                 />
               </TabsContent>
             </Tabs>
