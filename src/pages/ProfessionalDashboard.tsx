@@ -15,6 +15,7 @@ import MobileLayout from '@/components/layouts/MobileLayout';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { useMyProfessionalProfile, useMyProfessionalSubscription, useMyProfessionalBookings, useCreateProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/useProfessionals';
+import { useSubscription } from '@/hooks/useSubscription';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
@@ -46,8 +47,7 @@ const ProfessionalDashboard = () => {
   const { data: bookingRequests } = useMyProfessionalBookings();
   const createProfile = useCreateProfessionalProfile();
   const updateProfile = useUpdateProfessionalProfile();
-
-  const [subscribing, setSubscribing] = useState(false);
+  const { createCheckout, loading: checkoutLoading, openCustomerPortal, loading: portalLoading } = useSubscription();
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProfileFormData>({
     defaultValues: {
@@ -67,9 +67,8 @@ const ProfessionalDashboard = () => {
   }
 
   const handleSubscribe = async () => {
-    setSubscribing(true);
-    toast.info(t('professionals.paymentComingSoon'));
-    setSubscribing(false);
+    if (!profile) return;
+    await createCheckout('professional_standard', profile.id);
   };
 
   const onSubmit = async (data: ProfileFormData) => {
@@ -405,9 +404,9 @@ const ProfessionalDashboard = () => {
                         <Button 
                           className="w-full" 
                           onClick={handleSubscribe}
-                          disabled={subscribing}
+                          disabled={checkoutLoading}
                         >
-                          {subscribing ? t('common.processing') : t('professionals.subscribe')}
+                          {checkoutLoading ? t('common.processing') : t('professionals.subscribe')}
                         </Button>
                       </>
                     )}
