@@ -43,6 +43,8 @@ import BartenderDashboard from "./pages/BartenderDashboard";
 import Professionals from "./pages/Professionals";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
+import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import SubscriptionCancelled from "./pages/SubscriptionCancelled";
 import { SearchContext } from "@/context/SearchContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 
@@ -100,6 +102,9 @@ const AppContent = () => {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/support" element={<Support />} />
+        {/* Subscription routes */}
+        <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+        <Route path="/subscription/cancelled" element={<SubscriptionCancelled />} />
         {/* Admin routes */}
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/reports" element={<AdminReports />} />

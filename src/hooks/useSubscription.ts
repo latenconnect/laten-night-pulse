@@ -195,8 +195,9 @@ export const useSubscription = (): UseSubscriptionReturn => {
       return data as { subscriptions: ActiveSubscription[]; hasActiveSubscription: boolean };
     },
     enabled: !!user,
-    staleTime: 60000, // Cache for 1 minute
-    refetchInterval: 60000, // Auto-refresh every minute
+    staleTime: 30000, // Cache for 30 seconds
+    refetchInterval: 30000, // Auto-refresh every 30 seconds for faster updates
+    refetchOnWindowFocus: true, // Refresh when user returns to tab
   });
 
   /**

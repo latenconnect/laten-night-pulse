@@ -100,44 +100,59 @@ serve(async (req) => {
     // Sync to database for each subscription
     for (const sub of activeSubscriptions) {
       const expiresAt = sub.currentPeriodEnd;
+      const now = new Date().toISOString();
       
-      if (sub.subscriptionType === 'dj' && sub.profileId) {
-        await supabaseClient
-          .from('dj_subscriptions')
-          .upsert({
-            dj_profile_id: sub.profileId,
-            status: 'active',
-            tier: 'standard',
-            stripe_subscription_id: sub.stripeSubscriptionId,
-            expires_at: expiresAt,
-            auto_renew: !sub.cancelAtPeriodEnd,
-          }, { onConflict: 'dj_profile_id' });
-      } else if (sub.subscriptionType === 'bartender' && sub.profileId) {
-        await supabaseClient
-          .from('bartender_subscriptions')
-          .upsert({
-            bartender_profile_id: sub.profileId,
-            status: 'active',
-            tier: 'standard',
-            stripe_subscription_id: sub.stripeSubscriptionId,
-            expires_at: expiresAt,
-            auto_renew: !sub.cancelAtPeriodEnd,
-          }, { onConflict: 'bartender_profile_id' });
-      } else if (sub.subscriptionType === 'professional' && sub.profileId) {
-        await supabaseClient
-          .from('professional_subscriptions')
-          .upsert({
-            professional_id: sub.profileId,
-            status: 'active',
-            tier: 'standard',
-            stripe_subscription_id: sub.stripeSubscriptionId,
-            expires_at: expiresAt,
-            auto_renew: !sub.cancelAtPeriodEnd,
-          }, { onConflict: 'professional_id' });
-      } else if (sub.subscriptionType === 'venue_basic' || sub.subscriptionType === 'venue_boost') {
-        // Handle venue subscriptions if profileId is a club_id
-        if (sub.profileId) {
-          await supabaseClient
+      try {
+        if (sub.subscriptionType === 'dj' && sub.profileId) {
+          const { error } = await supabaseClient
+            .from('dj_subscriptions')
+            .upsert({
+              dj_profile_id: sub.profileId,
+              status: 'active',
+              tier: 'standard',
+              stripe_subscription_id: sub.stripeSubscriptionId,
+              expires_at: expiresAt,
+              started_at: now,
+              auto_renew: !sub.cancelAtPeriodEnd,
+              updated_at: now,
+            }, { onConflict: 'dj_profile_id' });
+          
+          if (error) logStep("Error syncing DJ subscription", { error: error.message });
+          else logStep("Synced DJ subscription", { profileId: sub.profileId });
+        } else if (sub.subscriptionType === 'bartender' && sub.profileId) {
+          const { error } = await supabaseClient
+            .from('bartender_subscriptions')
+            .upsert({
+              bartender_profile_id: sub.profileId,
+              status: 'active',
+              tier: 'standard',
+              stripe_subscription_id: sub.stripeSubscriptionId,
+              expires_at: expiresAt,
+              started_at: now,
+              auto_renew: !sub.cancelAtPeriodEnd,
+              updated_at: now,
+            }, { onConflict: 'bartender_profile_id' });
+          
+          if (error) logStep("Error syncing bartender subscription", { error: error.message });
+          else logStep("Synced bartender subscription", { profileId: sub.profileId });
+        } else if (sub.subscriptionType === 'professional' && sub.profileId) {
+          const { error } = await supabaseClient
+            .from('professional_subscriptions')
+            .upsert({
+              professional_id: sub.profileId,
+              status: 'active',
+              tier: 'standard',
+              stripe_subscription_id: sub.stripeSubscriptionId,
+              expires_at: expiresAt,
+              started_at: now,
+              auto_renew: !sub.cancelAtPeriodEnd,
+              updated_at: now,
+            }, { onConflict: 'professional_id' });
+          
+          if (error) logStep("Error syncing professional subscription", { error: error.message });
+          else logStep("Synced professional subscription", { profileId: sub.profileId });
+        } else if ((sub.subscriptionType === 'venue_basic' || sub.subscriptionType === 'venue_boost') && sub.profileId) {
+          const { error } = await supabaseClient
             .from('venue_subscriptions')
             .upsert({
               club_id: sub.profileId,
@@ -145,11 +160,24 @@ serve(async (req) => {
               tier: sub.subscriptionType === 'venue_boost' ? 'boost' : 'basic',
               stripe_subscription_id: sub.stripeSubscriptionId,
               expires_at: expiresAt,
-              started_at: new Date().toISOString(),
+              started_at: now,
               price_cents: sub.subscriptionType === 'venue_boost' ? 6500 : 5000,
               auto_renew: !sub.cancelAtPeriodEnd,
             }, { onConflict: 'club_id' });
+          
+          if (error) logStep("Error syncing venue subscription", { error: error.message });
+          else logStep("Synced venue subscription", { clubId: sub.profileId });
+        } else if (!sub.profileId) {
+          logStep("Subscription missing profileId - cannot sync to database", { 
+            subscriptionType: sub.subscriptionType,
+            stripeSubscriptionId: sub.stripeSubscriptionId 
+          });
         }
+      } catch (syncError) {
+        logStep("Exception syncing subscription", { 
+          type: sub.subscriptionType, 
+          error: syncError instanceof Error ? syncError.message : String(syncError) 
+        });
       }
     }
 
