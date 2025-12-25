@@ -96,36 +96,63 @@ const EVENT_TYPES = [
 export const DJ_SUBSCRIPTION_PRICE = 15; // EUR
 
 export const useDJs = (filters?: DJFilters) => {
-  const queryClient = useQueryClient();
-
   const { data: djs, isLoading, error } = useQuery({
     queryKey: ['djs', filters],
     queryFn: async () => {
-      let query = supabase
+      // First get all active DJ profiles with their subscriptions
+      const { data: profiles, error: profilesError } = await supabase
         .from('dj_profiles')
         .select('*')
         .eq('is_active', true);
 
+      if (profilesError) throw profilesError;
+      if (!profiles || profiles.length === 0) return [];
+
+      // Get active subscriptions for these profiles
+      const profileIds = profiles.map(p => p.id);
+      const { data: subscriptions, error: subsError } = await supabase
+        .from('dj_subscriptions')
+        .select('dj_profile_id, status, expires_at')
+        .in('dj_profile_id', profileIds)
+        .eq('status', 'active');
+
+      if (subsError) throw subsError;
+
+      // Filter to only DJs with active, non-expired subscriptions
+      const now = new Date();
+      const activeSubProfileIds = new Set(
+        (subscriptions || [])
+          .filter(s => s.expires_at && new Date(s.expires_at) > now)
+          .map(s => s.dj_profile_id)
+      );
+
+      let filteredProfiles = profiles.filter(p => activeSubProfileIds.has(p.id));
+
+      // Apply additional filters
       if (filters?.city) {
-        query = query.eq('city', filters.city);
+        filteredProfiles = filteredProfiles.filter(p => p.city === filters.city);
       }
 
       if (filters?.genres && filters.genres.length > 0) {
-        query = query.overlaps('genres', filters.genres);
+        filteredProfiles = filteredProfiles.filter(p => 
+          p.genres?.some((g: string) => filters.genres!.includes(g))
+        );
       }
 
       if (filters?.eventTypes && filters.eventTypes.length > 0) {
-        query = query.overlaps('preferred_event_types', filters.eventTypes);
+        filteredProfiles = filteredProfiles.filter(p => 
+          p.preferred_event_types?.some((e: string) => filters.eventTypes!.includes(e))
+        );
       }
 
       if (filters?.priceMax) {
-        query = query.lte('price_min', filters.priceMax);
+        filteredProfiles = filteredProfiles.filter(p => 
+          p.price_min === null || p.price_min <= filters.priceMax!
+        );
       }
 
-      const { data, error } = await query.order('rating', { ascending: false });
-
-      if (error) throw error;
-      return data as DJProfile[];
+      // Sort by rating
+      return filteredProfiles.sort((a, b) => (b.rating || 0) - (a.rating || 0)) as DJProfile[];
     },
   });
 
