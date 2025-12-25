@@ -138,40 +138,72 @@ export function useProfessionals(filters?: ProfessionalFilters) {
   return useQuery({
     queryKey: ['professionals', filters],
     queryFn: async () => {
-      let query = supabase
+      // First get all active professional profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('professionals')
         .select('*')
-        .eq('is_active', true)
-        .order('rating', { ascending: false });
+        .eq('is_active', true);
 
+      if (profilesError) throw profilesError;
+      if (!profiles || profiles.length === 0) return [];
+
+      // Get active subscriptions for these profiles
+      const profileIds = profiles.map(p => p.id);
+      const { data: subscriptions, error: subsError } = await supabase
+        .from('professional_subscriptions')
+        .select('professional_id, status, expires_at')
+        .in('professional_id', profileIds)
+        .eq('status', 'active');
+
+      if (subsError) throw subsError;
+
+      // Filter to only professionals with active, non-expired subscriptions
+      const now = new Date();
+      const activeSubProfileIds = new Set(
+        (subscriptions || [])
+          .filter(s => s.expires_at && new Date(s.expires_at) > now)
+          .map(s => s.professional_id)
+      );
+
+      let filteredProfiles = profiles.filter(p => activeSubProfileIds.has(p.id));
+
+      // Apply additional filters
       if (filters?.city) {
-        query = query.eq('city', filters.city);
+        filteredProfiles = filteredProfiles.filter(p => p.city === filters.city);
       }
 
       if (filters?.professionTypes && filters.professionTypes.length > 0) {
-        query = query.in('profession_type', filters.professionTypes);
+        filteredProfiles = filteredProfiles.filter(p => 
+          filters.professionTypes!.includes(p.profession_type as ProfessionType)
+        );
       }
 
       if (filters?.genres && filters.genres.length > 0) {
-        query = query.overlaps('genres', filters.genres);
+        filteredProfiles = filteredProfiles.filter(p => 
+          p.genres?.some((g: string) => filters.genres!.includes(g))
+        );
       }
 
       if (filters?.skills && filters.skills.length > 0) {
-        query = query.overlaps('skills', filters.skills);
+        filteredProfiles = filteredProfiles.filter(p => 
+          p.skills?.some((s: string) => filters.skills!.includes(s))
+        );
       }
 
       if (filters?.priceMin) {
-        query = query.gte('price_min', filters.priceMin);
+        filteredProfiles = filteredProfiles.filter(p => 
+          p.price_min === null || p.price_min >= filters.priceMin!
+        );
       }
 
       if (filters?.priceMax) {
-        query = query.lte('price_max', filters.priceMax);
+        filteredProfiles = filteredProfiles.filter(p => 
+          p.price_max === null || p.price_max <= filters.priceMax!
+        );
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return (data || []) as Professional[];
+      // Sort by rating
+      return filteredProfiles.sort((a, b) => (b.rating || 0) - (a.rating || 0)) as Professional[];
     },
   });
 }

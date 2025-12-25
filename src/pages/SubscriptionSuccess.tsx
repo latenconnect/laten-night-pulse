@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Loader2, Sparkles } from 'lucide-react';
+import { CheckCircle2, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -13,42 +13,99 @@ const SubscriptionSuccess = () => {
   const queryClient = useQueryClient();
   const [syncing, setSyncing] = useState(true);
   const [syncComplete, setSyncComplete] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const sessionId = searchParams.get('session_id');
 
+  const syncSubscription = useCallback(async (): Promise<boolean> => {
+    try {
+      console.log('[SubscriptionSuccess] Syncing subscription...');
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) {
+        console.error('[SubscriptionSuccess] Error syncing subscription:', error);
+        return false;
+      }
+      
+      if (data?.hasActiveSubscription) {
+        console.log('[SubscriptionSuccess] Active subscription found!', data);
+        toast.success('Subscription activated successfully!');
+        
+        // Invalidate ALL subscription-related queries immediately
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['stripe-subscriptions'] }),
+          queryClient.invalidateQueries({ queryKey: ['dj-subscription'] }),
+          queryClient.invalidateQueries({ queryKey: ['my-dj-subscription'] }),
+          queryClient.invalidateQueries({ queryKey: ['bartender-subscription'] }),
+          queryClient.invalidateQueries({ queryKey: ['my-bartender-subscription'] }),
+          queryClient.invalidateQueries({ queryKey: ['professional-subscription'] }),
+          queryClient.invalidateQueries({ queryKey: ['my-professional-subscription'] }),
+          queryClient.invalidateQueries({ queryKey: ['venue-subscription'] }),
+          queryClient.invalidateQueries({ queryKey: ['djs'] }),
+          queryClient.invalidateQueries({ queryKey: ['bartenders'] }),
+          queryClient.invalidateQueries({ queryKey: ['professionals'] }),
+        ]);
+        
+        return true;
+      }
+      
+      console.log('[SubscriptionSuccess] No active subscription found yet');
+      return false;
+    } catch (err) {
+      console.error('[SubscriptionSuccess] Sync error:', err);
+      return false;
+    }
+  }, [queryClient]);
+
   useEffect(() => {
-    const syncSubscription = async () => {
-      try {
-        // Immediately call check-subscription to sync from Stripe
-        const { data, error } = await supabase.functions.invoke('check-subscription');
-        
-        if (error) {
-          console.error('Error syncing subscription:', error);
-          toast.error('Failed to sync subscription. Please refresh the page.');
-        } else if (data?.hasActiveSubscription) {
-          toast.success('Subscription activated successfully!');
-          // Invalidate all subscription-related queries
-          queryClient.invalidateQueries({ queryKey: ['stripe-subscriptions'] });
-          queryClient.invalidateQueries({ queryKey: ['dj-subscription'] });
-          queryClient.invalidateQueries({ queryKey: ['bartender-subscription'] });
-          queryClient.invalidateQueries({ queryKey: ['professional-subscription'] });
-          queryClient.invalidateQueries({ queryKey: ['venue-subscription'] });
-        }
-        
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
+
+    const attemptSync = async () => {
+      if (!isMounted) return;
+
+      const success = await syncSubscription();
+      
+      if (success) {
         setSyncComplete(true);
-      } catch (err) {
-        console.error('Sync error:', err);
-      } finally {
         setSyncing(false);
+      } else if (retryCount < 5) {
+        // Retry up to 5 times with increasing delays
+        const delay = Math.min(1000 * Math.pow(1.5, retryCount), 5000);
+        console.log(`[SubscriptionSuccess] Retrying in ${delay}ms (attempt ${retryCount + 1}/5)`);
+        timeoutId = setTimeout(() => {
+          if (isMounted) {
+            setRetryCount(prev => prev + 1);
+          }
+        }, delay);
+      } else {
+        // Max retries reached, show partial success
+        setSyncing(false);
+        toast.info('Payment received! Features may take a moment to activate.');
       }
     };
 
-    // Small delay to ensure Stripe has processed the payment
-    const timer = setTimeout(syncSubscription, 1500);
-    return () => clearTimeout(timer);
-  }, [queryClient, sessionId]);
+    // Initial delay to give Stripe time to process
+    const initialDelay = retryCount === 0 ? 2000 : 0;
+    timeoutId = setTimeout(attemptSync, initialDelay);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [syncSubscription, retryCount]);
+
+  const handleManualRetry = async () => {
+    setSyncing(true);
+    setRetryCount(0);
+    const success = await syncSubscription();
+    if (success) {
+      setSyncComplete(true);
+    }
+    setSyncing(false);
+  };
 
   const handleContinue = () => {
-    // Navigate to the appropriate dashboard based on where they came from
+    // Navigate to profile where they can see their dashboards
     navigate('/profile');
   };
 
@@ -70,6 +127,11 @@ const SubscriptionSuccess = () => {
             <p className="text-muted-foreground">
               Please wait while we set up your premium features...
             </p>
+            {retryCount > 0 && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Attempt {retryCount + 1}/5...
+              </p>
+            )}
           </>
         ) : syncComplete ? (
           <>
@@ -89,7 +151,7 @@ const SubscriptionSuccess = () => {
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <p className="text-muted-foreground mb-8">
-              Your subscription is now active. All premium features are unlocked and ready to use.
+              Your subscription is now active. All premium features are unlocked and ready to use immediately.
             </p>
             <Button onClick={handleContinue} size="lg" className="w-full">
               Continue to Dashboard
@@ -103,12 +165,18 @@ const SubscriptionSuccess = () => {
             <h1 className="text-2xl font-bold text-foreground mb-2">
               Payment Received!
             </h1>
-            <p className="text-muted-foreground mb-8">
-              Your payment was successful. Your features will be activated shortly.
+            <p className="text-muted-foreground mb-6">
+              Your payment was successful. If your features aren't active yet, try refreshing.
             </p>
-            <Button onClick={handleContinue} size="lg" className="w-full">
-              Continue to Dashboard
-            </Button>
+            <div className="flex flex-col gap-3">
+              <Button onClick={handleManualRetry} variant="outline" size="lg" className="w-full">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh Status
+              </Button>
+              <Button onClick={handleContinue} size="lg" className="w-full">
+                Continue to Dashboard
+              </Button>
+            </div>
           </>
         )}
       </motion.div>
