@@ -342,6 +342,14 @@ export const useSubscription = (): UseSubscriptionReturn => {
           .maybeSingle();
         if (result.error) throw result.error;
         data = result.data;
+      } else if (type === 'party_boost') {
+        const result = await supabase
+          .from('host_subscriptions')
+          .select('status, expires_at')
+          .eq('host_id', profileId)
+          .maybeSingle();
+        if (result.error) throw result.error;
+        data = result.data;
       }
 
       if (!data) return false;

@@ -167,6 +167,25 @@ serve(async (req) => {
           
           if (error) logStep("Error syncing venue subscription", { error: error.message });
           else logStep("Synced venue subscription", { clubId: sub.profileId });
+        } else if (sub.subscriptionType === 'party_boost' && sub.profileId) {
+          // Party Boost is a host-level subscription
+          const { error } = await supabaseClient
+            .from('host_subscriptions')
+            .upsert({
+              host_id: sub.profileId,
+              status: 'active',
+              tier: 'boost',
+              stripe_subscription_id: sub.stripeSubscriptionId,
+              expires_at: expiresAt,
+              started_at: now,
+              price_cents: 1000,
+              currency: 'EUR',
+              auto_renew: !sub.cancelAtPeriodEnd,
+              updated_at: now,
+            }, { onConflict: 'host_id' });
+          
+          if (error) logStep("Error syncing party boost subscription", { error: error.message });
+          else logStep("Synced party boost subscription", { hostId: sub.profileId });
         } else if (!sub.profileId) {
           logStep("Subscription missing profileId - cannot sync to database", { 
             subscriptionType: sub.subscriptionType,

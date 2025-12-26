@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import HostApplicationCard from '@/components/HostApplicationCard';
+import PartyBoostCard from '@/components/PartyBoostCard';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
@@ -324,6 +325,11 @@ const Profile: React.FC = () => {
       {/* Host CTA */}
       <section className="px-4 mt-6">
         <HostApplicationCard />
+      </section>
+
+      {/* Party Boost Subscription */}
+      <section className="px-4 mt-6">
+        <PartyBoostCard />
       </section>
 
       {/* Sign Out */}

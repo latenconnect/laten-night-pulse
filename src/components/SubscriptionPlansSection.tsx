@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 // Stripe Product & Price IDs (synced with Stripe dashboard)
 export const STRIPE_PRODUCTS = {
@@ -219,18 +220,24 @@ export const SubscriptionPlansSection: React.FC = () => {
     }
     
     // Navigate to the appropriate dashboard/profile page based on tier
+    // For DJ, Bartender, Professional - they need to create a profile first, then subscribe from dashboard
+    // For Party Boost - they need to be a verified host first
     switch (tierId) {
       case 'dj_standard':
         navigate('/dj/dashboard');
+        toast.info('Create your DJ profile to subscribe');
         break;
       case 'bartender_standard':
         navigate('/bartender/dashboard');
+        toast.info('Create your bartender profile to subscribe');
         break;
       case 'professional_standard':
         navigate('/professional/dashboard');
+        toast.info('Create your professional profile to subscribe');
         break;
       case 'party_boost':
-        navigate('/create-event');
+        navigate('/profile');
+        toast.info('Become a verified host to unlock Party Boost');
         break;
       default:
         navigate('/profile');
