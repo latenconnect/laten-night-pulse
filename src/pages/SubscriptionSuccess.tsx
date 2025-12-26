@@ -40,9 +40,11 @@ const SubscriptionSuccess = () => {
           queryClient.invalidateQueries({ queryKey: ['professional-subscription'] }),
           queryClient.invalidateQueries({ queryKey: ['my-professional-subscription'] }),
           queryClient.invalidateQueries({ queryKey: ['venue-subscription'] }),
+          queryClient.invalidateQueries({ queryKey: ['host-subscription'] }),
           queryClient.invalidateQueries({ queryKey: ['djs'] }),
           queryClient.invalidateQueries({ queryKey: ['bartenders'] }),
           queryClient.invalidateQueries({ queryKey: ['professionals'] }),
+          queryClient.invalidateQueries({ queryKey: ['host'] }),
         ]);
         
         return true;

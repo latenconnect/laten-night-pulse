@@ -1308,6 +1308,66 @@ export type Database = {
           },
         ]
       }
+      host_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          created_at: string | null
+          currency: string
+          expires_at: string | null
+          host_id: string
+          id: string
+          price_cents: number
+          started_at: string | null
+          status: string
+          stripe_subscription_id: string | null
+          tier: string
+          updated_at: string | null
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          currency?: string
+          expires_at?: string | null
+          host_id: string
+          id?: string
+          price_cents?: number
+          started_at?: string | null
+          status?: string
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+        }
+        Update: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          currency?: string
+          expires_at?: string | null
+          host_id?: string
+          id?: string
+          price_cents?: number
+          started_at?: string | null
+          status?: string
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "host_subscriptions_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: true
+            referencedRelation: "hosts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "host_subscriptions_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: true
+            referencedRelation: "public_host_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hosts: {
         Row: {
           created_at: string | null
