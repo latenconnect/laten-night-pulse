@@ -178,7 +178,7 @@ const SubscriptionPlanCard: React.FC<SubscriptionPlanCardProps> = ({ tier, onSub
               {tier.price.toLocaleString()}
             </span>
             <span className="text-muted-foreground text-sm">
-              {tier.currency} / {t('month') || 'month'}
+              {tier.currency} / {t('business.month')}
             </span>
           </div>
 
@@ -200,7 +200,7 @@ const SubscriptionPlanCard: React.FC<SubscriptionPlanCardProps> = ({ tier, onSub
             onClick={onSubscribe}
           >
             <Crown className="h-4 w-4" />
-            {t('subscribeNow') || 'Subscribe Now'}
+            {t('business.subscribeNow')}
           </Button>
         </CardContent>
       </Card>
@@ -252,16 +252,16 @@ export const SubscriptionPlansSection: React.FC = () => {
         <div className="flex items-center gap-2">
           <Crown className="w-5 h-5 text-primary" />
           <h2 className="font-display font-bold text-xl">
-            {t('subscriptionPlans') || 'Subscription Plans'}
+            {t('business.subscriptionPlans')}
           </h2>
         </div>
         <Badge variant="outline" className="text-xs">
-          {t('forProfessionals') || 'For Professionals'}
+          {t('business.forProfessionals')}
         </Badge>
       </div>
       
       <p className="text-sm text-muted-foreground mb-4">
-        {t('subscriptionDescription') || 'Join as a professional and start receiving booking requests'}
+        {t('business.subscriptionDescription')}
       </p>
 
       <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
@@ -277,7 +277,7 @@ export const SubscriptionPlansSection: React.FC = () => {
       
       {/* Stripe ready note */}
       <p className="text-xs text-center text-muted-foreground mt-4">
-        {t('stripeSecurePayment') || 'Secure payments powered by Stripe • Cancel anytime'}
+        {t('business.stripeSecurePayment')}
       </p>
     </section>
   );
