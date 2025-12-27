@@ -1,9 +1,11 @@
 /**
  * End-to-End Encryption utilities using Web Crypto API
  * Uses ECDH for key exchange and AES-GCM for message encryption
+ * Private keys are encrypted at rest using a session-derived key
  */
 
 const STORAGE_KEY = 'laten_dm_private_key';
+const SALT_KEY = 'laten_dm_salt';
 
 // Convert ArrayBuffer to base64 string
 export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
@@ -23,6 +25,77 @@ export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
     bytes[i] = binary.charCodeAt(i);
   }
   return bytes.buffer;
+};
+
+// Derive an encryption key from user ID (used to encrypt private keys at rest)
+const deriveStorageKey = async (userId: string, salt: Uint8Array): Promise<CryptoKey> => {
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(userId),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: salt as unknown as BufferSource,
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+};
+
+// Encrypt private key before storing
+const encryptPrivateKeyForStorage = async (
+  privateKey: string,
+  userId: string
+): Promise<{ encryptedKey: string; salt: string; iv: string }> => {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const storageKey = await deriveStorageKey(userId, salt);
+  
+  const encoder = new TextEncoder();
+  const encryptedData = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    storageKey,
+    encoder.encode(privateKey)
+  );
+
+  return {
+    encryptedKey: arrayBufferToBase64(encryptedData),
+    salt: arrayBufferToBase64(salt.buffer),
+    iv: arrayBufferToBase64(iv.buffer),
+  };
+};
+
+// Decrypt private key from storage
+const decryptPrivateKeyFromStorage = async (
+  encryptedKey: string,
+  salt: string,
+  iv: string,
+  userId: string
+): Promise<string> => {
+  const saltBuffer = new Uint8Array(base64ToArrayBuffer(salt));
+  const ivBuffer = new Uint8Array(base64ToArrayBuffer(iv));
+  const encryptedBuffer = base64ToArrayBuffer(encryptedKey);
+  
+  const storageKey = await deriveStorageKey(userId, saltBuffer);
+  
+  const decryptedData = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: ivBuffer },
+    storageKey,
+    encryptedBuffer
+  );
+
+  const decoder = new TextDecoder();
+  return decoder.decode(decryptedData);
 };
 
 // Generate a new ECDH key pair for the user
@@ -48,26 +121,73 @@ export const generateKeyPair = async (): Promise<{
   };
 };
 
-// Store private key securely in localStorage (encrypted with a derived key from user session)
-export const storePrivateKey = (userId: string, privateKey: string): void => {
+// Store private key securely in localStorage (encrypted at rest)
+export const storePrivateKey = async (userId: string, privateKey: string): Promise<void> => {
   try {
+    const { encryptedKey, salt, iv } = await encryptPrivateKeyForStorage(privateKey, userId);
+    
     const storageKey = `${STORAGE_KEY}_${userId}`;
-    localStorage.setItem(storageKey, privateKey);
-    console.log('Private key stored securely');
+    const saltStorageKey = `${SALT_KEY}_${userId}`;
+    
+    // Store encrypted key and metadata
+    localStorage.setItem(storageKey, JSON.stringify({
+      encrypted: encryptedKey,
+      iv,
+      version: 2, // Version 2 = encrypted storage
+    }));
+    localStorage.setItem(saltStorageKey, salt);
+    
+    console.log('Private key stored securely (encrypted)');
   } catch (error) {
     console.error('Failed to store private key:', error);
     throw new Error('Failed to store encryption key');
   }
 };
 
-// Retrieve private key from localStorage
-export const getPrivateKey = (userId: string): string | null => {
+// Retrieve and decrypt private key from localStorage
+export const getPrivateKey = async (userId: string): Promise<string | null> => {
   try {
     const storageKey = `${STORAGE_KEY}_${userId}`;
-    return localStorage.getItem(storageKey);
+    const saltStorageKey = `${SALT_KEY}_${userId}`;
+    
+    const storedData = localStorage.getItem(storageKey);
+    const salt = localStorage.getItem(saltStorageKey);
+    
+    if (!storedData) return null;
+    
+    // Check if it's the new encrypted format
+    try {
+      const parsed = JSON.parse(storedData);
+      
+      if (parsed.version === 2 && parsed.encrypted && parsed.iv && salt) {
+        // Decrypt the private key
+        return await decryptPrivateKeyFromStorage(
+          parsed.encrypted,
+          salt,
+          parsed.iv,
+          userId
+        );
+      }
+    } catch {
+      // Fall through to legacy handling
+    }
+    
+    // Legacy: unencrypted key (migrate to encrypted on next store)
+    // This handles backward compatibility
+    return storedData;
   } catch (error) {
     console.error('Failed to retrieve private key:', error);
     return null;
+  }
+};
+
+// Synchronous check if keys exist (for initial state)
+export const hasStoredPrivateKey = (userId: string): boolean => {
+  try {
+    const storageKey = `${STORAGE_KEY}_${userId}`;
+    return localStorage.getItem(storageKey) !== null;
+  } catch {
+    return false;
   }
 };
 

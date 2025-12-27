@@ -7,6 +7,7 @@ import {
   generateKeyPair,
   storePrivateKey,
   getPrivateKey,
+  hasStoredPrivateKey,
   encryptForConversation,
   decryptFromConversation,
 } from '@/utils/encryption';
@@ -67,8 +68,8 @@ export const useEncryptionKeys = () => {
     },
     enabled: !!user,
   });
-
-  const hasKeys = !!publicKeyData && !!getPrivateKey(user?.id || '');
+  // Use synchronous check for initial state
+  const hasKeys = !!publicKeyData && hasStoredPrivateKey(user?.id || '');
 
   const initializeKeys = useCallback(async () => {
     if (!user || isInitializing) return false;
@@ -87,7 +88,7 @@ export const useEncryptionKeys = () => {
 
       if (error) throw error;
 
-      storePrivateKey(user.id, privateKey);
+      await storePrivateKey(user.id, privateKey);
       queryClient.invalidateQueries({ queryKey: ['encryption-key', user.id] });
       console.log('Encryption keys initialized successfully');
       return true;
@@ -237,7 +238,7 @@ export const useConversationMessages = (conversationId: string | null, otherUser
     const decryptMessages = async () => {
       if (!user || !encryptedMessages || !otherPublicKey) return;
 
-      const privateKey = getPrivateKey(user.id);
+      const privateKey = await getPrivateKey(user.id);
       if (!privateKey) {
         console.error('No private key available');
         return;
@@ -470,7 +471,7 @@ export const useSendMessage = () => {
     }) => {
       if (!user || !myPublicKey) throw new Error('Not authenticated or no encryption key');
 
-      const privateKey = getPrivateKey(user.id);
+      const privateKey = await getPrivateKey(user.id);
       if (!privateKey) throw new Error('No private key available');
 
       const { encryptedForSender, encryptedForRecipient } = await encryptForConversation(
@@ -794,7 +795,7 @@ export const useEditMessage = () => {
     }) => {
       if (!user || !myPublicKey) throw new Error('Not authenticated');
 
-      const privateKey = getPrivateKey(user.id);
+      const privateKey = await getPrivateKey(user.id);
       if (!privateKey) throw new Error('No private key');
 
       // Re-encrypt the new content

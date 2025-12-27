@@ -2229,6 +2229,11 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_stories: { Args: never; Returns: undefined }
+      delete_bartender_profile: {
+        Args: { profile_id: string }
+        Returns: boolean
+      }
+      delete_dj_profile: { Args: { profile_id: string }; Returns: boolean }
       delete_user_account: {
         Args: { user_id_to_delete: string }
         Returns: boolean
