@@ -163,11 +163,12 @@ const AdminBartenders = () => {
     if (!confirm('Are you sure you want to delete this bartender profile?')) return;
 
     try {
-      await supabase.from('bartender_subscriptions').delete().eq('bartender_profile_id', bartenderId);
-      await supabase.from('bartender_availability').delete().eq('bartender_profile_id', bartenderId);
-      await supabase.from('bartender_booking_requests').delete().eq('bartender_profile_id', bartenderId);
-      await supabase.from('bartender_reviews').delete().eq('bartender_profile_id', bartenderId);
-      await supabase.from('bartender_profiles').delete().eq('id', bartenderId);
+      // Use secure server-side deletion function
+      const { error } = await supabase.rpc('delete_bartender_profile', {
+        profile_id: bartenderId
+      });
+
+      if (error) throw error;
 
       toast.success('Bartender profile deleted');
       fetchBartenders();

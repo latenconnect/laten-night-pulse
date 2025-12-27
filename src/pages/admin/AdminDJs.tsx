@@ -163,11 +163,12 @@ const AdminDJs = () => {
     if (!confirm('Are you sure you want to delete this DJ profile?')) return;
 
     try {
-      await supabase.from('dj_subscriptions').delete().eq('dj_profile_id', djId);
-      await supabase.from('dj_availability').delete().eq('dj_profile_id', djId);
-      await supabase.from('dj_booking_requests').delete().eq('dj_profile_id', djId);
-      await supabase.from('dj_reviews').delete().eq('dj_profile_id', djId);
-      await supabase.from('dj_profiles').delete().eq('id', djId);
+      // Use secure server-side deletion function
+      const { error } = await supabase.rpc('delete_dj_profile', {
+        profile_id: djId
+      });
+
+      if (error) throw error;
 
       toast.success('DJ profile deleted');
       fetchDJs();
