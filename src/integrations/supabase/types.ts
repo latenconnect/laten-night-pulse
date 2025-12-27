@@ -2238,6 +2238,21 @@ export type Database = {
         Args: { user_id_to_delete: string }
         Returns: boolean
       }
+      get_user_bartender_profile_id: { Args: { uid: string }; Returns: string }
+      get_user_dj_profile_id: { Args: { uid: string }; Returns: string }
+      get_user_professional_id: { Args: { uid: string }; Returns: string }
+      has_active_bartender_subscription: {
+        Args: { profile_id: string }
+        Returns: boolean
+      }
+      has_active_dj_subscription: {
+        Args: { profile_id: string }
+        Returns: boolean
+      }
+      has_active_professional_subscription: {
+        Args: { profile_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
