@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 
 const TermsOfService: React.FC = () => {
   const navigate = useNavigate();
-  const lastUpdated = "December 4, 2024";
+  const lastUpdated = "December 27, 2025";
 
   return (
     <div className="min-h-screen bg-background">
