@@ -1,11 +1,23 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const CheckoutInputSchema = z.object({
+  priceId: z.string().min(1).max(100).regex(/^price_/, { message: "Invalid Stripe price ID format" }),
+  profileId: z.string().uuid({ message: "Invalid profile ID format" }),
+  subscriptionType: z.enum(['dj', 'bartender', 'host', 'venue', 'professional'], { 
+    errorMap: () => ({ message: "Invalid subscription type" }) 
+  }),
+  successUrl: z.string().url().max(500).optional(),
+  cancelUrl: z.string().url().max(500).optional(),
+});
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -39,17 +51,26 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { priceId, profileId, subscriptionType, successUrl, cancelUrl } = await req.json();
+    const rawBody = await req.json();
     
-    if (!priceId) throw new Error("Price ID is required");
-    if (!profileId) throw new Error("Profile ID is required");
-    if (!subscriptionType) throw new Error("Subscription type is required");
+    // Validate input
+    const parseResult = CheckoutInputSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      logStep("Validation error", { errors: parseResult.error.errors });
+      return new Response(JSON.stringify({ 
+        error: "Invalid input parameters",
+        details: parseResult.error.errors 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
     
-    logStep("Request body parsed", { priceId, profileId, subscriptionType });
+    const { priceId, profileId, subscriptionType, successUrl, cancelUrl } = parseResult.data;
+    logStep("Request body validated", { priceId, profileId, subscriptionType });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     
-    // Check for existing Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined;
     if (customers.data.length > 0) {

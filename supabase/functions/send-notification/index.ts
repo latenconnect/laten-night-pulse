@@ -1,22 +1,25 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface NotificationPayload {
-  type: "event_reminder" | "rsvp_update" | "new_event";
-  userIds?: string[];
-  eventId?: string;
-  title: string;
-  body: string;
-  data?: Record<string, string>;
-}
+// Input validation schema
+const NotificationInputSchema = z.object({
+  type: z.enum(["event_reminder", "rsvp_update", "new_event"]),
+  userIds: z.array(z.string().uuid()).max(1000).optional(),
+  eventId: z.string().uuid().optional(),
+  title: z.string().min(1).max(100),
+  body: z.string().min(1).max(500),
+  data: z.record(z.string(), z.string()).optional(),
+});
+
+type NotificationPayload = z.infer<typeof NotificationInputSchema>;
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -26,7 +29,6 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify the user is authenticated and has admin role
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -35,7 +37,6 @@ serve(async (req) => {
       );
     }
 
-    // Create client with user's JWT to verify permissions
     const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
@@ -48,7 +49,6 @@ serve(async (req) => {
       );
     }
 
-    // Check if user has admin role
     const { data: hasAdminRole } = await createClient(supabaseUrl, supabaseServiceKey)
       .rpc('has_role', { _user_id: user.id, _role: 'admin' });
 
@@ -71,14 +71,28 @@ serve(async (req) => {
       );
     }
 
+    const rawBody = await req.json();
+    
+    // Validate input
+    const parseResult = NotificationInputSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      console.warn("Invalid input:", parseResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid input parameters",
+          details: parseResult.error.errors 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const payload: NotificationPayload = await req.json();
+    const payload: NotificationPayload = parseResult.data;
 
     const { type, userIds, eventId, title, body, data } = payload;
 
     console.log("Notification request:", { type, userIds, eventId, title });
 
-    // Get push tokens for the specified users
     let query = supabase
       .from("push_tokens")
       .select("token, platform, user_id")
@@ -105,14 +119,12 @@ serve(async (req) => {
 
     console.log(`Found ${tokens.length} active tokens`);
 
-    // Prepare notification data
     const notificationData: Record<string, string> = {
       type,
       ...(eventId && { eventId }),
       ...data,
     };
 
-    // Send via OneSignal REST API using player IDs (tokens)
     const playerIds = tokens.map(t => t.token);
 
     const oneSignalPayload = {
@@ -121,10 +133,8 @@ serve(async (req) => {
       headings: { en: title },
       contents: { en: body },
       data: notificationData,
-      // iOS specific
       ios_badgeType: "Increase",
       ios_badgeCount: 1,
-      // Android specific
       android_channel_id: "default",
       priority: 10,
     };
@@ -144,7 +154,6 @@ serve(async (req) => {
     console.log("OneSignal response:", JSON.stringify(oneSignalResult));
 
     if (!oneSignalResponse.ok) {
-      // Handle invalid player IDs by marking them inactive
       if (oneSignalResult.errors?.invalid_player_ids) {
         const invalidIds = oneSignalResult.errors.invalid_player_ids;
         console.log("Marking invalid tokens as inactive:", invalidIds.length);
