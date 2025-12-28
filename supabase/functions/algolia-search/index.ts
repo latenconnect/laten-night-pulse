@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,16 +9,27 @@ const corsHeaders = {
 const ALGOLIA_APP_ID = Deno.env.get('ALGOLIA_APP_ID')!;
 const ALGOLIA_SEARCH_API_KEY = Deno.env.get('ALGOLIA_SEARCH_API_KEY')!;
 
+// Input validation schema
+const SearchInputSchema = z.object({
+  query: z.string().min(1).max(200),
+  filters: z.object({
+    type: z.enum(['event', 'club']).optional(),
+    city: z.string().max(100).optional(),
+    eventType: z.string().max(50).optional(),
+  }).optional(),
+  page: z.number().int().min(0).max(100).default(0),
+  hitsPerPage: z.number().int().min(1).max(100).default(20),
+});
+
 // Rate limiting configuration
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_MAX = 60; // 60 requests per minute per IP
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
+const RATE_LIMIT_MAX = 60;
+const RATE_LIMIT_WINDOW = 60 * 1000;
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const record = rateLimitMap.get(ip);
   
-  // Clean up old entries periodically
   if (rateLimitMap.size > 10000) {
     for (const [key, value] of rateLimitMap.entries()) {
       if (now > value.resetTime) {
@@ -44,7 +56,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Rate limiting check
   const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
                    req.headers.get('x-real-ip') || 
                    'unknown';
@@ -62,9 +73,26 @@ serve(async (req) => {
   }
 
   try {
-    const { query, filters, page = 0, hitsPerPage = 20 } = await req.json();
+    const rawBody = await req.json();
+    
+    // Validate input
+    const parseResult = SearchInputSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      console.warn('Invalid input:', parseResult.error.errors);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid input parameters',
+        details: parseResult.error.errors,
+        hits: [], 
+        nbHits: 0 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const { query, filters, page, hitsPerPage } = parseResult.data;
 
-    if (!query || query.trim() === '') {
+    if (query.trim() === '') {
       return new Response(JSON.stringify({ hits: [], nbHits: 0 }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -83,7 +111,6 @@ serve(async (req) => {
       attributesToHighlight: ['name', 'description', 'locationName', 'address'],
     };
 
-    // Add filters if provided
     if (filters) {
       const filterParts: string[] = [];
       if (filters.type) filterParts.push(`type:${filters.type}`);
@@ -108,7 +135,6 @@ serve(async (req) => {
       const errorText = await response.text();
       console.error('Algolia search error:', errorText);
       
-      // Handle index not found gracefully
       if (response.status === 404) {
         console.log('Index does not exist yet - needs initial sync');
         return new Response(JSON.stringify({ 

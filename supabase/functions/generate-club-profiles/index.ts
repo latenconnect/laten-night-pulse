@@ -1,10 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const GenerateClubProfilesInputSchema = z.object({
+  batch_size: z.number().int().min(1).max(50).default(10),
+  offset: z.number().int().min(0).max(10000).default(0),
+  club_id: z.string().uuid().optional(),
+});
 
 interface ClubProfile {
   description: string;
@@ -25,7 +33,22 @@ serve(async (req) => {
   }
 
   try {
-    const { batch_size = 10, offset = 0, club_id } = await req.json();
+    const rawBody = await req.json();
+    
+    // Validate input
+    const parseResult = GenerateClubProfilesInputSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      console.warn("Invalid input:", parseResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid input parameters",
+          details: parseResult.error.errors 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const { batch_size, offset, club_id } = parseResult.data;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -38,12 +61,11 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Get clubs to process
     let query = supabase
       .from("clubs")
       .select("id, name, city, venue_type, address, rating, price_level, opening_hours")
       .eq("is_active", true)
-      .is("description", null); // Only clubs without description
+      .is("description", null);
 
     if (club_id) {
       query = supabase
@@ -138,7 +160,6 @@ Return ONLY valid JSON with this structure:
           continue;
         }
 
-        // Parse JSON from response (handle markdown code blocks)
         let jsonStr = content.trim();
         if (jsonStr.startsWith("```")) {
           jsonStr = jsonStr.replace(/```json?\n?/g, "").replace(/```$/g, "").trim();
@@ -146,7 +167,6 @@ Return ONLY valid JSON with this structure:
 
         const profile: ClubProfile = JSON.parse(jsonStr);
 
-        // Update club in database
         const { error: updateError } = await supabase
           .from("clubs")
           .update({
@@ -166,7 +186,6 @@ Return ONLY valid JSON with this structure:
           results.push({ id: club.id, name: club.name, status: "success" });
         }
 
-        // Small delay to avoid rate limiting
         await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (clubError) {
         console.error(`Error processing ${club.name}:`, clubError);
@@ -179,7 +198,6 @@ Return ONLY valid JSON with this structure:
       }
     }
 
-    // Get count of remaining clubs
     const { count: remaining } = await supabase
       .from("clubs")
       .select("id", { count: "exact", head: true })

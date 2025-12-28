@@ -1,13 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation schema
+const DiditSessionInputSchema = z.object({
+  callback_url: z.string().url().max(500).optional(),
+});
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -28,7 +33,6 @@ serve(async (req) => {
       throw new Error('Didit workflow ID not configured');
     }
 
-    // Get user from auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'No authorization header' }), {
@@ -39,7 +43,6 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
     
-    // Verify the JWT and get user
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
@@ -51,7 +54,7 @@ serve(async (req) => {
       });
     }
 
-    // Rate limiting: max 5 verification requests per hour per user
+    // Rate limiting
     const { data: rateLimitOk, error: rateLimitError } = await supabase
       .rpc('check_rate_limit', {
         _user_id: user.id,
@@ -76,9 +79,23 @@ serve(async (req) => {
 
     console.log('Creating Didit session for user:', user.id);
 
-    const { callback_url } = await req.json();
+    const rawBody = await req.json();
     
-    // Create Didit verification session using correct API format
+    // Validate input
+    const parseResult = DiditSessionInputSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      console.warn('Invalid input:', parseResult.error.errors);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid input parameters',
+        details: parseResult.error.errors 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const { callback_url } = parseResult.data;
+    
     const diditResponse = await fetch('https://verification.didit.me/v2/session/', {
       method: 'POST',
       headers: {
@@ -88,7 +105,7 @@ serve(async (req) => {
       body: JSON.stringify({
         workflow_id: DIDIT_WORKFLOW_ID,
         callback: callback_url || `https://huigwbyctzjictnaycjj.supabase.co/functions/v1/didit-webhook`,
-        vendor_data: user.id, // Store user ID to link back
+        vendor_data: user.id,
       }),
     });
 
@@ -101,7 +118,6 @@ serve(async (req) => {
     const sessionData = await diditResponse.json();
     console.log('Didit session created:', sessionData.session_id);
 
-    // Store session ID in user's profile
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ didit_session_id: sessionData.session_id })
