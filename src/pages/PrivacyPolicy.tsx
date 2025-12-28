@@ -99,7 +99,7 @@ const PrivacyPolicy: React.FC = () => {
               <li><strong>Right to Withdraw Consent:</strong> Withdraw consent at any time</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-3">
-              To exercise these rights, contact us at <span className="text-primary">privacy@laten.app</span>
+              To exercise these rights, contact us at <a href="mailto:privacy@latenapp.com" className="text-primary hover:underline">privacy@latenapp.com</a>
             </p>
           </section>
 
@@ -158,8 +158,8 @@ const PrivacyPolicy: React.FC = () => {
               If you have questions about this Privacy Policy or wish to exercise your rights, contact us:
             </p>
             <div className="glass-card p-4">
-              <p className="text-sm"><strong>Email:</strong> <span className="text-primary">privacy@laten.app</span></p>
-              <p className="text-sm mt-2"><strong>Data Protection Officer:</strong> <span className="text-primary">dpo@laten.app</span></p>
+              <p className="text-sm"><strong>Email:</strong> <a href="mailto:privacy@latenapp.com" className="text-primary hover:underline">privacy@latenapp.com</a></p>
+              <p className="text-sm mt-2"><strong>Data Protection Officer:</strong> <a href="mailto:dpo@latenapp.com" className="text-primary hover:underline">dpo@latenapp.com</a></p>
               <p className="text-sm mt-2"><strong>Supervisory Authority:</strong> You have the right to lodge a complaint with the Hungarian National Authority for Data Protection and Freedom of Information (NAIH) or your local supervisory authority.</p>
             </div>
           </section>
