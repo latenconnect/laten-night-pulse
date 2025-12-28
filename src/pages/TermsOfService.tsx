@@ -199,8 +199,8 @@ const TermsOfService: React.FC = () => {
               For questions about these Terms, contact us:
             </p>
             <div className="glass-card p-4">
-              <p className="text-sm"><strong>Email:</strong> <span className="text-primary">legal@laten.app</span></p>
-              <p className="text-sm mt-2"><strong>Support:</strong> <span className="text-primary">support@laten.app</span></p>
+              <p className="text-sm"><strong>Email:</strong> <a href="mailto:legal@latenapp.com" className="text-primary hover:underline">legal@latenapp.com</a></p>
+              <p className="text-sm mt-2"><strong>Support:</strong> <a href="mailto:latenconnect@latenapp.com" className="text-primary hover:underline">latenconnect@latenapp.com</a></p>
             </div>
           </section>
 
