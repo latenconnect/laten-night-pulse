@@ -316,10 +316,8 @@ export type Database = {
       club_claims: {
         Row: {
           admin_notes: string | null
-          business_email: string
           business_email_encrypted: string | null
           business_name: string
-          business_phone: string | null
           business_phone_encrypted: string | null
           club_id: string
           created_at: string | null
@@ -332,10 +330,8 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
-          business_email: string
           business_email_encrypted?: string | null
           business_name: string
-          business_phone?: string | null
           business_phone_encrypted?: string | null
           club_id: string
           created_at?: string | null
@@ -348,10 +344,8 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
-          business_email?: string
           business_email_encrypted?: string | null
           business_name?: string
-          business_phone?: string | null
           business_phone_encrypted?: string | null
           club_id?: string
           created_at?: string | null
@@ -918,6 +912,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_analytics_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
         ]
       }
       event_answers: {
@@ -1006,6 +1007,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_boosts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
         ]
       }
       event_cohosts: {
@@ -1039,6 +1047,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_cohosts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
             referencedColumns: ["id"]
           },
           {
@@ -1090,6 +1105,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_messages_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
         ]
       }
       event_questions: {
@@ -1122,6 +1144,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_questions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
         ]
       }
       event_rsvps: {
@@ -1152,6 +1181,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
             referencedColumns: ["id"]
           },
         ]
@@ -1202,6 +1238,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_tickets_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
             referencedColumns: ["id"]
           },
         ]
@@ -1821,6 +1864,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "reports_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
         ]
       }
       saved_events: {
@@ -1850,6 +1900,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "saved_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
         ]
       }
       stories: {
@@ -1863,6 +1920,7 @@ export type Database = {
           text_position: string | null
           user_id: string
           view_count: number | null
+          visibility: string
         }
         Insert: {
           created_at?: string
@@ -1874,6 +1932,7 @@ export type Database = {
           text_position?: string | null
           user_id: string
           view_count?: number | null
+          visibility?: string
         }
         Update: {
           created_at?: string
@@ -1885,6 +1944,7 @@ export type Database = {
           text_position?: string | null
           user_id?: string
           view_count?: number | null
+          visibility?: string
         }
         Relationships: []
       }
@@ -2064,6 +2124,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_interactions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_preferences: {
@@ -2181,6 +2248,108 @@ export type Database = {
       }
     }
     Views: {
+      events_with_privacy: {
+        Row: {
+          actual_rsvp: number | null
+          age_limit: number | null
+          city: string | null
+          country: string | null
+          cover_image: string | null
+          created_at: string | null
+          description: string | null
+          end_time: string | null
+          expected_attendance: number | null
+          host_id: string | null
+          id: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          location_address: string | null
+          location_hidden: boolean | null
+          location_lat: number | null
+          location_lng: number | null
+          location_name: string | null
+          max_attendees: number | null
+          name: string | null
+          photos: string[] | null
+          price: number | null
+          safety_rules: string | null
+          start_time: string | null
+          type: Database["public"]["Enums"]["event_type"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_rsvp?: number | null
+          age_limit?: number | null
+          city?: string | null
+          country?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_time?: string | null
+          expected_attendance?: number | null
+          host_id?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          location_address?: never
+          location_hidden?: never
+          location_lat?: never
+          location_lng?: never
+          location_name?: never
+          max_attendees?: number | null
+          name?: string | null
+          photos?: string[] | null
+          price?: number | null
+          safety_rules?: string | null
+          start_time?: string | null
+          type?: Database["public"]["Enums"]["event_type"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_rsvp?: number | null
+          age_limit?: number | null
+          city?: string | null
+          country?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_time?: string | null
+          expected_attendance?: number | null
+          host_id?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          location_address?: never
+          location_hidden?: never
+          location_lat?: never
+          location_lng?: never
+          location_name?: never
+          max_attendees?: number | null
+          name?: string | null
+          photos?: string[] | null
+          price?: number | null
+          safety_rules?: string | null
+          start_time?: string | null
+          type?: Database["public"]["Enums"]["event_type"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "hosts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "public_host_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_host_info: {
         Row: {
           created_at: string | null
@@ -2219,6 +2388,14 @@ export type Database = {
       }
     }
     Functions: {
+      can_view_event_location: {
+        Args: { event_row: Database["public"]["Tables"]["events"]["Row"] }
+        Returns: boolean
+      }
+      can_view_story: {
+        Args: { story_user_id: string; story_visibility: string }
+        Returns: boolean
+      }
       check_rate_limit: {
         Args: {
           _action: string
