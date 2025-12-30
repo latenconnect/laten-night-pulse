@@ -39,7 +39,6 @@ const SubscriptionSuccess = () => {
           queryClient.invalidateQueries({ queryKey: ['my-bartender-subscription'] }),
           queryClient.invalidateQueries({ queryKey: ['professional-subscription'] }),
           queryClient.invalidateQueries({ queryKey: ['my-professional-subscription'] }),
-          queryClient.invalidateQueries({ queryKey: ['venue-subscription'] }),
           queryClient.invalidateQueries({ queryKey: ['host-subscription'] }),
           queryClient.invalidateQueries({ queryKey: ['djs'] }),
           queryClient.invalidateQueries({ queryKey: ['bartenders'] }),
