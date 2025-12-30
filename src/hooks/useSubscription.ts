@@ -4,9 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
-export type SubscriptionType = 'dj' | 'bartender' | 'professional' | 'venue_basic' | 'venue_boost' | 'party_boost';
+export type SubscriptionType = 'dj' | 'bartender' | 'professional' | 'party_boost';
 export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'trial' | 'inactive';
-export type SubscriptionTier = 'standard' | 'premium' | 'boost' | 'basic';
+export type SubscriptionTier = 'standard' | 'premium' | 'boost';
 
 export interface SubscriptionConfig {
   type: SubscriptionType;
@@ -32,14 +32,6 @@ export const STRIPE_PRODUCTS = {
   professional: {
     productId: 'prod_Tdnyd3McApSwtc',
     priceId: 'price_1SgWN00pDoPM38rzSkYpOsR4',
-  },
-  venue_basic: {
-    productId: 'prod_Tdo0A4hfXONheD',
-    priceId: 'price_1SgWOB0pDoPM38rzAEFGra0c',
-  },
-  venue_boost: {
-    productId: 'prod_Tdo1e3kiPtTebJ',
-    priceId: 'price_1SgWPf0pDoPM38rzwbsmt8de',
   },
   party_boost: {
     productId: 'prod_Te7JXXsqH06QCu',
@@ -96,39 +88,6 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
     ],
     stripePriceId: STRIPE_PRODUCTS.professional.priceId,
     stripeProductId: STRIPE_PRODUCTS.professional.productId,
-  },
-  venue_basic: {
-    type: 'venue_basic',
-    tier: 'basic',
-    priceInCents: 5000, // €50
-    currency: 'EUR',
-    interval: 'month',
-    features: [
-      'Claim venue listing',
-      'Create & manage events',
-      'Basic analytics dashboard',
-      'Respond to reviews',
-      'Upload venue photos',
-    ],
-    stripePriceId: STRIPE_PRODUCTS.venue_basic.priceId,
-    stripeProductId: STRIPE_PRODUCTS.venue_basic.productId,
-  },
-  venue_boost: {
-    type: 'venue_boost',
-    tier: 'boost',
-    priceInCents: 6500, // €65
-    currency: 'EUR',
-    interval: 'month',
-    features: [
-      'All Basic features',
-      'Priority search ranking',
-      'Featured venue badge',
-      'Advanced analytics',
-      'Push notifications to followers',
-      'Premium support',
-    ],
-    stripePriceId: STRIPE_PRODUCTS.venue_boost.priceId,
-    stripeProductId: STRIPE_PRODUCTS.venue_boost.productId,
   },
   party_boost: {
     type: 'party_boost',
@@ -331,14 +290,6 @@ export const useSubscription = (): UseSubscriptionReturn => {
           .from('professional_subscriptions')
           .select('status, expires_at')
           .eq('professional_id', profileId)
-          .maybeSingle();
-        if (result.error) throw result.error;
-        data = result.data;
-      } else if (type === 'venue_basic' || type === 'venue_boost') {
-        const result = await supabase
-          .from('venue_subscriptions')
-          .select('status, expires_at')
-          .eq('club_id', profileId)
           .maybeSingle();
         if (result.error) throw result.error;
         data = result.data;
