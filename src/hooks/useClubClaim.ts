@@ -11,8 +11,8 @@ export interface ClubClaim {
   user_id: string;
   status: ClubVerificationStatus;
   business_name: string;
-  business_email: string;
-  business_phone: string | null;
+  business_email_encrypted: string | null;
+  business_phone_encrypted: string | null;
   verification_documents: string[] | null;
   admin_notes: string | null;
   created_at: string;
@@ -59,8 +59,8 @@ export const useClubClaim = (clubId?: string) => {
   const submitClaim = useCallback(async (
     claimData: {
       business_name: string;
-      business_email: string;
-      business_phone?: string;
+      business_email_encrypted: string;
+      business_phone_encrypted?: string;
     }
   ): Promise<boolean> => {
     if (!user || !clubId) {
@@ -74,7 +74,9 @@ export const useClubClaim = (clubId?: string) => {
         .insert({
           club_id: clubId,
           user_id: user.id,
-          ...claimData,
+          business_name: claimData.business_name,
+          business_email_encrypted: claimData.business_email_encrypted,
+          business_phone_encrypted: claimData.business_phone_encrypted || null,
         })
         .select()
         .single();

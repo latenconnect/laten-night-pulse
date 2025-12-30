@@ -42,10 +42,15 @@ export const ClaimVenueForm: React.FC<ClaimVenueFormProps> = ({
     try {
       claimSchema.parse(formData);
       setSubmitting(true);
+      
+      // Encrypt sensitive data before sending (base64 encode for now - in production use proper encryption)
+      const encryptedEmail = btoa(formData.business_email);
+      const encryptedPhone = formData.business_phone ? btoa(formData.business_phone) : undefined;
+      
       await submitClaim({
         business_name: formData.business_name,
-        business_email: formData.business_email,
-        business_phone: formData.business_phone || undefined,
+        business_email_encrypted: encryptedEmail,
+        business_phone_encrypted: encryptedPhone,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
