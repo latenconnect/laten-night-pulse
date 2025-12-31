@@ -2445,9 +2445,10 @@ export type Database = {
         Args: { p_event_id: string; p_field: string }
         Returns: undefined
       }
+      is_dev_user: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "dev"
       boost_status: "pending" | "active" | "completed" | "cancelled"
       club_verification_status: "pending" | "verified" | "rejected"
       event_type: "club" | "house_party" | "university" | "festival" | "public"
@@ -2583,7 +2584,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "dev"],
       boost_status: ["pending", "active", "completed", "cancelled"],
       club_verification_status: ["pending", "verified", "rejected"],
       event_type: ["club", "house_party", "university", "festival", "public"],
