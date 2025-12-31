@@ -54,6 +54,12 @@ export const useAgeVerification = () => {
     if (!user) return false;
 
     try {
+      // Check if user is a dev (bypasses age verification)
+      const { data: isDevData } = await supabase.rpc('is_dev_user', { _user_id: user.id });
+      if (isDevData === true) {
+        return true;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('age_verified, age_verified_at')

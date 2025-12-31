@@ -48,6 +48,15 @@ const CreateEvent: React.FC = () => {
         setCheckingAge(false);
         return;
       }
+      
+      // Check if user is a dev (bypasses age verification)
+      const { data: isDevData } = await supabase.rpc('is_dev_user', { _user_id: user.id });
+      if (isDevData === true) {
+        setIsAgeVerified(true);
+        setCheckingAge(false);
+        return;
+      }
+      
       const { data } = await supabase
         .from('profiles')
         .select('age_verified')
