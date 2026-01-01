@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { eventMessageSchema, validateInput } from '@/lib/validations';
 
 export interface EventMessage {
   id: string;
@@ -90,7 +91,13 @@ export const useEventChat = (eventId: string) => {
       return false;
     }
 
-    if (!message.trim()) return false;
+    // Validate message content
+    const validation = validateInput(eventMessageSchema, message);
+    if (!validation.success) {
+      const errorMessage = 'errors' in validation ? validation.errors[0] : 'Invalid message';
+      toast.error(errorMessage);
+      return false;
+    }
 
     try {
       const { error } = await supabase
@@ -98,7 +105,7 @@ export const useEventChat = (eventId: string) => {
         .insert({
           event_id: eventId,
           user_id: user.id,
-          message: message.trim(),
+          message: validation.data,
           is_host_message: isHostMessage
         });
 

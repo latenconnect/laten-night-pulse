@@ -126,6 +126,26 @@ export const createReportSchema = z.object({
 });
 
 // ============================================
+// CHAT & MESSAGE VALIDATION SCHEMAS
+// ============================================
+
+export const eventMessageSchema = z
+  .string()
+  .trim()
+  .min(1, 'Message cannot be empty')
+  .max(1000, 'Message must be less than 1000 characters')
+  .refine(
+    (val) => !/(.)\1{20,}/.test(val),
+    'Message contains too many repeated characters'
+  );
+
+export const directMessageSchema = z
+  .string()
+  .trim()
+  .min(1, 'Message cannot be empty')
+  .max(5000, 'Message must be less than 5000 characters');
+
+// ============================================
 // SEARCH & FILTER VALIDATION
 // ============================================
 
