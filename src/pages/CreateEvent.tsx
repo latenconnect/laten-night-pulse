@@ -13,6 +13,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { CohostManager } from '@/components/CohostManager';
 import { toast } from 'sonner';
 import { useAgeVerification } from '@/hooks/useAgeVerification';
+import { useHostSubscription } from '@/hooks/useHostSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { ShieldAlert, Loader2 } from 'lucide-react';
 
@@ -22,6 +23,7 @@ const CreateEvent: React.FC = () => {
   const { selectedCity } = useApp();
   const { t } = useLanguage();
   const { host, applyAsHost, isVerifiedHost, isPendingHost, loading: hostLoading } = useHost();
+  const { isSubscribed: hasPartyBoost } = useHostSubscription(host?.id);
   const { createEvent, canCreateEvent } = useCreateEvent();
   const { startVerification, loading: verificationLoading } = useAgeVerification();
   const [isAgeVerified, setIsAgeVerified] = useState(false);
@@ -105,6 +107,24 @@ const CreateEvent: React.FC = () => {
     setSubmitting(false);
 
     if (event) {
+      // Send boost notification if host has Party Boost subscription
+      if (hasPartyBoost && host) {
+        try {
+          await supabase.functions.invoke('send-boost-notification', {
+            body: {
+              eventId: event.id,
+              eventName: formData.name,
+              eventCity: formData.city,
+              hostName: user?.email?.split('@')[0] || 'Host',
+              startTime: startTime,
+            },
+          });
+          toast.success('🚀 Boost notification sent to nearby users!');
+        } catch (err) {
+          console.error('Failed to send boost notification:', err);
+        }
+      }
+      
       navigate(`/event/${event.id}`);
     }
   };
