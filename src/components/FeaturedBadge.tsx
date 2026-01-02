@@ -1,9 +1,9 @@
 import React from 'react';
-import { Star, Sparkles, Crown } from 'lucide-react';
+import { Star, Sparkles, Crown, Rocket } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FeaturedBadgeProps {
-  variant?: 'default' | 'premium' | 'sponsored';
+  variant?: 'default' | 'premium' | 'sponsored' | 'boosted';
   size?: 'sm' | 'md';
   className?: string;
 }
@@ -29,6 +29,11 @@ const FeaturedBadge: React.FC<FeaturedBadgeProps> = ({
       text: 'Promoted',
       icon: Sparkles,
     },
+    boosted: {
+      bg: 'bg-gradient-to-r from-pink-500 to-purple-600 backdrop-blur-sm',
+      text: 'Boosted',
+      icon: Rocket,
+    },
   };
 
   const sizes = {
@@ -40,7 +45,7 @@ const FeaturedBadge: React.FC<FeaturedBadgeProps> = ({
 
   return (
     <div className={cn(
-      'flex items-center gap-1 rounded-full font-semibold',
+      'flex items-center gap-1 rounded-full font-semibold text-white',
       bg,
       sizes[size],
       className
