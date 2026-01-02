@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   ArrowLeft, Share2, Heart, MapPin, Clock, Users, Ticket, 
-  Shield, Info, Calendar, Navigation, Flag, AlertTriangle
+  Shield, Info, Calendar, Navigation, Flag, AlertTriangle,
+  Rocket, BarChart3, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getEventById } from '@/data/mockEvents';
@@ -13,13 +14,19 @@ import { useHaptics } from '@/hooks/useHaptics';
 import { usePersonalization } from '@/hooks/usePersonalization';
 import { useAgeVerification } from '@/hooks/useAgeVerification';
 import { useLanguage } from '@/context/LanguageContext';
+import { useHost } from '@/hooks/useHost';
+import { useHostSubscription } from '@/hooks/useHostSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { EventQA } from '@/components/EventQA';
 import { EventChat } from '@/components/EventChat';
+import { EventAnalyticsDashboard } from '@/components/host/EventAnalyticsDashboard';
+import { SocialShareTemplates } from '@/components/host/SocialShareTemplates';
 import { EVENT_TYPES } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -55,9 +62,15 @@ const EventDetails: React.FC = () => {
   const [liabilityAcknowledged, setLiabilityAcknowledged] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState<boolean | null>(null);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
+  const [hostToolsOpen, setHostToolsOpen] = useState(false);
 
   // For now, use mock data - will be replaced with real DB query
   const event = getEventById(id || '');
+  
+  // Check if current user is the event host
+  const { host } = useHost();
+  const { isSubscribed: hasPartyBoost } = useHostSubscription(host?.id);
+  const isEventHost = event && host && event.hostId === host.id;
 
   useEffect(() => {
     if (id) {
@@ -357,6 +370,80 @@ const EventDetails: React.FC = () => {
         <div className="mb-6">
           <EventChat eventId={event.id} hostUserId={event.hostId} />
         </div>
+
+        {/* Host Tools Section - Only visible to event host with Party Boost */}
+        {isEventHost && hasPartyBoost && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <div 
+              className="glass-card p-4 cursor-pointer"
+              onClick={() => setHostToolsOpen(!hostToolsOpen)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
+                    <Rocket className="w-5 h-5 text-pink-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold flex items-center gap-2">
+                      Host Tools
+                      <Badge className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 text-xs border-0">
+                        Party Boost
+                      </Badge>
+                    </h3>
+                    <p className="text-xs text-muted-foreground">Analytics & share templates</p>
+                  </div>
+                </div>
+                <motion.div
+                  animate={{ rotate: hostToolsOpen ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ArrowLeft className="w-5 h-5 text-muted-foreground rotate-[-90deg]" />
+                </motion.div>
+              </div>
+            </div>
+            
+            {hostToolsOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-4"
+              >
+                <Tabs defaultValue="analytics" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="analytics" className="gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      Analytics
+                    </TabsTrigger>
+                    <TabsTrigger value="share" className="gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      Share
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="analytics">
+                    <EventAnalyticsDashboard eventId={event.id} />
+                  </TabsContent>
+                  <TabsContent value="share">
+                    <SocialShareTemplates 
+                      event={{
+                        id: event.id,
+                        name: event.name,
+                        startTime: event.startTime,
+                        location: event.location,
+                        price: event.price,
+                        type: event.type,
+                      }}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
 
         {/* Age Verification Dialog */}
         <Dialog open={verifyDialogOpen} onOpenChange={setVerifyDialogOpen}>
