@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Clock, Users, Ticket, Star } from 'lucide-react';
+import { MapPin, Clock, Users, Ticket, Star, Rocket } from 'lucide-react';
 import { Event, EVENT_TYPES } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import FeaturedBadge from './FeaturedBadge';
 
 interface EventCardProps {
-  event: Event;
+  event: Event & { hostHasBoost?: boolean };
   variant?: 'default' | 'compact' | 'featured';
   onClick?: () => void;
 }
@@ -54,10 +55,13 @@ const EventCard: React.FC<EventCardProps> = ({ event, variant = 'default', onCli
         <img src={event.coverImage} alt={event.name} className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
         
-        {event.isFeatured && (
-          <div className="absolute top-4 left-4 flex items-center gap-1 px-3 py-1 rounded-full bg-primary/90 backdrop-blur-sm">
-            <Star className="w-3 h-3 fill-current" />
-            <span className="text-xs font-semibold">Featured</span>
+        {/* Show Boosted badge for Party Boost subscribers, otherwise Featured */}
+        {(event.hostHasBoost || event.isFeatured) && (
+          <div className="absolute top-4 left-4">
+            <FeaturedBadge 
+              variant={event.hostHasBoost ? 'boosted' : 'default'} 
+              size="sm" 
+            />
           </div>
         )}
 
@@ -103,10 +107,17 @@ const EventCard: React.FC<EventCardProps> = ({ event, variant = 'default', onCli
         <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
         
         <div className="absolute top-3 left-3 flex items-center gap-2">
-          <span className="text-lg">{eventType?.icon}</span>
-          <span className="text-xs bg-card/80 backdrop-blur-sm px-2 py-1 rounded-full">
-            {eventType?.label}
-          </span>
+          {/* Show Boosted badge for Party Boost subscribers */}
+          {event.hostHasBoost ? (
+            <FeaturedBadge variant="boosted" size="sm" />
+          ) : (
+            <>
+              <span className="text-lg">{eventType?.icon}</span>
+              <span className="text-xs bg-card/80 backdrop-blur-sm px-2 py-1 rounded-full">
+                {eventType?.label}
+              </span>
+            </>
+          )}
         </div>
 
         <div className="absolute top-3 right-3">
