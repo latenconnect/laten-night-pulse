@@ -32,3 +32,9 @@ verify_jwt = true
 
 [functions.generate-club-profiles]
 verify_jwt = false
+
+[functions.proxy-image]
+verify_jwt = false
+
+[functions.send-boost-notification]
+verify_jwt = true
