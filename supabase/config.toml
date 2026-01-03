@@ -36,5 +36,8 @@ verify_jwt = false
 [functions.proxy-image]
 verify_jwt = false
 
+[functions.get-club-photo]
+verify_jwt = false
+
 [functions.send-boost-notification]
 verify_jwt = true
