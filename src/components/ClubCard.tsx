@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, Star, ChevronRight, DollarSign, Music, Wine, Beer, Sparkles, GlassWater } from 'lucide-react';
+import { MapPin, Star, ChevronRight, DollarSign, Music, Wine, Beer, Sparkles, GlassWater, ImageOff } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ interface ClubCardProps {
 
 const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
   
   const handleClick = () => {
     navigate(`/club/${club.id}`);
@@ -54,15 +55,16 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
       >
         {/* Photo */}
         <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-          {club.photos?.[0] ? (
+          {club.photos?.[0] && !imageError ? (
             <img
               src={club.photos[0]}
               alt={club.name}
               className="w-full h-full object-cover"
+              onError={() => setImageError(true)}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-muted-foreground" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
+              <ImageOff className="w-6 h-6 text-muted-foreground" />
             </div>
           )}
         </div>
@@ -108,15 +110,16 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
     >
       {/* Photo */}
       <div className="relative h-36 bg-muted">
-        {club.photos?.[0] ? (
+        {club.photos?.[0] && !imageError ? (
           <img
             src={club.photos[0]}
             alt={club.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
-            <MapPin className="w-10 h-10 text-muted-foreground" />
+            <ImageOff className="w-10 h-10 text-muted-foreground" />
           </div>
         )}
         
