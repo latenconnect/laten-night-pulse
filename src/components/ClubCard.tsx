@@ -29,15 +29,9 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
     navigate(`/club/${club.id}`);
   };
 
-  // Proxy Google Places API images through our edge function to avoid CORS/referrer issues
-  const getProxiedImageUrl = (url: string) => {
-    if (url.includes('places.googleapis.com')) {
-      return `https://huigwbyctzjictnaycjj.supabase.co/functions/v1/proxy-image?url=${encodeURIComponent(url)}`;
-    }
-    return url;
-  };
-
-  const imageUrl = club.photos?.[0] ? getProxiedImageUrl(club.photos[0]) : null;
+  // Use edge function to get fresh photos from Google Places API
+  // The stored photo URLs expire, so we fetch fresh ones on-demand
+  const imageUrl = `https://huigwbyctzjictnaycjj.supabase.co/functions/v1/get-club-photo?clubId=${club.id}&index=0`;
 
   const venueConfig = club.venue_type ? VENUE_TYPE_CONFIG[club.venue_type] || VENUE_TYPE_CONFIG.bar : VENUE_TYPE_CONFIG.bar;
   const VenueIcon = venueConfig.icon;
