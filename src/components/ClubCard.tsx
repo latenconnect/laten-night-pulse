@@ -29,6 +29,16 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
     navigate(`/club/${club.id}`);
   };
 
+  // Proxy Google Places API images through our edge function to avoid CORS/referrer issues
+  const getProxiedImageUrl = (url: string) => {
+    if (url.includes('places.googleapis.com')) {
+      return `https://huigwbyctzjictnaycjj.supabase.co/functions/v1/proxy-image?url=${encodeURIComponent(url)}`;
+    }
+    return url;
+  };
+
+  const imageUrl = club.photos?.[0] ? getProxiedImageUrl(club.photos[0]) : null;
+
   const venueConfig = club.venue_type ? VENUE_TYPE_CONFIG[club.venue_type] || VENUE_TYPE_CONFIG.bar : VENUE_TYPE_CONFIG.bar;
   const VenueIcon = venueConfig.icon;
 
@@ -55,9 +65,9 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
       >
         {/* Photo */}
         <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-          {club.photos?.[0] && !imageError ? (
+          {imageUrl && !imageError ? (
             <img
-              src={club.photos[0]}
+              src={imageUrl}
               alt={club.name}
               className="w-full h-full object-cover"
               onError={() => setImageError(true)}
@@ -110,9 +120,9 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
     >
       {/* Photo */}
       <div className="relative h-36 bg-muted">
-        {club.photos?.[0] && !imageError ? (
+        {imageUrl && !imageError ? (
           <img
-            src={club.photos[0]}
+            src={imageUrl}
             alt={club.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={() => setImageError(true)}
