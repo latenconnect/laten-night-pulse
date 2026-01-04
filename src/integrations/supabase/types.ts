@@ -1604,9 +1604,11 @@ export type Database = {
           created_by: string
           description: string | null
           event_id: string | null
+          genres: string[] | null
           id: string
           is_active: boolean | null
           name: string
+          preferred_venue_id: string | null
           updated_at: string
         }
         Insert: {
@@ -1615,9 +1617,11 @@ export type Database = {
           created_by: string
           description?: string | null
           event_id?: string | null
+          genres?: string[] | null
           id?: string
           is_active?: boolean | null
           name: string
+          preferred_venue_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -1626,9 +1630,11 @@ export type Database = {
           created_by?: string
           description?: string | null
           event_id?: string | null
+          genres?: string[] | null
           id?: string
           is_active?: boolean | null
           name?: string
+          preferred_venue_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1644,6 +1650,20 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_groups_preferred_venue_id_fkey"
+            columns: ["preferred_venue_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_groups_preferred_venue_id_fkey"
+            columns: ["preferred_venue_id"]
+            isOneToOne: false
+            referencedRelation: "public_clubs"
             referencedColumns: ["id"]
           },
         ]
