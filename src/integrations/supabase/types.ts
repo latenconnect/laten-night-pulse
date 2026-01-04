@@ -311,6 +311,13 @@ export type Database = {
             referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "club_analytics_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "public_clubs"
+            referencedColumns: ["id"]
+          },
         ]
       }
       club_claims: {
@@ -362,6 +369,13 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_claims_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "public_clubs"
             referencedColumns: ["id"]
           },
         ]
@@ -1388,6 +1402,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "friend_activity_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "public_clubs"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "friend_activity_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -2322,6 +2343,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "user_interactions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "public_clubs"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_interactions_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -2514,6 +2542,13 @@ export type Database = {
             referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "venue_subscriptions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: true
+            referencedRelation: "public_clubs"
+            referencedColumns: ["id"]
+          },
         ]
       }
       weekly_recaps: {
@@ -2565,6 +2600,13 @@ export type Database = {
             columns: ["top_venue_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_recaps_top_venue_id_fkey"
+            columns: ["top_venue_id"]
+            isOneToOne: false
+            referencedRelation: "public_clubs"
             referencedColumns: ["id"]
           },
         ]
@@ -2672,6 +2714,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      public_clubs: {
+        Row: {
+          address: string | null
+          business_status: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          crowd_info: Json | null
+          description: string | null
+          google_maps_uri: string | null
+          google_place_id: string | null
+          highlights: string[] | null
+          id: string | null
+          is_featured: boolean | null
+          last_updated: string | null
+          latitude: number | null
+          longitude: number | null
+          music_genres: string[] | null
+          name: string | null
+          opening_hours: Json | null
+          photos: string[] | null
+          price_level: number | null
+          rating: number | null
+          services: string[] | null
+          venue_type: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_status?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          crowd_info?: Json | null
+          description?: string | null
+          google_maps_uri?: string | null
+          google_place_id?: string | null
+          highlights?: string[] | null
+          id?: string | null
+          is_featured?: boolean | null
+          last_updated?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          music_genres?: string[] | null
+          name?: string | null
+          opening_hours?: Json | null
+          photos?: string[] | null
+          price_level?: number | null
+          rating?: number | null
+          services?: string[] | null
+          venue_type?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_status?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          crowd_info?: Json | null
+          description?: string | null
+          google_maps_uri?: string | null
+          google_place_id?: string | null
+          highlights?: string[] | null
+          id?: string | null
+          is_featured?: boolean | null
+          last_updated?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          music_genres?: string[] | null
+          name?: string | null
+          opening_hours?: Json | null
+          photos?: string[] | null
+          price_level?: number | null
+          rating?: number | null
+          services?: string[] | null
+          venue_type?: string | null
+        }
+        Relationships: []
       }
       public_host_info: {
         Row: {
