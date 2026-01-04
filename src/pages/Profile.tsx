@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   Settings, ChevronRight, Calendar, Heart, MapPin, 
   Bell, Shield, LogOut, Sparkles, User as UserIcon, LayoutDashboard, 
-  BadgeCheck, ShieldCheck, Loader2, Globe, Trash2, AlertTriangle
+  BadgeCheck, ShieldCheck, Loader2, Globe, Trash2, AlertTriangle,
+  Camera, Pencil, X, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +22,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import HostApplicationCard from '@/components/HostApplicationCard';
 import PartyBoostCard from '@/components/PartyBoostCard';
@@ -28,10 +40,12 @@ import { useLanguage } from '@/context/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAgeVerification } from '@/hooks/useAgeVerification';
+
 interface Profile {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
+  bio: string | null;
   city: string | null;
   age_verified: boolean | null;
 }
@@ -47,6 +61,15 @@ const Profile: React.FC = () => {
   const { startVerification, loading: verificationLoading } = useAgeVerification();
 
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  
+  // Edit form state
+  const [editName, setEditName] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check admin role server-side
   useEffect(() => {
@@ -77,14 +100,121 @@ const Profile: React.FC = () => {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, avatar_url, city, age_verified')
+      .select('id, display_name, avatar_url, bio, city, age_verified')
       .eq('id', user.id)
       .single();
     
     if (!error && data) {
       setProfile(data);
+      setEditName(data.display_name || '');
+      setEditBio(data.bio || '');
+      setEditCity(data.city || '');
     }
     setLoading(false);
+  };
+
+  const handleOpenEditSheet = () => {
+    if (profile) {
+      setEditName(profile.display_name || '');
+      setEditBio(profile.bio || '');
+      setEditCity(profile.city || '');
+    }
+    setEditSheetOpen(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          display_name: editName.trim() || null,
+          bio: editBio.trim() || null,
+          city: editCity.trim() || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setProfile(prev => prev ? {
+        ...prev,
+        display_name: editName.trim() || null,
+        bio: editBio.trim() || null,
+        city: editCity.trim() || null
+      } : null);
+      
+      toast.success('Profile updated!');
+      setEditSheetOpen(false);
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile with new avatar URL (add timestamp to bust cache)
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : null);
+      toast.success('Profile picture updated!');
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingAvatar(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleVerifyAge = async () => {
@@ -138,6 +268,15 @@ const Profile: React.FC = () => {
 
   return (
     <MobileLayout>
+      {/* Hidden file input for avatar upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleAvatarUpload}
+      />
+
       {/* Header */}
       <header className="relative">
         {/* Background Gradient */}
@@ -151,17 +290,30 @@ const Profile: React.FC = () => {
             className="glass-card p-6"
           >
             <div className="flex items-start gap-4">
-              {/* Avatar */}
+              {/* Avatar with upload button */}
               <div className="relative">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-secondary p-0.5">
-                  <div className="w-full h-full rounded-2xl bg-card flex items-center justify-center overflow-hidden">
-                    {profile?.avatar_url ? (
-                      <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <UserIcon className="w-10 h-10 text-muted-foreground" />
-                    )}
+                <button
+                  onClick={handleAvatarClick}
+                  disabled={uploadingAvatar || !user}
+                  className="relative group"
+                >
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-secondary p-0.5">
+                    <div className="w-full h-full rounded-2xl bg-card flex items-center justify-center overflow-hidden">
+                      {uploadingAvatar ? (
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      ) : profile?.avatar_url ? (
+                        <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <UserIcon className="w-10 h-10 text-muted-foreground" />
+                      )}
+                    </div>
                   </div>
-                </div>
+                  {user && (
+                    <div className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Camera className="w-6 h-6 text-white" />
+                    </div>
+                  )}
+                </button>
                 {user && (
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-secondary flex items-center justify-center border-2 border-card">
                     <span className="text-xs">✓</span>
@@ -173,11 +325,26 @@ const Profile: React.FC = () => {
               <div className="flex-1">
                 {user ? (
                   <>
-                    <h1 className="font-display font-bold text-xl mb-1">
-                      {profile?.display_name || user.email?.split('@')[0]}
-                    </h1>
-                    <p className="text-sm text-muted-foreground mb-1">{user.email}</p>
-                    <p className="text-xs text-primary">{profile?.city || selectedCity}</p>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h1 className="font-display font-bold text-xl mb-1">
+                          {profile?.display_name || user.email?.split('@')[0]}
+                        </h1>
+                        <p className="text-sm text-muted-foreground mb-1">{user.email}</p>
+                        <p className="text-xs text-primary">{profile?.city || selectedCity}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleOpenEditSheet}
+                        className="shrink-0"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {profile?.bio && (
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{profile.bio}</p>
+                    )}
                   </>
                 ) : (
                   <>
@@ -209,6 +376,105 @@ const Profile: React.FC = () => {
           </motion.div>
         </div>
       </header>
+
+      {/* Edit Profile Sheet */}
+      <Sheet open={editSheetOpen} onOpenChange={setEditSheetOpen}>
+        <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
+          <SheetHeader className="text-left mb-6">
+            <SheetTitle className="text-xl font-display">Edit Profile</SheetTitle>
+            <SheetDescription>
+              Update your profile information
+            </SheetDescription>
+          </SheetHeader>
+          
+          <div className="space-y-6">
+            {/* Avatar section in edit sheet */}
+            <div className="flex flex-col items-center gap-3">
+              <button
+                onClick={handleAvatarClick}
+                disabled={uploadingAvatar}
+                className="relative group"
+              >
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary p-0.5">
+                  <div className="w-full h-full rounded-full bg-card flex items-center justify-center overflow-hidden">
+                    {uploadingAvatar ? (
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    ) : profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <UserIcon className="w-12 h-12 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+                <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-white" />
+                </div>
+              </button>
+              <p className="text-sm text-muted-foreground">Tap to change photo</p>
+            </div>
+
+            {/* Name field */}
+            <div className="space-y-2">
+              <Label htmlFor="display_name">Display Name</Label>
+              <Input
+                id="display_name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Your name"
+                maxLength={50}
+              />
+            </div>
+
+            {/* Bio field */}
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                value={editBio}
+                onChange={(e) => setEditBio(e.target.value)}
+                placeholder="Tell us about yourself..."
+                className="min-h-[100px] resize-none"
+                maxLength={300}
+              />
+              <p className="text-xs text-muted-foreground text-right">{editBio.length}/300</p>
+            </div>
+
+            {/* City field */}
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                value={editCity}
+                onChange={(e) => setEditCity(e.target.value)}
+                placeholder="Your city"
+                maxLength={100}
+              />
+            </div>
+
+            {/* Save button */}
+            <div className="pt-4">
+              <Button
+                variant="neon"
+                className="w-full"
+                onClick={handleSaveProfile}
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Interests */}
       <section className="px-4 mt-6">
