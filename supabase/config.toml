@@ -31,7 +31,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.generate-club-profiles]
-verify_jwt = false
+verify_jwt = true
 
 [functions.proxy-image]
 verify_jwt = false
@@ -43,7 +43,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.tonights-picks]
-verify_jwt = false
+verify_jwt = true
 
 [functions.weekly-recap]
-verify_jwt = false
+verify_jwt = true
