@@ -155,6 +155,48 @@ serve(async (req) => {
 
     console.log('Profile updated successfully. Age verified:', ageVerified);
 
+    // Auto-verify host if age verification passed
+    if (ageVerified) {
+      // Check if user has a pending host application
+      const { data: hostData } = await supabase
+        .from('hosts')
+        .select('id, verification_status')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (hostData && hostData.verification_status === 'pending') {
+        // Auto-approve the host since ID verification passed
+        const { error: hostError } = await supabase
+          .from('hosts')
+          .update({
+            verification_status: 'verified',
+            verified_at: new Date().toISOString(),
+          })
+          .eq('id', hostData.id);
+
+        if (hostError) {
+          console.error('Error auto-verifying host:', hostError);
+        } else {
+          console.log('Host auto-verified for user:', userId);
+        }
+      } else if (!hostData) {
+        // User doesn't have a host record yet - create one as verified
+        const { error: createHostError } = await supabase
+          .from('hosts')
+          .insert({
+            user_id: userId,
+            verification_status: 'verified',
+            verified_at: new Date().toISOString(),
+          });
+
+        if (createHostError) {
+          console.error('Error creating verified host:', createHostError);
+        } else {
+          console.log('Created verified host for user:', userId);
+        }
+      }
+    }
+
     return new Response(JSON.stringify({ 
       success: true,
       age_verified: ageVerified 
