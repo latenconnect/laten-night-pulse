@@ -1,11 +1,12 @@
 /**
  * End-to-End Encryption utilities using Web Crypto API
  * Uses ECDH for key exchange and AES-GCM for message encryption
- * Private keys are encrypted at rest using a session-derived key
+ * Private keys are encrypted at rest using a device-bound secret + random entropy
  */
 
 const STORAGE_KEY = 'laten_dm_private_key';
 const SALT_KEY = 'laten_dm_salt';
+const DEVICE_SECRET_KEY = 'laten_device_secret';
 
 // Convert ArrayBuffer to base64 string
 export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
@@ -27,12 +28,38 @@ export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
   return bytes.buffer;
 };
 
-// Derive an encryption key from user ID (used to encrypt private keys at rest)
+/**
+ * Get or create a device-bound secret
+ * This secret is randomly generated per device and stored in localStorage
+ * It provides entropy that an attacker cannot derive from user ID alone
+ */
+const getOrCreateDeviceSecret = (): string => {
+  let deviceSecret = localStorage.getItem(DEVICE_SECRET_KEY);
+  
+  if (!deviceSecret) {
+    // Generate a cryptographically random 256-bit secret
+    const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+    deviceSecret = arrayBufferToBase64(randomBytes.buffer);
+    localStorage.setItem(DEVICE_SECRET_KEY, deviceSecret);
+  }
+  
+  return deviceSecret;
+};
+
+/**
+ * Derive an encryption key using device secret + user ID + salt
+ * The device secret provides unpredictable entropy that cannot be derived
+ * from publicly known information (unlike user ID alone)
+ */
 const deriveStorageKey = async (userId: string, salt: Uint8Array): Promise<CryptoKey> => {
+  const deviceSecret = getOrCreateDeviceSecret();
   const encoder = new TextEncoder();
+  
+  // Combine device secret with user ID for key material
+  // Device secret is random 256 bits, providing proper entropy
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(userId),
+    encoder.encode(deviceSecret + userId),
     'PBKDF2',
     false,
     ['deriveKey']
@@ -133,11 +160,11 @@ export const storePrivateKey = async (userId: string, privateKey: string): Promi
     localStorage.setItem(storageKey, JSON.stringify({
       encrypted: encryptedKey,
       iv,
-      version: 2, // Version 2 = encrypted storage
+      version: 3, // Version 3 = device-secret encrypted storage
     }));
     localStorage.setItem(saltStorageKey, salt);
     
-    console.log('Private key stored securely (encrypted)');
+    console.log('Private key stored securely (device-bound encryption)');
   } catch (error) {
     console.error('Failed to store private key:', error);
     throw new Error('Failed to store encryption key');
@@ -155,11 +182,12 @@ export const getPrivateKey = async (userId: string): Promise<string | null> => {
     
     if (!storedData) return null;
     
-    // Check if it's the new encrypted format
+    // Check if it's the encrypted format
     try {
       const parsed = JSON.parse(storedData);
       
-      if (parsed.version === 2 && parsed.encrypted && parsed.iv && salt) {
+      // Version 2 or 3 = encrypted (3 uses device secret)
+      if ((parsed.version === 2 || parsed.version === 3) && parsed.encrypted && parsed.iv && salt) {
         // Decrypt the private key
         return await decryptPrivateKeyFromStorage(
           parsed.encrypted,
@@ -172,8 +200,7 @@ export const getPrivateKey = async (userId: string): Promise<string | null> => {
       // Fall through to legacy handling
     }
     
-    // Legacy: unencrypted key (migrate to encrypted on next store)
-    // This handles backward compatibility
+    // Legacy: unencrypted key (will be migrated on next store)
     return storedData;
   } catch (error) {
     console.error('Failed to retrieve private key:', error);
