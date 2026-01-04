@@ -29,6 +29,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import ClubCard from '@/components/ClubCard';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const ClubDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +39,12 @@ const ClubDetails: React.FC = () => {
   const { t } = useLanguage();
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [showFullscreen, setShowFullscreen] = useState(false);
+
+  // Generate fresh photo URL via edge function
+  const getClubPhotoUrl = (clubId: string, index: number) => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    return `${supabaseUrl}/functions/v1/get-club-photo?clubId=${clubId}&index=${index}`;
+  };
 
   const handleGetDirections = () => {
     if (club?.google_maps_uri) {
@@ -130,7 +137,7 @@ const ClubDetails: React.FC = () => {
           <>
             <motion.img
               key={activePhotoIndex}
-              src={photos[activePhotoIndex]}
+              src={getClubPhotoUrl(club.id, activePhotoIndex)}
               alt={`${club.name} photo ${activePhotoIndex + 1}`}
               className="w-full h-full object-cover cursor-pointer"
               initial={{ opacity: 0 }}
@@ -439,7 +446,7 @@ const ClubDetails: React.FC = () => {
                   )}
                 >
                   <img
-                    src={photo}
+                    src={getClubPhotoUrl(club.id, index)}
                     alt={`${club.name} ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
@@ -504,7 +511,7 @@ const ClubDetails: React.FC = () => {
             </button>
 
             <img
-              src={photos[activePhotoIndex]}
+              src={getClubPhotoUrl(club.id, activePhotoIndex)}
               alt={`${club.name} fullscreen`}
               className="max-w-full max-h-full object-contain"
               onClick={(e) => e.stopPropagation()}
