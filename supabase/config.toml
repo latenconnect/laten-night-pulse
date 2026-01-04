@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.tonights-picks]
 verify_jwt = false
+
+[functions.weekly-recap]
+verify_jwt = false

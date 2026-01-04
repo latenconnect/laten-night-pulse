@@ -23,6 +23,12 @@ export {
   AchievementUnlocked 
 } from './AttendanceStreak';
 
+// Streak display with real data
+export { default as StreakDisplay } from './StreakDisplay';
+
+// Weekly recap card
+export { default as WeeklyRecapCard } from './WeeklyRecapCard';
+
 // Live feed components
 export { 
   LiveFeedHeader, 

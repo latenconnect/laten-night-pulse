@@ -20,7 +20,7 @@ import FeaturedBadge from '@/components/FeaturedBadge';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import TonightsPicksSection from '@/components/TonightsPicksSection';
 import PartyGroupsSection from '@/components/PartyGroupsSection';
-import { LiveFeedHeader, SocialSignal } from '@/components/engagement';
+import { LiveFeedHeader, SocialSignal, StreakDisplay, WeeklyRecapCard } from '@/components/engagement';
 import { SocialActivityFeed, FriendsSuggestions } from '@/components/social';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useEvents, transformDbEvent } from '@/hooks/useEvents';
@@ -199,6 +199,10 @@ const Explore: React.FC = () => {
       <main className="px-4 py-6 space-y-8">
         {/* Tonight's Picks - Curated events for tonight */}
         <TonightsPicksSection />
+
+        {/* User Streaks & Weekly Recap */}
+        {user && <StreakDisplay />}
+        {user && <WeeklyRecapCard />}
 
         {/* Party Groups - Plan events with friends */}
         {user && <PartyGroupsSection />}
