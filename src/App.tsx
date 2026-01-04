@@ -45,6 +45,7 @@ import ProfessionalProfile from "./pages/ProfessionalProfile";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionCancelled from "./pages/SubscriptionCancelled";
+import GroupDetails from "./pages/GroupDetails";
 import { SearchContext } from "@/context/SearchContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 
@@ -85,6 +86,7 @@ const AppContent = () => {
         <Route path="/club/:id" element={<ClubDetails />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/friends" element={<Friends />} />
+        <Route path="/groups/:groupId" element={<GroupDetails />} />
         <Route path="/saved" element={<SavedEvents />} />
         <Route path="/create" element={<CreateEvent />} />
         {/* Professionals Marketplace routes */}

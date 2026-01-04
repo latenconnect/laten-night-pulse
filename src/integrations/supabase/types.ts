@@ -1450,6 +1450,131 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          friend_activity_enabled: boolean | null
+          id: string
+          tonights_picks_enabled: boolean | null
+          tonights_picks_time: string | null
+          updated_at: string
+          user_id: string
+          weekly_recap_enabled: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          friend_activity_enabled?: boolean | null
+          id?: string
+          tonights_picks_enabled?: boolean | null
+          tonights_picks_time?: string | null
+          updated_at?: string
+          user_id: string
+          weekly_recap_enabled?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          friend_activity_enabled?: boolean | null
+          id?: string
+          tonights_picks_enabled?: boolean | null
+          tonights_picks_time?: string | null
+          updated_at?: string
+          user_id?: string
+          weekly_recap_enabled?: boolean | null
+        }
+        Relationships: []
+      }
+      party_group_members: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          invited_by: string | null
+          joined_at: string | null
+          role: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          role?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          role?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "party_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_groups: {
+        Row: {
+          cover_image: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          event_id: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          cover_image?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          event_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          cover_image?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          event_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_groups_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_groups_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       professional_availability: {
         Row: {
           created_at: string | null
@@ -1908,6 +2033,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      scheduled_notifications: {
+        Row: {
+          event_ids: string[] | null
+          id: string
+          metadata: Json | null
+          notification_type: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          event_ids?: string[] | null
+          id?: string
+          metadata?: Json | null
+          notification_type: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          event_ids?: string[] | null
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       stories: {
         Row: {

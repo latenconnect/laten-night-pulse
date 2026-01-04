@@ -18,6 +18,8 @@ import SubscriptionPlansSection from '@/components/SubscriptionPlansSection';
 import StoriesBar from '@/components/stories/StoriesBar';
 import FeaturedBadge from '@/components/FeaturedBadge';
 import MobileLayout from '@/components/layouts/MobileLayout';
+import TonightsPicksSection from '@/components/TonightsPicksSection';
+import PartyGroupsSection from '@/components/PartyGroupsSection';
 import { LiveFeedHeader, SocialSignal } from '@/components/engagement';
 import { SocialActivityFeed, FriendsSuggestions } from '@/components/social';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -195,6 +197,12 @@ const Explore: React.FC = () => {
       <StoriesBar />
 
       <main className="px-4 py-6 space-y-8">
+        {/* Tonight's Picks - Curated events for tonight */}
+        <TonightsPicksSection />
+
+        {/* Party Groups - Plan events with friends */}
+        {user && <PartyGroupsSection />}
+
         {/* Friend Suggestions (for logged in users) */}
         {user && <FriendsSuggestions city={selectedCity} limit={3} />}
 
