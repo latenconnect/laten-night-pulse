@@ -7,9 +7,9 @@ import EventCard from '@/components/EventCard';
 import ClubCard from '@/components/ClubCard';
 import BottomNav from '@/components/BottomNav';
 import Map from '@/components/Map';
-import { mockEvents } from '@/data/mockEvents';
 import { useApp } from '@/context/AppContext';
 import { useClubs, Club } from '@/hooks/useClubs';
+import { useEvents, transformDbEvent } from '@/hooks/useEvents';
 import { cn } from '@/lib/utils';
 
 // City coordinates for Hungary
@@ -27,27 +27,30 @@ const CITY_COORDS: Record<string, [number, number]> = {
 const MapView: React.FC = () => {
   const navigate = useNavigate();
   const { selectedCity } = useApp();
-  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [showEventList, setShowEventList] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showHeatmap, setShowHeatmap] = useState(true);
   const { clubs } = useClubs();
+  const { events: dbEvents } = useEvents();
 
-  const cityEvents = mockEvents.filter(e => 
+  // Transform DB events to frontend format and filter by city
+  const allEvents = dbEvents.map(transformDbEvent);
+  const cityEvents = allEvents.filter(e => 
     e.location.city === selectedCity || selectedCity === 'Budapest'
   );
 
-  const event = selectedEvent ? mockEvents.find(e => e.id === selectedEvent) : null;
+  const selectedEvent = selectedEventId ? cityEvents.find(e => e.id === selectedEventId) : null;
 
   const handleClubSelect = (club: Club) => {
-    setSelectedEvent(null);
+    setSelectedEventId(null);
     setSelectedClub(club);
   };
 
   const handleEventSelect = (eventId: string) => {
     setSelectedClub(null);
-    setSelectedEvent(eventId);
+    setSelectedEventId(eventId);
   };
 
   return (
@@ -58,7 +61,7 @@ const MapView: React.FC = () => {
         <Map
           events={cityEvents}
           clubs={clubs}
-          selectedEventId={selectedEvent}
+          selectedEventId={selectedEventId}
           onEventSelect={handleEventSelect}
           onClubSelect={handleClubSelect}
           center={CITY_COORDS[selectedCity] || CITY_COORDS['Budapest']}
@@ -118,7 +121,7 @@ const MapView: React.FC = () => {
 
         {/* Event Preview Card */}
         <AnimatePresence>
-          {event && (
+          {selectedEvent && (
             <motion.div
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
@@ -129,15 +132,15 @@ const MapView: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setSelectedEvent(null)}
+                  onClick={() => setSelectedEventId(null)}
                   className="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-card border border-border touch-target"
                 >
                   <X className="w-4 h-4" />
                 </Button>
                 <EventCard
-                  event={event}
+                  event={selectedEvent}
                   variant="compact"
-                  onClick={() => navigate(`/event/${event.id}`)}
+                  onClick={() => navigate(`/event/${selectedEvent.id}`)}
                 />
               </div>
             </motion.div>
@@ -201,17 +204,23 @@ const MapView: React.FC = () => {
                 <h3 className="font-display font-bold text-xl">Events in {selectedCity}</h3>
               </div>
               <div className="p-4 space-y-3 overflow-y-auto max-h-[60vh] overscroll-contain">
-                {cityEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    variant="compact"
-                    onClick={() => {
-                      setShowEventList(false);
-                      navigate(`/event/${event.id}`);
-                    }}
-                  />
-                ))}
+                {cityEvents.length > 0 ? (
+                  cityEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      variant="compact"
+                      onClick={() => {
+                        setShowEventList(false);
+                        navigate(`/event/${event.id}`);
+                      }}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No events in {selectedCity} yet
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>

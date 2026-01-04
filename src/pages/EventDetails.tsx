@@ -4,11 +4,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { 
   ArrowLeft, Share2, Heart, MapPin, Clock, Users, Ticket, 
   Shield, Info, Calendar, Navigation, Flag, AlertTriangle,
-  Rocket, BarChart3, Sparkles
+  Rocket, BarChart3, Sparkles, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getEventById } from '@/data/mockEvents';
-import { useSavedEvents, useEventRsvp, useReportEvent } from '@/hooks/useEvents';
+import { useSavedEvents, useEventRsvp, useReportEvent, useEvent, transformDbEvent } from '@/hooks/useEvents';
 import { useAuth } from '@/context/AuthContext';
 import { useHaptics } from '@/hooks/useHaptics';
 import { usePersonalization } from '@/hooks/usePersonalization';
@@ -33,7 +32,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 const REPORT_REASONS = [
@@ -55,6 +53,10 @@ const EventDetails: React.FC = () => {
   const { trackInteraction } = usePersonalization();
   const { startVerification, loading: verificationLoading } = useAgeVerification();
   
+  // Fetch event from database
+  const { event: dbEvent, loading: eventLoading } = useEvent(id);
+  const event = dbEvent ? transformDbEvent(dbEvent) : null;
+  
   const [isLiked, setIsLiked] = useState(false);
   const [isGoing, setIsGoing] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
@@ -64,9 +66,6 @@ const EventDetails: React.FC = () => {
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
   const [hostToolsOpen, setHostToolsOpen] = useState(false);
 
-  // For now, use mock data - will be replaced with real DB query
-  const event = getEventById(id || '');
-  
   // Check if current user is the event host
   const { host } = useHost();
   const { isSubscribed: hasPartyBoost } = useHostSubscription(host?.id);
@@ -112,6 +111,15 @@ const EventDetails: React.FC = () => {
   };
   
   const { t } = useLanguage();
+
+  // Loading state
+  if (eventLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
   
   if (!event) {
     return (
@@ -473,67 +481,59 @@ const EventDetails: React.FC = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Report */}
+        {/* Report Dialog */}
         <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
-          <DialogTrigger asChild>
-            <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <Flag className="w-4 h-4" />
-              {t('events.reportThisEvent')}
-            </button>
-          </DialogTrigger>
-          <DialogContent className="bg-card border-border">
+          <DialogContent className="bg-card border-border max-w-sm">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-destructive" />
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <Flag className="w-5 h-5" />
                 {t('events.reportEvent')}
               </DialogTitle>
               <DialogDescription>
                 {t('events.reportEventDesc')}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-2 mt-4">
+            
+            <div className="space-y-3 mt-2">
               {REPORT_REASONS.map((reason) => (
                 <button
                   key={reason}
                   onClick={() => setSelectedReason(reason)}
                   className={cn(
-                    'w-full p-3 rounded-lg text-left transition-colors',
+                    'w-full p-3 rounded-lg border text-left transition-colors',
                     selectedReason === reason
-                      ? 'bg-primary/20 border border-primary'
-                      : 'bg-muted hover:bg-muted/80 border border-transparent'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:bg-muted'
                   )}
                 >
                   {t(`events.${reason}`)}
                 </button>
               ))}
             </div>
-            
-            {/* Liability Acknowledgment */}
-            <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={liabilityAcknowledged}
-                  onChange={(e) => setLiabilityAcknowledged(e.target.checked)}
-                  className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                />
-                <span className="text-xs text-muted-foreground leading-relaxed">
-                  {t('events.liabilityText')}
-                </span>
-              </label>
+
+            <div className="flex items-start gap-2 mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-amber-500">{t('events.liabilityWarning')}</p>
+                <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={liabilityAcknowledged}
+                    onChange={(e) => setLiabilityAcknowledged(e.target.checked)}
+                    className="rounded border-border"
+                  />
+                  <span className="text-muted-foreground">{t('events.iAcknowledge')}</span>
+                </label>
+              </div>
             </div>
             
             <div className="flex gap-3 mt-4">
-              <Button variant="outline" className="flex-1" onClick={() => {
-                setReportDialogOpen(false);
-                setSelectedReason('');
-                setLiabilityAcknowledged(false);
-              }}>
+              <Button variant="outline" className="flex-1" onClick={() => setReportDialogOpen(false)}>
                 {t('common.cancel')}
               </Button>
               <Button 
                 variant="destructive" 
-                className="flex-1" 
+                className="flex-1"
                 onClick={handleReport}
                 disabled={!selectedReason || !liabilityAcknowledged}
               >
@@ -542,24 +542,47 @@ const EventDetails: React.FC = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Report Button */}
+        <div className="text-center">
+          <button
+            onClick={() => setReportDialogOpen(true)}
+            className="text-sm text-muted-foreground hover:text-destructive transition-colors inline-flex items-center gap-1"
+          >
+            <Flag className="w-4 h-4" />
+            {t('events.reportEvent')}
+          </button>
+        </div>
       </div>
 
-      {/* Fixed Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent z-50">
-        <div className="glass-card p-3 flex items-center gap-3">
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">{t('events.entryPrice')}</p>
-            <p className="font-display font-bold text-xl">
-              {event.price ? `${event.price} Ft` : t('common.free')}
-            </p>
-          </div>
+      {/* Fixed Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent z-40 safe-bottom">
+        <div className="flex gap-3">
           <Button
-            variant={isGoing ? 'outline' : 'neon'}
+            variant="outline"
+            size="lg"
+            onClick={handleLike}
+            className="flex-shrink-0 touch-target"
+          >
+            <Heart className={cn('w-5 h-5', isLiked && 'fill-destructive text-destructive')} />
+          </Button>
+          <Button
+            variant={isGoing ? "outline" : "neon"}
             size="lg"
             onClick={handleRSVP}
-            className="min-w-32"
+            className="flex-1 gap-2 touch-target"
           >
-            {isGoing ? t('events.goingCheck') : t('events.imGoing')}
+            {isGoing ? (
+              <>
+                <Users className="w-5 h-5" />
+                {t('events.youreGoing')}
+              </>
+            ) : (
+              <>
+                <Users className="w-5 h-5" />
+                {t('events.joinParty')}
+              </>
+            )}
           </Button>
         </div>
       </div>
