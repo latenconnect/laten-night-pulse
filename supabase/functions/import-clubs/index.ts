@@ -37,8 +37,18 @@ const HUNGARIAN_CITIES = [
   { name: "Zamárdi", lat: 46.8833, lng: 17.9500, radius: 15000, area: "main" },
 ];
 
-// Venue types to search for - nightlife venues only (NO restaurants, cafes, etc.)
-const VENUE_TYPES = ["night_club", "bar", "pub"];
+// Venue types to search for - NIGHTCLUBS ONLY
+const VENUE_TYPES = ["night_club"];
+
+// Additional search terms to find clubs that might not be tagged as night_club
+const NIGHTCLUB_SEARCH_TERMS = [
+  "nightclub",
+  "disco", 
+  "dance club",
+  "club",
+  "ruin bar", // Budapest specialty
+  "romkocsma"
+];
 
 // Map Google venue types to user-friendly event filter categories
 function mapVenueTypeToCategory(googleType: string, placeName: string): string {
@@ -52,38 +62,28 @@ function mapVenueTypeToCategory(googleType: string, placeName: string): string {
     return 'festival';
   }
   
-  // Check for famous club keywords
+  // Check for famous club keywords - PRIMARY TARGET
   if (nameLower.includes('romkert') || nameLower.includes('szimpla') ||
       nameLower.includes('instant') || nameLower.includes('fogas') ||
       nameLower.includes('akvárium') || nameLower.includes('a38') ||
       nameLower.includes('doboz') || nameLower.includes('ötkert') ||
       nameLower.includes('morrison') || nameLower.includes('akvarium') ||
+      nameLower.includes('club') || nameLower.includes('disco') ||
+      nameLower.includes('dance') || nameLower.includes('nightclub') ||
+      nameLower.includes('night club') || nameLower.includes('ruin') ||
+      nameLower.includes('romkocsma') || nameLower.includes('dürer') ||
+      nameLower.includes('barba negra') || nameLower.includes('peaches') ||
       googleType === 'night_club') {
     return 'club';
   }
   
-  // Check for rooftop/lounge bars
-  if (nameLower.includes('rooftop') || nameLower.includes('sky') ||
-      nameLower.includes('terasz') || nameLower.includes('lounge') ||
-      nameLower.includes('360')) {
-    return 'lounge';
+  // Pubs that have club vibes
+  if (nameLower.includes('pub') && (nameLower.includes('party') || nameLower.includes('music'))) {
+    return 'club';
   }
   
-  // Pubs and Irish bars
-  if (googleType === 'pub' || nameLower.includes('pub') || 
-      nameLower.includes('irish') || nameLower.includes('sörház') ||
-      nameLower.includes('söröző')) {
-    return 'pub';
-  }
-  
-  // Wine bars
-  if (nameLower.includes('wine') || nameLower.includes('bor') ||
-      nameLower.includes('pince')) {
-    return 'wine_bar';
-  }
-  
-  // Default to bar
-  return 'bar';
+  // Default to club for this import (we're specifically importing clubs)
+  return 'club';
 }
 
 interface PlaceResult {
@@ -229,14 +229,19 @@ Deno.serve(async (req) => {
     // Parse request body for optional parameters
     let targetCity: string | null = null;
     let maxPlacesPerCity = 100;
+    let nightclubsOnly = false; // New flag for nightclub-specific import
     
     try {
       const body = await req.json();
       targetCity = body.city || null;
       maxPlacesPerCity = body.maxPlacesPerCity || 100;
+      nightclubsOnly = body.nightclubsOnly || false;
     } catch {
       // No body provided, use defaults
     }
+
+    // Determine venue types to search
+    const venueTypesToSearch = nightclubsOnly ? ["night_club"] : VENUE_TYPES;
 
     const citiesToProcess = targetCity
       ? HUNGARIAN_CITIES.filter((c) => c.name.toLowerCase() === targetCity.toLowerCase())
@@ -259,12 +264,12 @@ Deno.serve(async (req) => {
       let citySkipped = 0;
       const seenPlaceIds = new Set<string>();
 
-      for (const venueType of VENUE_TYPES) {
+      for (const venueType of venueTypesToSearch) {
         if (cityImported >= maxPlacesPerCity) break;
 
         let pageToken: string | undefined;
         let pageCount = 0;
-        const maxPages = 5; // Increased for better coverage
+        const maxPages = nightclubsOnly ? 10 : 5; // More pages for nightclub-specific search
 
         do {
           try {
@@ -292,7 +297,7 @@ Deno.serve(async (req) => {
               const placeName = place.displayName?.text || "";
               const placeNameLower = placeName.toLowerCase();
 
-              // FILTER OUT NON-NIGHTLIFE VENUES
+              // FILTER OUT NON-NIGHTLIFE VENUES (stricter for nightclub import)
               const excludePatterns = [
                 'restaurant', 'étterem', 'steakhouse', 'steak house', 'bistro', 'grill',
                 'brunch', 'breakfast', 'lunch', 'dinner', 'kitchen', 'konyha',
@@ -302,14 +307,40 @@ Deno.serve(async (req) => {
                 'cinema', 'mozi', 'theatre', 'theater', 'színház', 'operetta', 'opera',
                 'gym', 'fitness', 'spa', 'wellness', 'hotel', 'hostel', 'museum', 'múzeum',
                 'mcdonald', 'burger king', 'kfc', 'subway', 'pizza hut', 'domino',
-                'pharmacy', 'gyógyszertár', 'bank', 'atm', 'office', 'iroda'
+                'pharmacy', 'gyógyszertár', 'bank', 'atm', 'office', 'iroda',
+                'wine bar', 'borozó', 'wine', 'bor', 'pince', // Exclude wine bars
+                'lounge', 'terasz', 'rooftop' // Exclude lounges for nightclub import
               ];
+
+              // Additional exclusions for nightclub-only import
+              if (nightclubsOnly) {
+                excludePatterns.push('pub', 'söröző', 'sörház', 'irish');
+              }
 
               const shouldExclude = excludePatterns.some(pattern => placeNameLower.includes(pattern));
               if (shouldExclude) {
-                console.log(`Skipping non-nightlife venue: ${placeName}`);
+                console.log(`Skipping non-club venue: ${placeName}`);
                 continue;
               }
+
+              // For nightclub import, also check for club indicators
+              if (nightclubsOnly) {
+                const clubIndicators = [
+                  'club', 'disco', 'dance', 'nightclub', 'night club',
+                  'romkocsma', 'ruin', 'szimpla', 'instant', 'fogas',
+                  'akvárium', 'akvarium', 'a38', 'doboz', 'ötkert',
+                  'morrison', 'dürer', 'barba negra', 'peaches',
+                  'party', 'techno', 'house', 'edm'
+                ];
+                const hasClubIndicator = clubIndicators.some(indicator => placeNameLower.includes(indicator));
+                // Only skip if venue type is not explicitly night_club
+                if (!hasClubIndicator && venueType !== 'night_club') {
+                  console.log(`Skipping non-club venue (no club indicators): ${placeName}`);
+                  continue;
+                }
+              }
+
+              // Check if place already exists
 
               // Check if place already exists
               const { data: existing } = await supabase

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, Database, MapPin, RefreshCw, Download, DollarSign, Clock, Trash2, Search, Languages } from 'lucide-react';
+import { AlertTriangle, Database, MapPin, RefreshCw, Download, DollarSign, Clock, Trash2, Search, Languages, Music } from 'lucide-react';
 import { toast } from 'sonner';
 import { translations } from '@/i18n/translations';
 
@@ -48,6 +48,8 @@ const AdminImport = () => {
   const [syncingAlgolia, setSyncingAlgolia] = useState(false);
   const [generatingTranslations, setGeneratingTranslations] = useState(false);
   const [translationLog, setTranslationLog] = useState<string[]>([]);
+  const [importingNightclubs, setImportingNightclubs] = useState(false);
+  const [nightclubLog, setNightclubLog] = useState<string[]>([]);
   useEffect(() => {
     const checkAdminAccess = async () => {
       if (!user) {
@@ -152,6 +154,59 @@ const AdminImport = () => {
       toast.error(`Import failed: ${message}`);
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handleNightclubImport = async () => {
+    setImportingNightclubs(true);
+    setNightclubLog([]);
+    
+    const city = selectedCity === 'all' ? null : selectedCity;
+    const maxPlaces = parseInt(maxPerCity);
+
+    setNightclubLog(prev => [...prev, `🎵 Starting NIGHTCLUB import${city ? ` for ${city}` : ' for all cities'}...`]);
+    setNightclubLog(prev => [...prev, `Looking for clubs similar to Morrison's 2, Szimpla, Instant, etc.`]);
+    setNightclubLog(prev => [...prev, `Max venues per city: ${maxPlaces}`]);
+
+    try {
+      const response = await supabase.functions.invoke('import-clubs', {
+        body: {
+          city,
+          maxPlacesPerCity: maxPlaces,
+          nightclubsOnly: true
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      const result: ImportResult = response.data;
+
+      if (result.success) {
+        setNightclubLog(prev => [...prev, `✓ Nightclub import completed!`]);
+        setNightclubLog(prev => [...prev, `  Total clubs imported: ${result.totalImported}`]);
+        setNightclubLog(prev => [...prev, `  Skipped (existing): ${result.totalSkipped}`]);
+
+        if (result.results) {
+          Object.entries(result.results).forEach(([cityName, stats]) => {
+            if (stats.imported > 0) {
+              setNightclubLog(prev => [...prev, `  ${cityName}: +${stats.imported} new clubs`]);
+            }
+          });
+        }
+
+        toast.success(`Nightclub import completed: ${result.totalImported} new clubs added`);
+        fetchStats();
+      } else {
+        throw new Error(result.error || 'Import failed');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      setNightclubLog(prev => [...prev, `✗ Error: ${message}`]);
+      toast.error(`Nightclub import failed: ${message}`);
+    } finally {
+      setImportingNightclubs(false);
     }
   };
 
@@ -382,6 +437,67 @@ const AdminImport = () => {
             {translationLog.length > 0 && (
               <div className="mt-4 p-3 bg-muted/50 rounded-lg font-mono text-xs max-h-96 overflow-y-auto whitespace-pre-wrap">
                 {translationLog.map((log, i) => (
+                  <div key={i} className="py-0.5">{log}</div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Nightclub Import Section - NEW */}
+        <Card className="border-pink-500/50 bg-pink-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-pink-500 text-lg">
+              <Music className="h-5 w-5" />
+              Import Nightclubs
+            </CardTitle>
+            <CardDescription>
+              Import actual nightclubs like Morrison's 2, Szimpla, Instant - NO wine bars, lounges, or festivals
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-3 bg-pink-500/10 rounded-lg text-sm">
+              <p className="font-medium text-pink-500 mb-2">Cities needing nightclub replacement:</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                <span>• Tokaj (13 removed)</span>
+                <span>• Eger (10 removed)</span>
+                <span>• Hévíz (7 removed)</span>
+                <span>• Siófok (6 removed)</span>
+                <span>• Sopron (6 removed)</span>
+                <span>• Miskolc (5 removed)</span>
+                <span>• Veszprém (5 removed)</span>
+                <span>• Dunaújváros (5 removed)</span>
+                <span>• Kaposvár (4 removed)</span>
+                <span>• Szeged (3 removed)</span>
+                <span>• Budapest (3 removed)</span>
+                <span>• Others (9 removed)</span>
+              </div>
+            </div>
+            <Button 
+              onClick={handleNightclubImport} 
+              disabled={importingNightclubs}
+              className="gap-2 bg-pink-500 hover:bg-pink-600"
+            >
+              {importingNightclubs ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Importing Nightclubs...
+                </>
+              ) : (
+                <>
+                  <Music className="h-4 w-4" />
+                  Import Nightclubs Only
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Uses Google Places API to find venues tagged as "night_club" with club-like names (disco, dance, etc.)
+            </p>
+
+            {/* Nightclub Import Log */}
+            {nightclubLog.length > 0 && (
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg font-mono text-xs max-h-48 overflow-y-auto">
+                {nightclubLog.map((log, i) => (
                   <div key={i} className="py-0.5">{log}</div>
                 ))}
               </div>
