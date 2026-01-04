@@ -1351,6 +1351,58 @@ export type Database = {
           },
         ]
       }
+      friend_activity: {
+        Row: {
+          activity_type: string
+          club_id: string | null
+          created_at: string
+          event_id: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          club_id?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          club_id?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_activity_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_activity_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_activity_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       host_subscriptions: {
         Row: {
           auto_renew: boolean | null
@@ -2285,6 +2337,33 @@ export type Database = {
           },
         ]
       }
+      user_milestones: {
+        Row: {
+          achieved_at: string
+          id: string
+          milestone_type: string
+          milestone_value: number
+          notified: boolean | null
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string
+          id?: string
+          milestone_type: string
+          milestone_value: number
+          notified?: boolean | null
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string
+          id?: string
+          milestone_type?: string
+          milestone_value?: number
+          notified?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           avg_price_preference: number | null
@@ -2345,6 +2424,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number | null
+          events_this_month: number | null
+          id: string
+          last_activity_date: string | null
+          longest_streak: number | null
+          month_reset_date: string | null
+          total_events_attended: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number | null
+          events_this_month?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          month_reset_date?: string | null
+          total_events_attended?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number | null
+          events_this_month?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          month_reset_date?: string | null
+          total_events_attended?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       venue_subscriptions: {
         Row: {
           auto_renew: boolean | null
@@ -2393,6 +2511,59 @@ export type Database = {
             foreignKeyName: "venue_subscriptions_club_id_fkey"
             columns: ["club_id"]
             isOneToOne: true
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_recaps: {
+        Row: {
+          created_at: string
+          events_attended: number | null
+          friends_met: number | null
+          highlights: Json | null
+          id: string
+          streak_at_week_end: number | null
+          top_event_type: string | null
+          top_venue_id: string | null
+          total_rsvps: number | null
+          user_id: string
+          week_end: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          events_attended?: number | null
+          friends_met?: number | null
+          highlights?: Json | null
+          id?: string
+          streak_at_week_end?: number | null
+          top_event_type?: string | null
+          top_venue_id?: string | null
+          total_rsvps?: number | null
+          user_id: string
+          week_end: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          events_attended?: number | null
+          friends_met?: number | null
+          highlights?: Json | null
+          id?: string
+          streak_at_week_end?: number | null
+          top_event_type?: string | null
+          top_venue_id?: string | null
+          total_rsvps?: number | null
+          user_id?: string
+          week_end?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_recaps_top_venue_id_fkey"
+            columns: ["top_venue_id"]
+            isOneToOne: false
             referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
