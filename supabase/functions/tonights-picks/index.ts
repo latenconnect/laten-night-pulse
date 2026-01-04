@@ -12,17 +12,58 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authorization
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const oneSignalAppId = Deno.env.get("ONESIGNAL_APP_ID");
     const oneSignalApiKey = Deno.env.get("ONESIGNAL_REST_API_KEY");
 
+    // Verify the caller
+    const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check admin role for batch operations
+    const { data: isAdmin } = await userSupabase.rpc("has_role", { 
+      _user_id: user.id, 
+      _role: "admin" 
+    });
+
+    // Use service role client for database operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse request body - can be called with specific userId or batch mode
     const { userId, batchMode = false } = await req.json().catch(() => ({}));
 
-    console.log("Tonight's Picks triggered:", { userId, batchMode });
+    // Only admins can trigger batch mode or send to other users
+    if (batchMode || (userId && userId !== user.id)) {
+      if (!isAdmin) {
+        console.warn(`Non-admin user ${user.id} attempted batch/other-user operation`);
+        return new Response(
+          JSON.stringify({ error: "Admin access required for batch operations" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    console.log("Tonight's Picks triggered:", { userId, batchMode, caller: user.id });
 
     // Get users who want tonight's picks (check if 6PM in their timezone - simplified to UTC for now)
     let usersQuery = supabase
