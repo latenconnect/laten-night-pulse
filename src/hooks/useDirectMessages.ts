@@ -547,12 +547,17 @@ export const useUploadDMFile = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
+      // Use signed URL with 1-hour expiration for privacy instead of public URL
+      const { data, error: signedUrlError } = await supabase.storage
         .from('photos')
-        .getPublicUrl(`dm/${fileName}`);
+        .createSignedUrl(`dm/${fileName}`, 3600); // 1 hour expiration
+
+      if (signedUrlError || !data) {
+        throw signedUrlError || new Error('Failed to create signed URL');
+      }
 
       return {
-        url: data.publicUrl,
+        url: data.signedUrl,
         name: file.name,
         size: file.size,
         mimeType: file.type,
