@@ -13,7 +13,21 @@ export interface PartyGroup {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  genres?: string[];
+  preferred_venue_id?: string | null;
   member_count?: number;
+  members?: Array<{
+    user_id: string;
+    profile?: {
+      avatar_url: string | null;
+      display_name: string | null;
+    };
+  }>;
+  preferred_venue?: {
+    id: string;
+    name: string;
+    photos: string[] | null;
+  };
   event?: {
     id: string;
     name: string;
@@ -59,29 +73,49 @@ export const usePartyGroups = () => {
         .from('party_groups')
         .select(`
           *,
-          event:events(id, name, start_time, location_name, cover_image)
+          event:events(id, name, start_time, location_name, cover_image),
+          preferred_venue:clubs!party_groups_preferred_venue_id_fkey(id, name, photos)
         `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (groupsError) throw groupsError;
 
-      // Get member counts for each group
+      // Get member counts and member info for each group
       const groupIds = groupsData?.map(g => g.id) || [];
-      const { data: memberCounts } = await supabase
+      const { data: membersData } = await supabase
         .from('party_group_members')
-        .select('group_id')
+        .select('group_id, user_id')
         .in('group_id', groupIds)
         .eq('status', 'accepted');
 
+      // Get user profiles for member avatars
+      const memberUserIds = [...new Set(membersData?.map(m => m.user_id) || [])];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, avatar_url, display_name')
+        .in('id', memberUserIds);
+
+      const profilesMap = new Map(
+        (profilesData || []).map(p => [p.id, p])
+      );
+
       const countMap: Record<string, number> = {};
-      memberCounts?.forEach(m => {
+      const membersMap: Record<string, Array<{ user_id: string; profile?: { avatar_url: string | null; display_name: string | null } }>> = {};
+      
+      membersData?.forEach(m => {
         countMap[m.group_id] = (countMap[m.group_id] || 0) + 1;
+        if (!membersMap[m.group_id]) membersMap[m.group_id] = [];
+        membersMap[m.group_id].push({
+          user_id: m.user_id,
+          profile: profilesMap.get(m.user_id)
+        });
       });
 
       const enrichedGroups = (groupsData || []).map(g => ({
         ...g,
-        member_count: (countMap[g.id] || 0) + 1 // +1 for creator
+        member_count: (countMap[g.id] || 0) + 1, // +1 for creator
+        members: membersMap[g.id] || []
       }));
 
       setGroups(enrichedGroups);
