@@ -5,12 +5,13 @@ import {
   Settings, ChevronRight, Calendar, Heart, MapPin, 
   Bell, Shield, LogOut, Sparkles, User as UserIcon, LayoutDashboard, 
   BadgeCheck, ShieldCheck, Loader2, Globe, Trash2, AlertTriangle,
-  Camera, Pencil, X, Check
+  Camera, Pencil, X, Check, Grid3X3, Bookmark, Share2, UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +29,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from '@/components/ui/sheet';
 import MobileLayout from '@/components/layouts/MobileLayout';
 import HostApplicationCard from '@/components/HostApplicationCard';
@@ -37,6 +37,7 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useFriends } from '@/hooks/useFriends';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAgeVerification } from '@/hooks/useAgeVerification';
@@ -55,6 +56,7 @@ const Profile: React.FC = () => {
   const { selectedCity, interests } = useApp();
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
+  const { followers, following, friends } = useFriends();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -62,6 +64,7 @@ const Profile: React.FC = () => {
 
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [settingsSheetOpen, setSettingsSheetOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   
@@ -164,13 +167,11 @@ const Profile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image must be less than 5MB');
       return;
@@ -181,19 +182,16 @@ const Profile: React.FC = () => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}/avatar.${fileExt}`;
 
-      // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Update profile with new avatar URL (add timestamp to bust cache)
       const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       
       const { error: updateError } = await supabase
@@ -210,7 +208,6 @@ const Profile: React.FC = () => {
       toast.error('Failed to upload image');
     } finally {
       setUploadingAvatar(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -242,7 +239,6 @@ const Profile: React.FC = () => {
       
       if (error) throw error;
       
-      // Sign out and delete from auth
       await supabase.auth.signOut();
       
       toast.success('Your account has been deleted successfully');
@@ -255,16 +251,28 @@ const Profile: React.FC = () => {
     }
   };
 
-  const menuItems = [
-    { icon: Calendar, label: t('profile.myEvents'), count: 3, path: '/saved' },
-    { icon: Heart, label: t('profile.savedEvents'), count: 12, path: '/saved' },
-    { icon: Bell, label: t('profile.notifications'), path: undefined, action: () => toast.info('Push notifications settings coming soon!') },
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: profile?.display_name || 'My Profile',
+        text: `Check out my profile on Laten!`,
+        url: window.location.href
+      });
+    } catch {
+      toast.info('Share feature not available');
+    }
+  };
+
+  const settingsItems = [
+    { icon: Bell, label: t('profile.notifications'), action: () => toast.info('Push notifications settings coming soon!') },
     { icon: MapPin, label: t('onboarding.selectCity'), value: selectedCity, path: '/onboarding' },
     { icon: Sparkles, label: t('onboarding.selectInterests'), path: '/onboarding' },
-    { icon: Globe, label: t('profile.language'), customRight: <LanguageSwitcher />, path: undefined },
+    { icon: Globe, label: t('profile.language'), customRight: <LanguageSwitcher /> },
     { icon: Shield, label: t('profile.privacy'), path: '/privacy' },
     { icon: Settings, label: t('auth.termsOfService'), path: '/terms' },
   ];
+
+  const username = profile?.display_name?.toLowerCase().replace(/\s+/g, '_') || user?.email?.split('@')[0] || 'user';
 
   return (
     <MobileLayout>
@@ -277,105 +285,246 @@ const Profile: React.FC = () => {
         onChange={handleAvatarUpload}
       />
 
-      {/* Header */}
-      <header className="relative">
-        {/* Background Gradient */}
-        <div className="h-40 bg-gradient-to-br from-primary/30 via-neon-pink/20 to-secondary/30 safe-top" />
-        
-        {/* Profile Card */}
-        <div className="px-4 -mt-16 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-6"
+      {/* Instagram-style Header */}
+      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border safe-top">
+        <div className="flex items-center justify-between px-4 py-3">
+          <h1 className="font-display font-bold text-xl">{username}</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSettingsSheetOpen(true)}
           >
-            <div className="flex items-start gap-4">
-              {/* Avatar with upload button */}
-              <div className="relative">
-                <button
-                  onClick={handleAvatarClick}
-                  disabled={uploadingAvatar || !user}
-                  className="relative group"
-                >
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-secondary p-0.5">
-                    <div className="w-full h-full rounded-2xl bg-card flex items-center justify-center overflow-hidden">
-                      {uploadingAvatar ? (
-                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                      ) : profile?.avatar_url ? (
-                        <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                      ) : (
-                        <UserIcon className="w-10 h-10 text-muted-foreground" />
-                      )}
-                    </div>
-                  </div>
-                  {user && (
-                    <div className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Camera className="w-6 h-6 text-white" />
-                    </div>
-                  )}
-                </button>
-                {user && (
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-secondary flex items-center justify-center border-2 border-card">
-                    <span className="text-xs">✓</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Info */}
-              <div className="flex-1">
-                {user ? (
-                  <>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h1 className="font-display font-bold text-xl mb-1">
-                          {profile?.display_name || user.email?.split('@')[0]}
-                        </h1>
-                        <p className="text-sm text-muted-foreground mb-1">{user.email}</p>
-                        <p className="text-xs text-primary">{profile?.city || selectedCity}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleOpenEditSheet}
-                        className="shrink-0"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    {profile?.bio && (
-                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{profile.bio}</p>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <h1 className="font-display font-bold text-xl mb-1">{t('common.loading')}</h1>
-                    <p className="text-sm text-muted-foreground mb-3">{t('auth.signIn')}</p>
-                    <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
-                      {t('auth.signIn')}
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-border">
-              <div className="text-center">
-                <p className="font-display font-bold text-2xl text-primary">0</p>
-                <p className="text-xs text-muted-foreground">{t('events.attendees')}</p>
-              </div>
-              <div className="text-center">
-                <p className="font-display font-bold text-2xl text-secondary">12</p>
-                <p className="text-xs text-muted-foreground">{t('events.saved')}</p>
-              </div>
-              <div className="text-center">
-                <p className="font-display font-bold text-2xl text-neon-pink">3</p>
-                <p className="text-xs text-muted-foreground">{t('tickets.upcomingEvents')}</p>
-              </div>
-            </div>
-          </motion.div>
+            <Settings className="w-5 h-5" />
+          </Button>
         </div>
       </header>
+
+      {/* Profile Section */}
+      <section className="px-4 py-4">
+        <div className="flex items-start gap-6">
+          {/* Avatar */}
+          <button
+            onClick={handleAvatarClick}
+            disabled={uploadingAvatar || !user}
+            className="relative group shrink-0"
+          >
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary via-neon-pink to-secondary p-[3px]">
+              <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
+                {uploadingAvatar ? (
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                ) : profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <UserIcon className="w-10 h-10 text-muted-foreground" />
+                )}
+              </div>
+            </div>
+            {user && (
+              <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center border-2 border-background">
+                <Camera className="w-3 h-3 text-primary-foreground" />
+              </div>
+            )}
+          </button>
+
+          {/* Stats - Instagram style */}
+          <div className="flex-1 flex justify-around pt-2">
+            <button className="text-center" onClick={() => navigate('/saved')}>
+              <p className="font-display font-bold text-lg">12</p>
+              <p className="text-xs text-muted-foreground">{t('events.saved')}</p>
+            </button>
+            <button className="text-center" onClick={() => navigate('/friends')}>
+              <p className="font-display font-bold text-lg">{followers.length}</p>
+              <p className="text-xs text-muted-foreground">Followers</p>
+            </button>
+            <button className="text-center" onClick={() => navigate('/friends')}>
+              <p className="font-display font-bold text-lg">{following.length}</p>
+              <p className="text-xs text-muted-foreground">Following</p>
+            </button>
+          </div>
+        </div>
+
+        {/* Name, Bio, Location */}
+        <div className="mt-4 space-y-1">
+          {user ? (
+            <>
+              <h2 className="font-semibold">
+                {profile?.display_name || user.email?.split('@')[0]}
+                {profile?.age_verified && (
+                  <BadgeCheck className="w-4 h-4 inline ml-1 text-primary" />
+                )}
+              </h2>
+              {profile?.city && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {profile.city}
+                </p>
+              )}
+              {profile?.bio && (
+                <p className="text-sm mt-2">{profile.bio}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <h2 className="font-semibold">{t('common.loading')}</h2>
+              <p className="text-sm text-muted-foreground">{t('auth.signIn')}</p>
+            </>
+          )}
+        </div>
+
+        {/* Action Buttons - Instagram style */}
+        <div className="flex gap-2 mt-4">
+          {user ? (
+            <>
+              <Button
+                variant="outline"
+                className="flex-1 h-9"
+                onClick={handleOpenEditSheet}
+              >
+                Edit profile
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 h-9"
+                onClick={handleShare}
+              >
+                Share profile
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={() => navigate('/friends')}
+              >
+                <UserPlus className="w-4 h-4" />
+              </Button>
+            </>
+          ) : (
+            <Button variant="neon" className="flex-1" onClick={() => navigate('/auth')}>
+              {t('auth.signIn')}
+            </Button>
+          )}
+        </div>
+
+        {/* Interests as story-like highlights */}
+        {interests.length > 0 && (
+          <div className="mt-4 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-4">
+              {interests.slice(0, 5).map((interest) => (
+                <div key={interest} className="flex flex-col items-center gap-1 shrink-0">
+                  <div className="w-16 h-16 rounded-full border-2 border-border flex items-center justify-center bg-muted">
+                    <span className="text-lg">🎵</span>
+                  </div>
+                  <span className="text-xs text-center max-w-16 truncate">{interest}</span>
+                </div>
+              ))}
+              <button 
+                onClick={() => navigate('/onboarding')}
+                className="flex flex-col items-center gap-1 shrink-0"
+              >
+                <div className="w-16 h-16 rounded-full border-2 border-dashed border-muted-foreground/50 flex items-center justify-center">
+                  <span className="text-2xl text-muted-foreground">+</span>
+                </div>
+                <span className="text-xs text-muted-foreground">Add</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Tabs - Instagram style */}
+      <Tabs defaultValue="events" className="w-full">
+        <TabsList className="w-full bg-transparent border-t border-border rounded-none h-12">
+          <TabsTrigger value="events" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground">
+            <Grid3X3 className="w-5 h-5" />
+          </TabsTrigger>
+          <TabsTrigger value="saved" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground">
+            <Bookmark className="w-5 h-5" />
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="events" className="mt-0">
+          {/* Attended/Hosted Events Grid */}
+          <div className="px-4 py-6 text-center">
+            <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+            <h3 className="font-semibold mb-1">Events you attend</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Your attended events will appear here
+            </p>
+            <Button variant="outline" onClick={() => navigate('/explore')}>
+              Explore Events
+            </Button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="saved" className="mt-0">
+          {/* Saved Events */}
+          <div className="px-4 py-6 text-center">
+            <Heart className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+            <h3 className="font-semibold mb-1">Saved events</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Save events to see them here
+            </p>
+            <Button variant="outline" onClick={() => navigate('/saved')}>
+              View Saved
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Additional Sections */}
+      <div className="space-y-4 px-4 pb-24">
+        {/* ID Verification */}
+        {user && !profile?.age_verified && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card p-4"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                <BadgeCheck className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold">{t('onboarding.ageVerification')}</h3>
+                <p className="text-sm text-muted-foreground">{t('onboarding.verifyAge')}</p>
+              </div>
+              <Button
+                variant="neon"
+                size="sm"
+                onClick={handleVerifyAge}
+                disabled={verificationLoading}
+              >
+                {verificationLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  'Verify'
+                )}
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Admin Dashboard Link */}
+        {isAdmin && (
+          <motion.button
+            onClick={() => navigate('/admin')}
+            whileTap={{ scale: 0.98 }}
+            className="w-full glass-card p-4 flex items-center gap-4 border-2 border-primary/30"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+              <LayoutDashboard className="w-5 h-5 text-primary" />
+            </div>
+            <span className="flex-1 text-left font-medium">{t('profile.adminDashboard')}</span>
+            <ChevronRight className="w-5 h-5 text-primary" />
+          </motion.button>
+        )}
+
+        {/* Host CTA */}
+        <HostApplicationCard />
+
+        {/* Party Boost */}
+        <PartyBoostCard />
+      </div>
 
       {/* Edit Profile Sheet */}
       <Sheet open={editSheetOpen} onOpenChange={setEditSheetOpen}>
@@ -476,187 +625,98 @@ const Profile: React.FC = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Interests */}
-      <section className="px-4 mt-6">
-        <h2 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">
-          {t('onboarding.selectInterests')}
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {interests.length > 0 ? (
-            interests.map((interest) => (
-              <span
-                key={interest}
-                className="px-3 py-1.5 rounded-full bg-primary/20 text-primary text-sm"
-              >
-                {interest}
-              </span>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">{t('common.noResults')}</p>
-          )}
-        </div>
-      </section>
-
-      {/* Menu */}
-      <section className="px-4 mt-6">
-        <div className="glass-card overflow-hidden">
-          {menuItems.map((item) => (
-            <motion.div
-              key={item.label}
-              onClick={() => item.path ? navigate(item.path) : item.action?.()}
-              whileTap={item.path || item.action ? { scale: 0.98 } : undefined}
-              className={`w-full flex items-center gap-4 p-4 border-b border-border/50 last:border-0 ${item.path || item.action ? 'touch-highlight touch-target no-select cursor-pointer' : ''}`}
-            >
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                <item.icon className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <span className="flex-1 text-left">{item.label}</span>
-              {item.count !== undefined && (
-                <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-semibold">
-                  {item.count}
-                </span>
-              )}
-              {item.value && (
-                <span className="text-sm text-muted-foreground">{item.value}</span>
-              )}
-              {item.customRight && item.customRight}
-              {(item.path || item.action) && !item.customRight && (
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-              )}
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Admin Dashboard Link - Only visible to admins */}
-      {isAdmin && (
-        <section className="px-4 mt-6">
-          <motion.button
-            onClick={() => navigate('/admin')}
-            whileTap={{ scale: 0.98 }}
-            className="w-full glass-card p-4 flex items-center gap-4 border-2 border-primary/30 touch-highlight"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-              <LayoutDashboard className="w-5 h-5 text-primary" />
-            </div>
-            <span className="flex-1 text-left font-medium">{t('profile.adminDashboard')}</span>
-            <ChevronRight className="w-5 h-5 text-primary" />
-          </motion.button>
-        </section>
-      )}
-
-      {/* ID Verification */}
-      {user && (
-        <section className="px-4 mt-6">
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                profile?.age_verified ? 'bg-secondary/20' : 'bg-primary/20'
-              }`}>
-                {profile?.age_verified ? (
-                  <ShieldCheck className="w-6 h-6 text-secondary" />
-                ) : (
-                  <BadgeCheck className="w-6 h-6 text-primary" />
-                )}
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold">
-                  {profile?.age_verified ? t('onboarding.ageVerification') : t('onboarding.ageVerification')}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {profile?.age_verified 
-                    ? t('onboarding.mustBe18')
-                    : t('onboarding.verifyAge')}
-                </p>
-              </div>
-              {!profile?.age_verified && (
-                <Button
-                  variant="neon"
-                  size="sm"
-                  onClick={handleVerifyAge}
-                  disabled={verificationLoading}
-                >
-                  {verificationLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    'Verify'
-                  )}
-                </Button>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Host CTA */}
-      <section className="px-4 mt-6">
-        <HostApplicationCard />
-      </section>
-
-      {/* Party Boost Subscription */}
-      <section className="px-4 mt-6">
-        <PartyBoostCard />
-      </section>
-
-      {/* Sign Out */}
-      {user && (
-        <section className="px-4 mt-6 space-y-3">
-          <Button 
-            variant="ghost" 
-            className="w-full text-destructive hover:text-destructive gap-2 touch-target"
-            onClick={handleSignOut}
-          >
-            <LogOut className="w-5 h-5" />
-            {t('profile.signOut')}
-          </Button>
+      {/* Settings Sheet */}
+      <Sheet open={settingsSheetOpen} onOpenChange={setSettingsSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md">
+          <SheetHeader className="text-left mb-6">
+            <SheetTitle className="text-xl font-display">Settings</SheetTitle>
+          </SheetHeader>
           
-          {/* Delete Account */}
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
+          <div className="space-y-1">
+            {settingsItems.map((item) => (
+              <motion.button
+                key={item.label}
+                onClick={() => {
+                  if (item.path) navigate(item.path);
+                  else if (item.action) item.action();
+                  if (!item.customRight) setSettingsSheetOpen(false);
+                }}
+                whileTap={item.path || item.action ? { scale: 0.98 } : undefined}
+                className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-muted transition-colors"
+              >
+                <item.icon className="w-5 h-5 text-muted-foreground" />
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.value && (
+                  <span className="text-sm text-muted-foreground">{item.value}</span>
+                )}
+                {item.customRight && item.customRight}
+                {(item.path || item.action) && !item.customRight && (
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                )}
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Sign Out & Delete */}
+          {user && (
+            <div className="mt-8 space-y-2">
               <Button 
                 variant="ghost" 
-                className="w-full text-muted-foreground hover:text-destructive gap-2 touch-target"
+                className="w-full text-destructive hover:text-destructive gap-2"
+                onClick={handleSignOut}
               >
-                <Trash2 className="w-5 h-5" />
-                {t('profile.deleteAccount') || 'Delete Account'}
+                <LogOut className="w-5 h-5" />
+                {t('profile.signOut')}
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="max-w-sm mx-4">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-                  <AlertTriangle className="w-5 h-5" />
-                  {t('profile.deleteAccountTitle') || 'Delete Your Account?'}
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-left space-y-2">
-                  <p>{t('profile.deleteAccountWarning') || 'This action cannot be undone. All your data will be permanently deleted, including:'}</p>
-                  <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
-                    <li>Your profile and settings</li>
-                    <li>All messages and conversations</li>
-                    <li>Event RSVPs and saved events</li>
-                    <li>DJ/Bartender profiles and bookings</li>
-                    <li>Stories and social connections</li>
-                  </ul>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{t('common.cancel') || 'Cancel'}</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDeleteAccount}
-                  disabled={deletingAccount}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  {deletingAccount ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <Trash2 className="w-4 h-4 mr-2" />
-                  )}
-                  {t('profile.deleteAccount') || 'Delete Account'}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </section>
-      )}
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full text-muted-foreground hover:text-destructive gap-2"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    {t('profile.deleteAccount') || 'Delete Account'}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="max-w-sm mx-4">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                      <AlertTriangle className="w-5 h-5" />
+                      {t('profile.deleteAccountTitle') || 'Delete Your Account?'}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-left space-y-2">
+                      <p>{t('profile.deleteAccountWarning') || 'This action cannot be undone. All your data will be permanently deleted, including:'}</p>
+                      <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
+                        <li>Your profile and settings</li>
+                        <li>All messages and conversations</li>
+                        <li>Event RSVPs and saved events</li>
+                        <li>DJ/Bartender profiles and bookings</li>
+                        <li>Stories and social connections</li>
+                      </ul>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('common.cancel') || 'Cancel'}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      disabled={deletingAccount}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {deletingAccount ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <Trash2 className="w-4 h-4 mr-2" />
+                      )}
+                      {t('profile.deleteAccount') || 'Delete Account'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </MobileLayout>
   );
 };
