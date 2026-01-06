@@ -46,7 +46,7 @@ const CookieConsent: React.FC = () => {
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground mb-1">Cookie Consent</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  We use cookies to enhance your experience, analyze site traffic, and for marketing purposes. 
+                  We use essential cookies to enhance your experience. We do not track you or share your data with third parties. 
                   By continuing to use Laten, you consent to our use of cookies.{' '}
                   <Link to="/privacy" className="text-primary hover:underline">
                     Learn more
