@@ -63,8 +63,9 @@ export const useFriends = () => {
       myFollowers?.forEach(c => allUserIds.add(c.follower_id));
       pending?.forEach(c => allUserIds.add(c.follower_id));
 
+      // Use safe_profiles view for security - only exposes non-sensitive fields
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('safe_profiles')
         .select('id, display_name, avatar_url, city')
         .in('id', Array.from(allUserIds));
 
@@ -231,8 +232,9 @@ export const useFriends = () => {
     if (!query.trim()) return [];
 
     try {
+      // Use safe_profiles view for security - only exposes non-sensitive fields
       const { data, error } = await supabase
-        .from('profiles')
+        .from('safe_profiles')
         .select('id, display_name, avatar_url, city')
         .ilike('display_name', `%${query}%`)
         .neq('id', user?.id || '')

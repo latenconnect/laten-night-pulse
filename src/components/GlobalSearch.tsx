@@ -43,8 +43,9 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
     }
     setPeopleLoading(true);
     try {
+      // Use safe_profiles view which only exposes non-sensitive fields
       const { data } = await supabase
-        .from('profiles')
+        .from('safe_profiles')
         .select('id, display_name, avatar_url, city, is_verified')
         .ilike('display_name', `%${searchQuery}%`)
         .limit(10);
