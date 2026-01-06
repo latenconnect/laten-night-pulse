@@ -2741,77 +2741,47 @@ export type Database = {
       public_clubs: {
         Row: {
           address: string | null
-          business_status: string | null
           city: string | null
           country: string | null
-          created_at: string | null
-          crowd_info: Json | null
-          description: string | null
           google_maps_uri: string | null
-          google_place_id: string | null
-          highlights: string[] | null
           id: string | null
+          is_active: boolean | null
           is_featured: boolean | null
-          last_updated: string | null
           latitude: number | null
           longitude: number | null
-          music_genres: string[] | null
           name: string | null
-          opening_hours: Json | null
           photos: string[] | null
-          price_level: number | null
           rating: number | null
-          services: string[] | null
           venue_type: string | null
         }
         Insert: {
           address?: string | null
-          business_status?: string | null
           city?: string | null
           country?: string | null
-          created_at?: string | null
-          crowd_info?: Json | null
-          description?: string | null
           google_maps_uri?: string | null
-          google_place_id?: string | null
-          highlights?: string[] | null
           id?: string | null
+          is_active?: boolean | null
           is_featured?: boolean | null
-          last_updated?: string | null
           latitude?: number | null
           longitude?: number | null
-          music_genres?: string[] | null
           name?: string | null
-          opening_hours?: Json | null
           photos?: string[] | null
-          price_level?: number | null
           rating?: number | null
-          services?: string[] | null
           venue_type?: string | null
         }
         Update: {
           address?: string | null
-          business_status?: string | null
           city?: string | null
           country?: string | null
-          created_at?: string | null
-          crowd_info?: Json | null
-          description?: string | null
           google_maps_uri?: string | null
-          google_place_id?: string | null
-          highlights?: string[] | null
           id?: string | null
+          is_active?: boolean | null
           is_featured?: boolean | null
-          last_updated?: string | null
           latitude?: number | null
           longitude?: number | null
-          music_genres?: string[] | null
           name?: string | null
-          opening_hours?: Json | null
           photos?: string[] | null
-          price_level?: number | null
           rating?: number | null
-          services?: string[] | null
           venue_type?: string | null
         }
         Relationships: []
@@ -2852,6 +2822,30 @@ export type Database = {
         }
         Relationships: []
       }
+      safe_profiles: {
+        Row: {
+          avatar_url: string | null
+          city: string | null
+          display_name: string | null
+          id: string | null
+          is_verified: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          city?: string | null
+          display_name?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          city?: string | null
+          display_name?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_view_event_location: {
@@ -2862,15 +2856,20 @@ export type Database = {
         Args: { story_user_id: string; story_visibility: string }
         Returns: boolean
       }
-      check_rate_limit: {
-        Args: {
-          _action: string
-          _max_requests?: number
-          _user_id: string
-          _window_minutes?: number
-        }
-        Returns: boolean
-      }
+      check_rate_limit:
+        | {
+            Args: { _action: string; _max_per_hour?: number; _user_id: string }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              _action: string
+              _max_requests?: number
+              _user_id: string
+              _window_minutes?: number
+            }
+            Returns: boolean
+          }
       cleanup_expired_stories: { Args: never; Returns: undefined }
       delete_bartender_profile: {
         Args: { profile_id: string }

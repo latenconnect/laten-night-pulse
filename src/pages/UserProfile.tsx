@@ -42,14 +42,30 @@ const UserProfile: React.FC = () => {
     if (!userId) return;
     
     setLoading(true);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, display_name, avatar_url, bio, city, is_verified')
-      .eq('id', userId)
-      .maybeSingle();
     
-    if (!error && data) {
-      setProfile(data);
+    // For own profile, use full profiles table; for others, use safe_profiles view
+    if (user?.id === userId) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, bio, city, is_verified')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      if (!error && data) {
+        setProfile(data);
+      }
+    } else {
+      // Use safe_profiles for viewing other users (excludes sensitive fields like date_of_birth)
+      const { data, error } = await supabase
+        .from('safe_profiles')
+        .select('id, display_name, avatar_url, city, is_verified')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      if (!error && data) {
+        // Bio is not in safe_profiles, set to null for other users
+        setProfile({ ...data, bio: null });
+      }
     }
     setLoading(false);
   };
