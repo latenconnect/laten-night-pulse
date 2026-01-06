@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Search, X, MapPin, Calendar, Music, Building2 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, X, MapPin, Calendar, Music, Building2, User, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
@@ -10,19 +10,52 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { useApp } from '@/context/AppContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GlobalSearchProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface PersonResult {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  is_verified: boolean | null;
+}
+
 const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
   const [query, setQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'event' | 'club'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'event' | 'club' | 'people'>('all');
   const { results, loading, search, clearResults } = useAlgoliaSearch();
+  const [people, setPeople] = useState<PersonResult[]>([]);
+  const [peopleLoading, setPeopleLoading] = useState(false);
   const { selectedCity } = useApp();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Search people from Supabase
+  const searchPeople = useCallback(async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setPeople([]);
+      return;
+    }
+    setPeopleLoading(true);
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, city, is_verified')
+        .ilike('display_name', `%${searchQuery}%`)
+        .limit(10);
+      setPeople(data || []);
+    } catch (error) {
+      console.error('People search error:', error);
+      setPeople([]);
+    } finally {
+      setPeopleLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -30,6 +63,7 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
     } else {
       setQuery('');
       clearResults();
+      setPeople([]);
       setActiveFilter('all');
     }
   }, [isOpen, clearResults]);
@@ -37,16 +71,30 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (query.trim()) {
-        const filters: SearchFilters = {};
-        if (activeFilter !== 'all') filters.type = activeFilter;
-        search(query, filters);
+        // Search Algolia for events/clubs (skip if people-only filter)
+        if (activeFilter !== 'people') {
+          const filters: SearchFilters = {};
+          if (activeFilter === 'event' || activeFilter === 'club') {
+            filters.type = activeFilter;
+          }
+          search(query, filters);
+        } else {
+          clearResults();
+        }
+        // Search people (skip if event/club-only filter)
+        if (activeFilter === 'all' || activeFilter === 'people') {
+          searchPeople(query);
+        } else {
+          setPeople([]);
+        }
       } else {
         clearResults();
+        setPeople([]);
       }
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [query, activeFilter, search, clearResults]);
+  }, [query, activeFilter, search, clearResults, searchPeople]);
 
   const handleResultClick = (hit: SearchHit) => {
     if (hit.type === 'event') {
@@ -146,6 +194,45 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
     </motion.button>
   );
 
+  const renderPersonResult = (person: PersonResult) => (
+    <motion.button
+      key={person.id}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors text-left"
+      onClick={() => {
+        // For now, just close - could navigate to user profile when implemented
+        onClose();
+      }}
+    >
+      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+        {person.avatar_url ? (
+          <img src={person.avatar_url} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <User className="w-5 h-5 text-muted-foreground" />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="font-medium text-foreground truncate">
+            {person.display_name || 'Anonymous'}
+          </span>
+          {person.is_verified && (
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 flex-shrink-0">
+              <Check className="w-2.5 h-2.5 text-white" />
+            </span>
+          )}
+        </div>
+        {person.city && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+            <MapPin className="w-3 h-3" />
+            <span className="truncate">{person.city}</span>
+          </div>
+        )}
+      </div>
+    </motion.button>
+  );
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -190,16 +277,16 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
               </div>
 
               {/* Filter Tabs */}
-              <div className="flex gap-2 p-3 border-b border-border">
-                {(['all', 'event', 'club'] as const).map((filter) => (
+              <div className="flex gap-2 p-3 border-b border-border overflow-x-auto no-scrollbar">
+                {(['all', 'event', 'club', 'people'] as const).map((filter) => (
                   <Button
                     key={filter}
                     variant={activeFilter === filter ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setActiveFilter(filter)}
-                    className="capitalize"
+                    className="capitalize flex-shrink-0"
                   >
-                    {filter === 'all' ? 'All' : filter === 'event' ? 'Events' : 'Venues'}
+                    {filter === 'all' ? 'All' : filter === 'event' ? 'Events' : filter === 'club' ? 'Venues' : 'People'}
                   </Button>
                 ))}
               </div>
@@ -207,28 +294,42 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
               {/* Results */}
               <ScrollArea className="max-h-[60vh]">
                 <div className="p-2">
-                  {loading && (
+                  {(loading || peopleLoading) && (
                     <div className="flex items-center justify-center py-8">
                       <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
 
-                  {!loading && !query && (
+                  {!loading && !peopleLoading && !query && (
                     <div className="text-center py-8 text-muted-foreground">
                       <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
                       <p>Start typing to search</p>
                     </div>
                   )}
 
-                  {!loading && query && results?.hits.length === 0 && (
+                  {!loading && !peopleLoading && query && (results?.hits.length === 0 && people.length === 0) && (
                     <div className="text-center py-8 text-muted-foreground">
                       <Music className="w-12 h-12 mx-auto mb-3 opacity-30" />
                       <p>No results found for "{query}"</p>
                     </div>
                   )}
 
-                  {!loading && results?.hits && results.hits.length > 0 && (
+                  {/* People Results */}
+                  {!peopleLoading && people.length > 0 && (activeFilter === 'all' || activeFilter === 'people') && (
+                    <div className="space-y-1 mb-4">
+                      {activeFilter === 'all' && (
+                        <p className="text-xs font-semibold text-muted-foreground px-3 py-2">People</p>
+                      )}
+                      {people.map(renderPersonResult)}
+                    </div>
+                  )}
+
+                  {/* Events & Venues Results */}
+                  {!loading && results?.hits && results.hits.length > 0 && activeFilter !== 'people' && (
                     <div className="space-y-1">
+                      {activeFilter === 'all' && people.length > 0 && (
+                        <p className="text-xs font-semibold text-muted-foreground px-3 py-2">Events & Venues</p>
+                      )}
                       {results.hits.map((hit) =>
                         hit.type === 'event'
                           ? renderEventResult(hit)
@@ -237,9 +338,9 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
                     </div>
                   )}
 
-                  {results && results.nbHits > 0 && (
+                  {((results && results.nbHits > 0) || people.length > 0) && (
                     <div className="text-center text-xs text-muted-foreground pt-3 pb-2">
-                      {results.nbHits} result{results.nbHits !== 1 ? 's' : ''} found
+                      {(results?.nbHits || 0) + people.length} result{((results?.nbHits || 0) + people.length) !== 1 ? 's' : ''} found
                     </div>
                   )}
                 </div>
