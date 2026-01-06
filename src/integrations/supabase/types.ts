@@ -1960,6 +1960,7 @@ export type Database = {
           display_name: string | null
           id: string
           is_verified: boolean | null
+          show_connections: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -1974,6 +1975,7 @@ export type Database = {
           display_name?: string | null
           id: string
           is_verified?: boolean | null
+          show_connections?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -1988,6 +1990,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_verified?: boolean | null
+          show_connections?: boolean | null
           updated_at?: string | null
         }
         Relationships: []
@@ -2232,6 +2235,8 @@ export type Database = {
           price_paid_cents: number
           purchased_at: string | null
           qr_code: string | null
+          scanned_at: string | null
+          scanned_by: string | null
           status: Database["public"]["Enums"]["ticket_status"]
           stripe_payment_id: string | null
           ticket_id: string
@@ -2244,6 +2249,8 @@ export type Database = {
           price_paid_cents: number
           purchased_at?: string | null
           qr_code?: string | null
+          scanned_at?: string | null
+          scanned_by?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           stripe_payment_id?: string | null
           ticket_id: string
@@ -2256,6 +2263,8 @@ export type Database = {
           price_paid_cents?: number
           purchased_at?: string | null
           qr_code?: string | null
+          scanned_at?: string | null
+          scanned_by?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           stripe_payment_id?: string | null
           ticket_id?: string
@@ -2745,11 +2754,12 @@ export type Database = {
           country: string | null
           google_maps_uri: string | null
           id: string | null
-          is_active: boolean | null
           is_featured: boolean | null
           latitude: number | null
           longitude: number | null
+          music_genres: string[] | null
           name: string | null
+          opening_hours: Json | null
           photos: string[] | null
           rating: number | null
           venue_type: string | null
@@ -2760,11 +2770,12 @@ export type Database = {
           country?: string | null
           google_maps_uri?: string | null
           id?: string | null
-          is_active?: boolean | null
           is_featured?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          music_genres?: string[] | null
           name?: string | null
+          opening_hours?: Json | null
           photos?: string[] | null
           rating?: number | null
           venue_type?: string | null
@@ -2775,11 +2786,12 @@ export type Database = {
           country?: string | null
           google_maps_uri?: string | null
           id?: string | null
-          is_active?: boolean | null
           is_featured?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          music_genres?: string[] | null
           name?: string | null
+          opening_hours?: Json | null
           photos?: string[] | null
           rating?: number | null
           venue_type?: string | null
@@ -2852,6 +2864,7 @@ export type Database = {
         Args: { event_row: Database["public"]["Tables"]["events"]["Row"] }
         Returns: boolean
       }
+      can_view_event_rsvps: { Args: { p_event_id: string }; Returns: boolean }
       can_view_story: {
         Args: { story_user_id: string; story_visibility: string }
         Returns: boolean
@@ -2911,6 +2924,10 @@ export type Database = {
         Returns: undefined
       }
       is_dev_user: { Args: { _user_id: string }; Returns: boolean }
+      scan_ticket: {
+        Args: { p_qr_code: string; p_scanner_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "dev"
