@@ -18,6 +18,7 @@ import Explore from "./pages/Explore";
 import MapView from "./pages/MapView";
 import EventDetails from "./pages/EventDetails";
 import Profile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";
 import SavedEvents from "./pages/SavedEvents";
 import CreateEvent from "./pages/CreateEvent";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -85,6 +86,7 @@ const AppContent = () => {
         <Route path="/event/:id" element={<EventDetails />} />
         <Route path="/club/:id" element={<ClubDetails />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/user/:userId" element={<UserProfile />} />
         <Route path="/friends" element={<Friends />} />
         <Route path="/groups/:groupId" element={<GroupDetails />} />
         <Route path="/saved" element={<SavedEvents />} />

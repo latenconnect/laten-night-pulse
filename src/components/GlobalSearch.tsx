@@ -201,7 +201,7 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
       animate={{ opacity: 1, y: 0 }}
       className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors text-left"
       onClick={() => {
-        // For now, just close - could navigate to user profile when implemented
+        navigate(`/user/${person.id}`);
         onClose();
       }}
     >
