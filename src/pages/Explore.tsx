@@ -188,7 +188,6 @@ const Explore: React.FC = () => {
       {/* Live Activity Header */}
       <LiveFeedHeader 
         city={selectedCity}
-        activeUsers={Math.floor(Math.random() * 50) + 20}
         trendingCount={trendingEvents.length}
         newEventsToday={dbFeaturedEvents.length}
       />
