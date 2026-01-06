@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, Clock, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { useHost } from '@/hooks/useHost';
 import { useAuth } from '@/context/AuthContext';
 
 const HostApplicationCard: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { host, applyAsHost, isVerifiedHost, isPendingHost, loading } = useHost();
 
@@ -61,7 +63,7 @@ const HostApplicationCard: React.FC = () => {
           <p className="text-sm text-muted-foreground mb-4">
             You can now create and manage events. Events hosted: {host?.events_hosted || 0}
           </p>
-          <Button variant="neon" size="sm" onClick={() => window.location.href = '/create'}>
+          <Button variant="neon" size="sm" onClick={() => navigate('/create')}>
             Create Event
           </Button>
         </div>

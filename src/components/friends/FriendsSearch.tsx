@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, UserPlus, UserMinus, Users, Check, X, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
 
 const FriendsSearch: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const {
     followers,
@@ -99,7 +101,10 @@ const FriendsSearch: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between p-3 rounded-xl bg-card border border-border"
       >
-        <div className="flex items-center gap-3">
+        <button 
+          className="flex items-center gap-3 text-left"
+          onClick={() => navigate(`/user/${profile.id}`)}
+        >
           <Avatar className="w-12 h-12">
             <AvatarImage src={profile.avatar_url || undefined} />
             <AvatarFallback>
@@ -112,7 +117,7 @@ const FriendsSearch: React.FC = () => {
               <p className="text-sm text-muted-foreground">{profile.city}</p>
             )}
           </div>
-        </div>
+        </button>
 
         {showConnectionButtons && (
           <div className="flex gap-2">
@@ -251,7 +256,10 @@ const FriendsSearch: React.FC = () => {
                   animate={{ opacity: 1 }}
                   className="flex items-center justify-between p-3 rounded-xl bg-card border border-border"
                 >
-                  <div className="flex items-center gap-3">
+                  <button 
+                    className="flex items-center gap-3 text-left"
+                    onClick={() => request.profile && navigate(`/user/${request.profile.id}`)}
+                  >
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={request.profile?.avatar_url || undefined} />
                       <AvatarFallback>
@@ -262,7 +270,7 @@ const FriendsSearch: React.FC = () => {
                       <p className="font-medium">{request.profile?.display_name || 'User'}</p>
                       <p className="text-sm text-muted-foreground">wants to be friends</p>
                     </div>
-                  </div>
+                  </button>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
