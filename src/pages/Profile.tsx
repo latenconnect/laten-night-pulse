@@ -60,6 +60,7 @@ const Profile: React.FC = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [savedCount, setSavedCount] = useState(0);
   const { startVerification, loading: verificationLoading } = useAgeVerification();
 
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -93,10 +94,20 @@ const Profile: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchSavedCount();
     } else {
       setLoading(false);
     }
   }, [user]);
+
+  const fetchSavedCount = async () => {
+    if (!user) return;
+    const { count } = await supabase
+      .from('saved_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+    setSavedCount(count || 0);
+  };
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -329,7 +340,7 @@ const Profile: React.FC = () => {
           {/* Stats - Instagram style */}
           <div className="flex-1 flex justify-around pt-2">
             <button className="text-center" onClick={() => navigate('/saved')}>
-              <p className="font-display font-bold text-lg">12</p>
+              <p className="font-display font-bold text-lg">{savedCount}</p>
               <p className="text-xs text-muted-foreground">{t('events.saved')}</p>
             </button>
             <button className="text-center" onClick={() => navigate('/friends')}>
