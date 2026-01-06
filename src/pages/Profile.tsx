@@ -471,60 +471,8 @@ const Profile: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Additional Sections */}
-      <div className="space-y-4 px-4 pb-24">
-        {/* ID Verification */}
-        {user && !profile?.age_verified && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-4"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                <BadgeCheck className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold">{t('onboarding.ageVerification')}</h3>
-                <p className="text-sm text-muted-foreground">{t('onboarding.verifyAge')}</p>
-              </div>
-              <Button
-                variant="neon"
-                size="sm"
-                onClick={handleVerifyAge}
-                disabled={verificationLoading}
-              >
-                {verificationLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  'Verify'
-                )}
-              </Button>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Admin Dashboard Link */}
-        {isAdmin && (
-          <motion.button
-            onClick={() => navigate('/admin')}
-            whileTap={{ scale: 0.98 }}
-            className="w-full glass-card p-4 flex items-center gap-4 border-2 border-primary/30"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-              <LayoutDashboard className="w-5 h-5 text-primary" />
-            </div>
-            <span className="flex-1 text-left font-medium">{t('profile.adminDashboard')}</span>
-            <ChevronRight className="w-5 h-5 text-primary" />
-          </motion.button>
-        )}
-
-        {/* Host CTA */}
-        <HostApplicationCard />
-
-        {/* Party Boost */}
-        <PartyBoostCard />
-      </div>
+      {/* Spacing for bottom nav */}
+      <div className="pb-24" />
 
       {/* Edit Profile Sheet */}
       <Sheet open={editSheetOpen} onOpenChange={setEditSheetOpen}>
@@ -655,6 +603,53 @@ const Profile: React.FC = () => {
                 )}
               </motion.button>
             ))}
+          </div>
+
+          {/* ID Verification */}
+          {user && !profile?.age_verified && (
+            <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <BadgeCheck className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-sm">{t('onboarding.ageVerification')}</h4>
+                  <p className="text-xs text-muted-foreground">{t('onboarding.verifyAge')}</p>
+                </div>
+                <Button
+                  variant="neon"
+                  size="sm"
+                  onClick={handleVerifyAge}
+                  disabled={verificationLoading}
+                >
+                  {verificationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Admin Dashboard */}
+          {isAdmin && (
+            <motion.button
+              onClick={() => {
+                navigate('/admin');
+                setSettingsSheetOpen(false);
+              }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full mt-4 p-4 rounded-xl bg-primary/10 border border-primary/30 flex items-center gap-3"
+            >
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <LayoutDashboard className="w-5 h-5 text-primary" />
+              </div>
+              <span className="flex-1 text-left font-medium">{t('profile.adminDashboard')}</span>
+              <ChevronRight className="w-5 h-5 text-primary" />
+            </motion.button>
+          )}
+
+          {/* Host & Party Boost Section */}
+          <div className="mt-4 space-y-3">
+            <HostApplicationCard />
+            <PartyBoostCard />
           </div>
 
           {/* Sign Out & Delete */}
