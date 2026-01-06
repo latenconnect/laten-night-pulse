@@ -49,6 +49,7 @@ interface Profile {
   bio: string | null;
   city: string | null;
   age_verified: boolean | null;
+  is_verified: boolean | null;
 }
 
 const Profile: React.FC = () => {
@@ -114,7 +115,7 @@ const Profile: React.FC = () => {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, avatar_url, bio, city, age_verified')
+      .select('id, display_name, avatar_url, bio, city, age_verified, is_verified')
       .eq('id', user.id)
       .single();
     
@@ -358,10 +359,12 @@ const Profile: React.FC = () => {
         <div className="mt-4 space-y-1">
           {user ? (
             <>
-              <h2 className="font-semibold">
+              <h2 className="font-semibold flex items-center gap-1">
                 {profile?.display_name || user.email?.split('@')[0]}
-                {profile?.age_verified && (
-                  <BadgeCheck className="w-4 h-4 inline ml-1 text-primary" />
+                {profile?.is_verified && (
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500">
+                    <Check className="w-3 h-3 text-white" />
+                  </span>
                 )}
               </h2>
               {profile?.city && (
