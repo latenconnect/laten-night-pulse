@@ -20,7 +20,11 @@ const HUNGARIAN_CITIES = [
   { name: "Szeged", lat: 46.253, lng: 20.1414, radius: 15000, area: "main" },
   { name: "Pécs", lat: 46.0727, lng: 18.2323, radius: 15000, area: "main" },
   { name: "Győr", lat: 47.6875, lng: 17.6504, radius: 15000, area: "main" },
-  { name: "Siófok", lat: 46.9048, lng: 18.0486, radius: 20000, area: "main" },
+  // Siófok - multiple search points for comprehensive coverage (famous party destination)
+  { name: "Siófok", lat: 46.9048, lng: 18.0486, radius: 8000, area: "center" }, // City center
+  { name: "Siófok", lat: 46.9070, lng: 18.0350, radius: 5000, area: "petofistrand" }, // Petőfi strand (party area)
+  { name: "Siófok", lat: 46.9000, lng: 18.0600, radius: 5000, area: "aranypart" }, // Aranypart
+  { name: "Siófok", lat: 46.9100, lng: 18.0200, radius: 5000, area: "plazs" }, // PLÁZS area
   { name: "Miskolc", lat: 48.1035, lng: 20.7784, radius: 15000, area: "main" },
   { name: "Eger", lat: 47.9025, lng: 20.3772, radius: 12000, area: "main" },
   { name: "Veszprém", lat: 47.0933, lng: 17.9115, radius: 12000, area: "main" },
@@ -47,7 +51,22 @@ const NIGHTCLUB_SEARCH_TERMS = [
   "dance club",
   "club",
   "ruin bar", // Budapest specialty
-  "romkocsma"
+  "romkocsma",
+  "beach club", // Siófok specialty
+  "party", 
+  "techno",
+];
+
+// Siófok-specific famous clubs to search for
+const SIOFOK_FAMOUS_CLUBS = [
+  "Palace Dance Club Siófok",
+  "Flört Club Siófok",
+  "Renegade Pub Siófok",
+  "PLÁZS Siófok",
+  "Ice Club Siófok",
+  "Disco Palace Siófok",
+  "Coca Beach Club",
+  "Petőfi Strand",
 ];
 
 // Map Google venue types to user-friendly event filter categories
@@ -146,6 +165,46 @@ async function searchNearby(
     const error = await response.text();
     console.error("Search Nearby error:", error);
     throw new Error(`Search Nearby failed: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+// Text search for finding specific venues by name
+async function searchText(
+  apiKey: string,
+  textQuery: string,
+  lat: number,
+  lng: number,
+  radius: number
+): Promise<SearchResponse> {
+  const url = "https://places.googleapis.com/v1/places:searchText";
+  
+  const body = {
+    textQuery,
+    maxResultCount: 20,
+    locationBias: {
+      circle: {
+        center: { latitude: lat, longitude: lng },
+        radius: radius,
+      },
+    },
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.priceLevel,places.googleMapsUri,places.businessStatus,places.photos,places.regularOpeningHours",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.error("Text Search error:", error);
+    return { places: [] }; // Return empty instead of throwing
   }
 
   return response.json();
@@ -409,6 +468,83 @@ Deno.serve(async (req) => {
             break;
           }
         } while (pageToken && pageCount < maxPages && cityImported < maxPlacesPerCity);
+      }
+
+      // For Siófok, also do text searches for famous clubs
+      if (city.name === "Siófok" && nightclubsOnly && cityImported < maxPlacesPerCity) {
+        console.log("Searching for famous Siófok clubs by name...");
+        
+        for (const clubName of SIOFOK_FAMOUS_CLUBS) {
+          if (cityImported >= maxPlacesPerCity) break;
+          
+          try {
+            const textResult = await searchText(apiKey, clubName, city.lat, city.lng, 25000);
+            
+            if (textResult.places && textResult.places.length > 0) {
+              for (const place of textResult.places) {
+                if (seenPlaceIds.has(place.id)) continue;
+                seenPlaceIds.add(place.id);
+                
+                const placeName = place.displayName?.text || "";
+                
+                // Check if already exists
+                const { data: existing } = await supabase
+                  .from("clubs")
+                  .select("id")
+                  .eq("google_place_id", place.id)
+                  .single();
+
+                if (existing) {
+                  citySkipped++;
+                  continue;
+                }
+
+                // Get photo URLs
+                const photoUrls: string[] = [];
+                if (place.photos && place.photos.length > 0) {
+                  for (const photo of place.photos.slice(0, 2)) {
+                    const photoUrl = await getPhotoUrl(apiKey, photo.name);
+                    if (photoUrl) photoUrls.push(photoUrl);
+                  }
+                }
+
+                const openingHours = place.regularOpeningHours ? {
+                  open_now: place.regularOpeningHours.openNow,
+                  weekday_text: place.regularOpeningHours.weekdayDescriptions,
+                } : null;
+
+                const { error: insertError } = await supabase.from("clubs").insert({
+                  google_place_id: place.id,
+                  name: placeName || "Unknown Venue",
+                  address: place.formattedAddress || null,
+                  city: "Siófok",
+                  country: "Hungary",
+                  latitude: place.location?.latitude || city.lat,
+                  longitude: place.location?.longitude || city.lng,
+                  rating: place.rating || null,
+                  price_level: mapPriceLevel(place.priceLevel),
+                  photos: photoUrls.length > 0 ? photoUrls : null,
+                  google_maps_uri: place.googleMapsUri || null,
+                  business_status: place.businessStatus || null,
+                  opening_hours: openingHours,
+                  venue_type: "club",
+                  is_active: true,
+                });
+
+                if (!insertError) {
+                  cityImported++;
+                  console.log(`Text search imported: ${placeName} (Siófok)`);
+                }
+                
+                break; // Only take the first/best match for each search term
+              }
+            }
+            
+            await new Promise((resolve) => setTimeout(resolve, 200));
+          } catch (error) {
+            console.error(`Error text searching for ${clubName}:`, error);
+          }
+        }
       }
 
       results[city.name] = { imported: cityImported, skipped: citySkipped };
