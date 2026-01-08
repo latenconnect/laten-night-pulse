@@ -589,12 +589,12 @@ const Profile: React.FC = () => {
 
       {/* Settings Sheet */}
       <Sheet open={settingsSheetOpen} onOpenChange={setSettingsSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md">
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader className="text-left mb-6">
             <SheetTitle className="text-xl font-display">Settings</SheetTitle>
           </SheetHeader>
           
-          <div className="space-y-1">
+          <div className="space-y-1 pb-safe">
             {settingsItems.map((item) => (
               <motion.button
                 key={item.label}
@@ -623,7 +623,7 @@ const Profile: React.FC = () => {
           {user && !profile?.age_verified && (
             <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-border">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                   <BadgeCheck className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -635,6 +635,7 @@ const Profile: React.FC = () => {
                   size="sm"
                   onClick={handleVerifyAge}
                   disabled={verificationLoading}
+                  className="shrink-0"
                 >
                   {verificationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
                 </Button>
@@ -652,7 +653,7 @@ const Profile: React.FC = () => {
               whileTap={{ scale: 0.98 }}
               className="w-full mt-4 p-4 rounded-xl bg-primary/10 border border-primary/30 flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                 <LayoutDashboard className="w-5 h-5 text-primary" />
               </div>
               <span className="flex-1 text-left font-medium">{t('profile.adminDashboard')}</span>
@@ -668,7 +669,7 @@ const Profile: React.FC = () => {
 
           {/* Sign Out & Delete */}
           {user && (
-            <div className="mt-8 space-y-2">
+            <div className="mt-8 pb-8 space-y-2">
               <Button 
                 variant="ghost" 
                 className="w-full text-destructive hover:text-destructive gap-2"
@@ -688,7 +689,7 @@ const Profile: React.FC = () => {
                     {t('profile.deleteAccount') || 'Delete Account'}
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="max-w-sm mx-4">
+                <AlertDialogContent className="max-w-[calc(100vw-2rem)] mx-auto rounded-xl">
                   <AlertDialogHeader>
                     <AlertDialogTitle className="flex items-center gap-2 text-destructive">
                       <AlertTriangle className="w-5 h-5" />
@@ -705,12 +706,12 @@ const Profile: React.FC = () => {
                       </ul>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t('common.cancel') || 'Cancel'}</AlertDialogCancel>
+                  <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                    <AlertDialogCancel className="w-full sm:w-auto">{t('common.cancel') || 'Cancel'}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDeleteAccount}
                       disabled={deletingAccount}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
                       {deletingAccount ? (
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
