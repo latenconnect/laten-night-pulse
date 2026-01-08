@@ -22,6 +22,13 @@ const Onboarding: React.FC = () => {
   const { hasCompletedOnboarding, setHasCompletedOnboarding, setInterests, setSelectedCity } = useApp();
   const { loading: verificationLoading, error: verificationError, startVerification, checkVerificationStatus } = useAgeVerification();
 
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth', { replace: true });
+    }
+  }, [user, navigate]);
+
   // Redirect if already completed onboarding
   useEffect(() => {
     if (hasCompletedOnboarding) {
