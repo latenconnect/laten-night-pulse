@@ -108,10 +108,19 @@ const Auth: React.FC = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Check if we're in a native Capacitor environment
+      const isNative = window.hasOwnProperty('Capacitor') && (window as any).Capacitor?.isNativePlatform?.();
+      
+      // Use custom scheme for native apps, web origin for browser
+      const redirectUrl = isNative 
+        ? 'laten://auth/callback' 
+        : window.location.origin;
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: isNative,
         },
       });
       
@@ -125,6 +134,12 @@ const Auth: React.FC = () => {
           toast.error('Unable to sign in with Google. Please try another method.');
         }
         setLoading(false);
+        return;
+      }
+      
+      // For native apps, open the OAuth URL in the system browser
+      if (isNative && data?.url) {
+        window.open(data.url, '_system');
       }
       // Don't set loading to false on success - user will be redirected
     } catch (err: any) {
@@ -141,11 +156,21 @@ const Auth: React.FC = () => {
   const handleAppleSignIn = async () => {
     setLoading(true);
     try {
+      // For native iOS apps, we need to use the app's custom URL scheme
+      // Check if we're in a native Capacitor environment
+      const isNative = window.hasOwnProperty('Capacitor') && (window as any).Capacitor?.isNativePlatform?.();
+      
+      // Use custom scheme for native apps, web origin for browser
+      const redirectUrl = isNative 
+        ? 'laten://auth/callback' 
+        : window.location.origin;
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: redirectUrl,
           scopes: 'name email',
+          skipBrowserRedirect: isNative, // Skip automatic redirect on native
         },
       });
       
@@ -170,8 +195,11 @@ const Auth: React.FC = () => {
         return;
       }
       
-      // Check if we got a valid response
-      if (!data?.url) {
+      // For native apps, we need to open the URL manually
+      if (isNative && data?.url) {
+        // Open the OAuth URL in the system browser
+        window.open(data.url, '_system');
+      } else if (!data?.url) {
         toast.error('Apple Sign-In is currently unavailable. Please try email/password or Google.');
         setLoading(false);
         return;
