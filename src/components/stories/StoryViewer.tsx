@@ -4,7 +4,11 @@ import { X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { useStories, StoryGroup } from '@/hooks/useStories';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { StoryAd } from '@/components/ads';
 import { formatDistanceToNow } from 'date-fns';
+
+// Show ad after every N story groups
+const AD_FREQUENCY = 3;
 
 interface StoryViewerProps {
   storyGroups: StoryGroup[];
@@ -23,6 +27,8 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [showingAd, setShowingAd] = useState(false);
+  const [groupsViewedSinceAd, setGroupsViewedSinceAd] = useState(0);
 
   const currentGroup = storyGroups[currentGroupIndex];
   const currentStory = currentGroup?.stories[currentStoryIndex];
@@ -35,13 +41,44 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
       setCurrentStoryIndex(prev => prev + 1);
       setProgress(0);
     } else if (currentGroupIndex < storyGroups.length - 1) {
+      // Check if we should show an ad before moving to next group
+      const newGroupsViewed = groupsViewedSinceAd + 1;
+      if (newGroupsViewed >= AD_FREQUENCY && !showingAd) {
+        setShowingAd(true);
+        setGroupsViewedSinceAd(0);
+        return;
+      }
+      
+      setGroupsViewedSinceAd(newGroupsViewed);
       setCurrentGroupIndex(prev => prev + 1);
       setCurrentStoryIndex(0);
       setProgress(0);
     } else {
       onClose();
     }
-  }, [currentStoryIndex, currentGroupIndex, currentGroup?.stories.length, storyGroups.length, onClose]);
+  }, [currentStoryIndex, currentGroupIndex, currentGroup?.stories.length, storyGroups.length, onClose, groupsViewedSinceAd, showingAd]);
+
+  const handleAdComplete = useCallback(() => {
+    setShowingAd(false);
+    if (currentGroupIndex < storyGroups.length - 1) {
+      setCurrentGroupIndex(prev => prev + 1);
+      setCurrentStoryIndex(0);
+      setProgress(0);
+    } else {
+      onClose();
+    }
+  }, [currentGroupIndex, storyGroups.length, onClose]);
+
+  const handleAdSkip = useCallback(() => {
+    setShowingAd(false);
+    if (currentGroupIndex < storyGroups.length - 1) {
+      setCurrentGroupIndex(prev => prev + 1);
+      setCurrentStoryIndex(0);
+      setProgress(0);
+    } else {
+      onClose();
+    }
+  }, [currentGroupIndex, storyGroups.length, onClose]);
 
   const goToPrevStory = useCallback(() => {
     if (currentStoryIndex > 0) {
@@ -111,6 +148,17 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
   };
 
   if (!currentStory) return null;
+
+  // Show story ad between groups
+  if (showingAd) {
+    return (
+      <StoryAd
+        onComplete={handleAdComplete}
+        onSkip={handleAdSkip}
+        isPaused={isPaused}
+      />
+    );
+  }
 
   return (
     <AnimatePresence>
