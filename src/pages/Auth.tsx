@@ -111,16 +111,16 @@ const Auth: React.FC = () => {
       // Check if we're in a native Capacitor environment
       const isNative = window.hasOwnProperty('Capacitor') && (window as any).Capacitor?.isNativePlatform?.();
       
-      // Use custom scheme for native apps, web origin for browser
+      // For web, redirect back to current origin after auth
+      // For native, use custom scheme
       const redirectUrl = isNative 
         ? 'laten://auth/callback' 
-        : window.location.origin;
+        : `${window.location.origin}/auth`;
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
-          skipBrowserRedirect: isNative,
         },
       });
       
