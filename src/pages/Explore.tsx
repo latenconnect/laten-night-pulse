@@ -23,6 +23,7 @@ import PartyGroupsSection from '@/components/PartyGroupsSection';
 import { LiveFeedHeader, SocialSignal, StreakDisplay, WeeklyRecapCard } from '@/components/engagement';
 import { SocialActivityFeed, FriendsSuggestions } from '@/components/social';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { NativeAdCard } from '@/components/ads';
 import { useEvents, transformDbEvent } from '@/hooks/useEvents';
 import { useApp } from '@/context/AppContext';
 import { SearchContext } from '@/context/SearchContext';
@@ -307,20 +308,25 @@ const Explore: React.FC = () => {
           ) : displayClubs.length > 0 ? (
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
               {displayClubs.map((club, index) => (
-                <motion.div
-                  key={club.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="relative"
-                >
-                  <ClubCard club={club} />
-                  {(club as any).isFeatured && (
-                    <div className="absolute top-2 left-2">
-                      <FeaturedBadge variant="premium" size="sm" />
-                    </div>
+                <React.Fragment key={club.id}>
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="relative"
+                  >
+                    <ClubCard club={club} />
+                    {(club as any).isFeatured && (
+                      <div className="absolute top-2 left-2">
+                        <FeaturedBadge variant="premium" size="sm" />
+                      </div>
+                    )}
+                  </motion.div>
+                  {/* Show ad after every 4th venue */}
+                  {index > 0 && (index + 1) % 4 === 0 && (
+                    <NativeAdCard variant="venue" />
                   )}
-                </motion.div>
+                </React.Fragment>
               ))}
             </div>
           ) : (

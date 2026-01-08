@@ -27,6 +27,9 @@ const config: CapacitorConfig = {
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert']
+    },
+    AdMob: {
+      appId: 'ca-app-pub-4192366585858201~8396389324',
     }
   },
   ios: {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Search, Plus, Sparkles, TrendingUp, Briefcase } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import MobileLayout from '@/components/layouts/MobileLayout';
 import { ProfessionalCard } from '@/components/professionals/ProfessionalCard';
 import { ProfessionFilter } from '@/components/professionals/ProfessionFilter';
 import { ProfessionalFilters } from '@/components/professionals/ProfessionalFilters';
+import { NativeAdCard } from '@/components/ads';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
@@ -184,14 +185,25 @@ const Professionals = () => {
                 className="space-y-4"
               >
                 {displayProfessionals.map((professional, index) => (
-                  <motion.div
-                    key={professional.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05, duration: 0.3 }}
-                  >
-                    <ProfessionalCard professional={professional} />
-                  </motion.div>
+                  <React.Fragment key={professional.id}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05, duration: 0.3 }}
+                    >
+                      <ProfessionalCard professional={professional} />
+                    </motion.div>
+                    {/* Show ad after every 5th professional */}
+                    {index > 0 && (index + 1) % 5 === 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: (index + 1) * 0.05, duration: 0.3 }}
+                      >
+                        <NativeAdCard variant="professional" />
+                      </motion.div>
+                    )}
+                  </React.Fragment>
                 ))}
               </motion.div>
             ) : (
