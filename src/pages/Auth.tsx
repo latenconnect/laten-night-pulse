@@ -111,8 +111,7 @@ const Auth: React.FC = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/explore`,
-          skipBrowserRedirect: false,
+          redirectTo: window.location.origin,
         },
       });
       
@@ -125,14 +124,16 @@ const Auth: React.FC = () => {
         } else {
           toast.error('Unable to sign in with Google. Please try another method.');
         }
+        setLoading(false);
       }
+      // Don't set loading to false on success - user will be redirected
     } catch (err: any) {
       console.error('Google Sign-In exception:', err);
       if (err?.message?.includes('cancelled') || err?.code === 'ERR_CANCELED') {
+        setLoading(false);
         return;
       }
       toast.error('Google Sign-In is temporarily unavailable. Please use email.');
-    } finally {
       setLoading(false);
     }
   };
@@ -143,14 +144,12 @@ const Auth: React.FC = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-          redirectTo: `${window.location.origin}/explore`,
-          skipBrowserRedirect: false,
+          redirectTo: window.location.origin,
         },
       });
       
       if (error) {
         console.error('Apple Sign-In error:', error);
-        // Provide user-friendly error messages
         if (error.message.includes('provider is not enabled')) {
           toast.error('Apple Sign-In is not configured. Please use email/password or Google.');
         } else if (error.message.includes('popup')) {
@@ -160,16 +159,16 @@ const Auth: React.FC = () => {
         } else {
           toast.error('Unable to sign in with Apple. Please try another method.');
         }
+        setLoading(false);
       }
+      // Don't set loading to false on success - user will be redirected
     } catch (err: any) {
       console.error('Apple Sign-In exception:', err);
-      // Handle specific error cases
       if (err?.message?.includes('cancelled') || err?.code === 'ERR_CANCELED') {
-        // User cancelled - don't show error
+        setLoading(false);
         return;
       }
       toast.error('Apple Sign-In is temporarily unavailable. Please use email or Google.');
-    } finally {
       setLoading(false);
     }
   };
