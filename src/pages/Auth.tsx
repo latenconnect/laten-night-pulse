@@ -141,34 +141,52 @@ const Auth: React.FC = () => {
   const handleAppleSignIn = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
           redirectTo: window.location.origin,
+          scopes: 'name email',
         },
       });
       
       if (error) {
         console.error('Apple Sign-In error:', error);
-        if (error.message.includes('provider is not enabled')) {
-          toast.error('Apple Sign-In is not configured. Please use email/password or Google.');
-        } else if (error.message.includes('popup')) {
-          toast.error('Popup was blocked. Please allow popups for this site.');
-        } else if (error.message.includes('network')) {
+        // Handle specific error cases gracefully
+        if (error.message.includes('provider is not enabled') || error.message.includes('Provider not found')) {
+          toast.error('Apple Sign-In is currently unavailable. Please use email/password or Google.');
+        } else if (error.message.includes('popup') || error.message.includes('blocked')) {
+          toast.error('Please allow popups for this site to use Apple Sign-In.');
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
           toast.error('Network error. Please check your connection and try again.');
+        } else if (error.message.includes('cancelled') || error.message.includes('canceled')) {
+          // User cancelled - don't show error
+          setLoading(false);
+          return;
         } else {
-          toast.error('Unable to sign in with Apple. Please try another method.');
+          // Generic fallback - don't expose technical details
+          toast.error('Apple Sign-In is currently unavailable. Please try email/password or Google.');
         }
-        setLoading(false);
-      }
-      // Don't set loading to false on success - user will be redirected
-    } catch (err: any) {
-      console.error('Apple Sign-In exception:', err);
-      if (err?.message?.includes('cancelled') || err?.code === 'ERR_CANCELED') {
         setLoading(false);
         return;
       }
-      toast.error('Apple Sign-In is temporarily unavailable. Please use email or Google.');
+      
+      // Check if we got a valid response
+      if (!data?.url) {
+        toast.error('Apple Sign-In is currently unavailable. Please try email/password or Google.');
+        setLoading(false);
+        return;
+      }
+      
+      // Success - user will be redirected, don't set loading to false
+    } catch (err: any) {
+      console.error('Apple Sign-In exception:', err);
+      // Handle user cancellation silently
+      if (err?.message?.includes('cancelled') || err?.message?.includes('canceled') || err?.code === 'ERR_CANCELED') {
+        setLoading(false);
+        return;
+      }
+      // Don't show technical errors - use friendly message
+      toast.error('Apple Sign-In is currently unavailable. Please use email/password or Google.');
       setLoading(false);
     }
   };
