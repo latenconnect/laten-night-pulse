@@ -36,7 +36,7 @@ const CookieConsent: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed bottom-20 left-4 right-4 z-[100] md:left-auto md:right-6 md:max-w-md"
+          className="fixed bottom-28 left-4 right-4 z-[100] md:bottom-6 md:left-auto md:right-6 md:max-w-md safe-bottom"
         >
           <div className="glass-card p-4 border border-border shadow-2xl">
             <div className="flex items-start gap-3">
