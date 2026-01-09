@@ -153,6 +153,48 @@ const Auth: React.FC = () => {
     }
   };
 
+  const handleFacebookSignIn = async () => {
+    setLoading(true);
+    try {
+      const isNative = window.hasOwnProperty('Capacitor') && (window as any).Capacitor?.isNativePlatform?.();
+      
+      const redirectUrl = isNative 
+        ? 'laten://auth/callback' 
+        : `${window.location.origin}/auth`;
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: redirectUrl,
+          scopes: 'email,public_profile',
+        },
+      });
+      
+      if (error) {
+        console.error('Facebook Sign-In error:', error);
+        if (error.message.includes('provider is not enabled')) {
+          toast.error('Facebook Sign-In is not configured. Please use email/password.');
+        } else {
+          toast.error('Unable to sign in with Facebook. Please try another method.');
+        }
+        setLoading(false);
+        return;
+      }
+      
+      if (isNative && data?.url) {
+        window.open(data.url, '_system');
+      }
+    } catch (err: any) {
+      console.error('Facebook Sign-In exception:', err);
+      if (err?.message?.includes('cancelled') || err?.code === 'ERR_CANCELED') {
+        setLoading(false);
+        return;
+      }
+      toast.error('Facebook Sign-In is temporarily unavailable. Please use email.');
+      setLoading(false);
+    }
+  };
+
   const handleAppleSignIn = async () => {
     setLoading(true);
     try {
@@ -420,6 +462,19 @@ const Auth: React.FC = () => {
               />
             </svg>
             Continue with Google
+          </Button>
+          {/* Facebook Sign In */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleFacebookSignIn}
+            disabled={loading}
+            className="w-full h-14 gap-3 bg-card/50 border-border/50 hover:bg-card hover:border-border disabled:opacity-50"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            Continue with Facebook
           </Button>
         </motion.form>
 
