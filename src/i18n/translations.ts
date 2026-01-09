@@ -185,6 +185,9 @@ export const translations = {
       privacy: 'Privacy',
       help: 'Help & Support',
       about: 'About Laten',
+      deleteAccount: 'Delete Account',
+      deleteAccountTitle: 'Delete Your Account?',
+      deleteAccountWarning: 'This action cannot be undone. All your data will be permanently deleted, including:',
     },
     // Auth
     auth: {
@@ -605,6 +608,9 @@ export const translations = {
       privacy: 'Adatvédelem',
       help: 'Súgó & Támogatás',
       about: 'A Latenről',
+      deleteAccount: 'Fiók törlése',
+      deleteAccountTitle: 'Törlöd a fiókodat?',
+      deleteAccountWarning: 'Ez a művelet nem vonható vissza. Minden adatod véglegesen törlődik, beleértve:',
     },
     auth: {
       signIn: 'Bejelentkezés',
@@ -1002,6 +1008,9 @@ export const translations = {
       privacy: '隐私',
       help: '帮助与支持',
       about: '关于拉滕',
+      deleteAccount: '删除账户',
+      deleteAccountTitle: '删除您的账户？',
+      deleteAccountWarning: '此操作无法撤销。您的所有数据将被永久删除，包括：',
     },
     auth: {
       signIn: '登入',
@@ -1344,6 +1353,9 @@ export const translations = {
       privacy: 'Sự riêng tư',
       help: 'Trợ giúp & Hỗ trợ',
       about: 'Về Latex',
+      deleteAccount: 'Xóa tài khoản',
+      deleteAccountTitle: 'Xóa tài khoản của bạn?',
+      deleteAccountWarning: 'Không thể hoàn tác hành động này. Tất cả dữ liệu của bạn sẽ bị xóa vĩnh viễn, bao gồm:',
     },
     auth: {
       signIn: 'Đăng nhập',
@@ -1686,6 +1698,9 @@ export const translations = {
       privacy: 'Confidentialité',
       help: 'Aide et assistance',
       about: 'À propos de Laten',
+      deleteAccount: 'Supprimer le compte',
+      deleteAccountTitle: 'Supprimer votre compte ?',
+      deleteAccountWarning: 'Cette action est irréversible. Toutes vos données seront définitivement supprimées, y compris :',
     },
     auth: {
       signIn: 'Se connecter',
@@ -2028,6 +2043,9 @@ export const translations = {
       privacy: 'Riservatezza',
       help: 'Aiuto e supporto',
       about: 'Informazioni su Laten',
+      deleteAccount: 'Elimina account',
+      deleteAccountTitle: 'Eliminare il tuo account?',
+      deleteAccountWarning: 'Questa azione non può essere annullata. Tutti i tuoi dati verranno eliminati definitivamente, inclusi:',
     },
     auth: {
       signIn: 'Registrazione',
@@ -2370,6 +2388,9 @@ export const translations = {
       privacy: 'Privacidad',
       help: 'Ayuda y soporte',
       about: 'Acerca de Laten',
+      deleteAccount: 'Eliminar cuenta',
+      deleteAccountTitle: '¿Eliminar tu cuenta?',
+      deleteAccountWarning: 'Esta acción no se puede deshacer. Todos tus datos serán eliminados permanentemente, incluyendo:',
     },
     auth: {
       signIn: 'Iniciar sesión',
@@ -2712,6 +2733,9 @@ export const translations = {
       privacy: 'Datenschutz',
       help: 'Hilfe & Unterstützung',
       about: 'Über Laten',
+      deleteAccount: 'Konto löschen',
+      deleteAccountTitle: 'Konto löschen?',
+      deleteAccountWarning: 'Diese Aktion kann nicht rückgängig gemacht werden. Alle Ihre Daten werden dauerhaft gelöscht, einschließlich:',
     },
     auth: {
       signIn: 'Anmelden',
@@ -3054,6 +3078,9 @@ export const translations = {
       privacy: '은둔',
       help: '도움 및 지원',
       about: '라텐 소개',
+      deleteAccount: '계정 삭제',
+      deleteAccountTitle: '계정을 삭제하시겠습니까?',
+      deleteAccountWarning: '이 작업은 되돌릴 수 없습니다. 모든 데이터가 영구적으로 삭제됩니다:',
     },
     auth: {
       signIn: '로그인',
