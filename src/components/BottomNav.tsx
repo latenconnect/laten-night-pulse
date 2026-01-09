@@ -72,18 +72,6 @@ const BottomNav: React.FC = () => {
               >
                 <div className="relative">
                   <Icon className={cn("w-6 h-6 transition-transform", isActive && "scale-110")} />
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        layoutId="nav-indicator"
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0 }}
-                        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary"
-                        style={{ boxShadow: '0 0 10px hsl(270 91% 65%)' }}
-                      />
-                    )}
-                  </AnimatePresence>
                   {/* Unread badge */}
                   {showBadge && (
                     <motion.span
