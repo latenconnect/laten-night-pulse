@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { usePlatform } from './usePlatform';
 
 export type SubscriptionType = 'dj' | 'bartender' | 'professional' | 'party_boost';
 export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'trial' | 'inactive';
@@ -130,6 +131,8 @@ interface UseSubscriptionReturn {
   openCustomerPortal: () => Promise<boolean>;
   refreshSubscriptions: () => void;
   isSubscribed: (type: SubscriptionType) => boolean;
+  isIOSNative: boolean;
+  openWebSubscription: (type: SubscriptionType) => void;
 }
 
 export const useSubscription = (): UseSubscriptionReturn => {
@@ -137,6 +140,7 @@ export const useSubscription = (): UseSubscriptionReturn => {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isIOS } = usePlatform();
 
   // Fetch subscription status from Stripe via edge function
   const { data: subscriptionData, refetch: refreshSubscriptions } = useQuery({
@@ -160,12 +164,39 @@ export const useSubscription = (): UseSubscriptionReturn => {
   });
 
   /**
+   * Open web subscription page for iOS users
+   */
+  const openWebSubscription = useCallback((type: SubscriptionType) => {
+    const baseUrl = window.location.origin.replace('capacitor://', 'https://');
+    const paths: Record<SubscriptionType, string> = {
+      dj: '/dj/dashboard',
+      bartender: '/bartender/dashboard',
+      professional: '/professional/dashboard',
+      party_boost: '/profile',
+    };
+    const path = paths[type] || '/profile';
+    window.open(`${baseUrl}${path}?subscribe=true`, '_system');
+    toast.info('Opening subscription page in browser...');
+  }, []);
+
+  /**
    * Create a Stripe checkout session and redirect to payment
    */
   const createCheckout = useCallback(async (
     configKey: string, 
     profileId: string
   ): Promise<boolean> => {
+    // Block checkout on iOS native - must use web
+    if (isIOS) {
+      const config = SUBSCRIPTION_CONFIGS[configKey];
+      if (config) {
+        openWebSubscription(config.type);
+      } else {
+        toast.error('Please subscribe via our website');
+      }
+      return false;
+    }
+
     if (!user) {
       setError('Must be logged in to subscribe');
       toast.error('Please log in to subscribe');
@@ -213,7 +244,7 @@ export const useSubscription = (): UseSubscriptionReturn => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isIOS, openWebSubscription]);
 
   /**
    * Open Stripe Customer Portal for subscription management
@@ -337,6 +368,8 @@ export const useSubscription = (): UseSubscriptionReturn => {
     openCustomerPortal,
     refreshSubscriptions,
     isSubscribed,
+    isIOSNative: isIOS,
+    openWebSubscription,
   };
 };
 

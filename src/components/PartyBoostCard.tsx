@@ -7,6 +7,8 @@ import { useHost } from '@/hooks/useHost';
 import { useAuth } from '@/context/AuthContext';
 import { useHostSubscription } from '@/hooks/useHostSubscription';
 import { useLanguage } from '@/context/LanguageContext';
+import { usePlatform } from '@/hooks/usePlatform';
+import IOSSubscriptionNotice from '@/components/subscription/iOSSubscriptionNotice';
 
 const BOOST_FEATURES = [
   { icon: TrendingUp, label: 'Priority Feed Placement' },
@@ -22,6 +24,7 @@ const PartyBoostCard: React.FC = () => {
   const { t } = useLanguage();
   const { host, isVerifiedHost, loading: hostLoading } = useHost();
   const { subscription, isSubscribed, loading, createCheckout } = useHostSubscription(host?.id);
+  const { isIOS } = usePlatform();
 
   const handleSubscribe = async () => {
     if (!host?.id) return;
@@ -83,7 +86,44 @@ const PartyBoostCard: React.FC = () => {
     );
   }
 
-  // Show subscribe CTA
+  // Show iOS notice if on native iOS
+  if (isIOS) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-6"
+        style={{
+          background: 'linear-gradient(135deg, hsl(330 100% 50% / 0.1) 0%, hsl(270 100% 60% / 0.1) 100%)',
+        }}
+      >
+        <div className="absolute inset-0 border border-pink-500/20 rounded-2xl" />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
+              <Rocket className="w-6 h-6 text-pink-500" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-display font-bold text-lg">Party Boost</h3>
+                <Badge className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 text-xs">
+                  €10/mo
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Boost all your events automatically
+              </p>
+            </div>
+          </div>
+          
+          <IOSSubscriptionNotice subscriptionType="party_boost" />
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Show subscribe CTA for web/Android
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

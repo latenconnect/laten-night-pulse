@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Check, Music2, Wine, Camera, Rocket } from 'lucide-react';
+import { Crown, Check, Music2, Wine, Camera, Rocket, Globe, ExternalLink, Smartphone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
+import { usePlatform } from '@/hooks/usePlatform';
 import { toast } from 'sonner';
 
 // Stripe Product & Price IDs (synced with Stripe dashboard)
@@ -212,6 +213,7 @@ export const SubscriptionPlansSection: React.FC = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { isIOS } = usePlatform();
 
   const handleSubscribe = (tierId: string) => {
     if (!user) {
@@ -219,9 +221,32 @@ export const SubscriptionPlansSection: React.FC = () => {
       return;
     }
     
+    // On iOS, open the web version in system browser
+    if (isIOS) {
+      const baseUrl = window.location.origin.replace('capacitor://', 'https://');
+      let path = '/profile';
+      
+      switch (tierId) {
+        case 'dj_standard':
+          path = '/dj/dashboard';
+          break;
+        case 'bartender_standard':
+          path = '/bartender/dashboard';
+          break;
+        case 'professional_standard':
+          path = '/professional/dashboard';
+          break;
+        case 'party_boost':
+          path = '/profile';
+          break;
+      }
+      
+      window.open(`${baseUrl}${path}?subscribe=true`, '_system');
+      toast.info('Opening subscription page in browser...');
+      return;
+    }
+    
     // Navigate to the appropriate dashboard/profile page based on tier
-    // For DJ, Bartender, Professional - they need to create a profile first, then subscribe from dashboard
-    // For Party Boost - they need to be a verified host first
     switch (tierId) {
       case 'dj_standard':
         navigate('/dj/dashboard');
@@ -264,6 +289,22 @@ export const SubscriptionPlansSection: React.FC = () => {
         {t('business.subscriptionDescription')}
       </p>
 
+      {/* iOS Notice */}
+      {isIOS && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20"
+        >
+          <div className="flex items-center gap-2 text-sm">
+            <Smartphone className="w-4 h-4 text-amber-500" />
+            <span className="text-muted-foreground">
+              Subscriptions are managed via web browser. Tap a plan to continue.
+            </span>
+          </div>
+        </motion.div>
+      )}
+
       <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
         {tiers.map((tier, index) => (
           <SubscriptionPlanCard
@@ -275,9 +316,16 @@ export const SubscriptionPlansSection: React.FC = () => {
         ))}
       </div>
       
-      {/* Stripe ready note */}
+      {/* Payment note */}
       <p className="text-xs text-center text-muted-foreground mt-4">
-        {t('business.stripeSecurePayment')}
+        {isIOS ? (
+          <>
+            <Globe className="w-3 h-3 inline mr-1" />
+            Subscriptions are processed securely via our website
+          </>
+        ) : (
+          t('business.stripeSecurePayment')
+        )}
       </p>
     </section>
   );
