@@ -52,12 +52,16 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, []);
 
   const t = useCallback((key: string): string => {
-    if (!isReady || !i18n.isInitialized) return key;
+    if (!isReady || !i18n.isInitialized) return '';
     try {
       const result = i18n.t(key, { returnObjects: false });
-      return typeof result === 'string' ? result : key;
+      // If the result equals the key, translation is missing - return empty string
+      if (typeof result === 'string' && result !== key) {
+        return result;
+      }
+      return '';
     } catch {
-      return key;
+      return '';
     }
   }, [isReady]);
 
