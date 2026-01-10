@@ -8,7 +8,44 @@ import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/context/LanguageContext';
 import { useClubClaim, ClubClaim } from '@/hooks/useClubClaim';
 import { z } from 'zod';
+import { arrayBufferToBase64 } from '@/utils/encryption';
 
+/**
+ * Encrypt sensitive data using AES-GCM with Web Crypto API
+ * Returns a base64-encoded string containing IV + ciphertext
+ */
+const encryptSensitiveData = async (data: string): Promise<string> => {
+  // Generate a random encryption key for this claim (ephemeral)
+  const key = await crypto.subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt']
+  );
+  
+  // Generate random IV
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  
+  // Encrypt the data
+  const encoder = new TextEncoder();
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    encoder.encode(data)
+  );
+  
+  // Export the key for storage
+  const exportedKey = await crypto.subtle.exportKey('raw', key);
+  
+  // Combine IV + key + ciphertext into single buffer
+  const combined = new Uint8Array(
+    iv.length + new Uint8Array(exportedKey).length + new Uint8Array(ciphertext).length
+  );
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(exportedKey), iv.length);
+  combined.set(new Uint8Array(ciphertext), iv.length + new Uint8Array(exportedKey).length);
+  
+  return arrayBufferToBase64(combined.buffer);
+};
 interface ClaimVenueFormProps {
   clubId: string;
   clubName: string;
@@ -43,9 +80,11 @@ export const ClaimVenueForm: React.FC<ClaimVenueFormProps> = ({
       claimSchema.parse(formData);
       setSubmitting(true);
       
-      // Encrypt sensitive data before sending (base64 encode for now - in production use proper encryption)
-      const encryptedEmail = btoa(formData.business_email);
-      const encryptedPhone = formData.business_phone ? btoa(formData.business_phone) : undefined;
+      // Encrypt sensitive data using AES-GCM before sending
+      const encryptedEmail = await encryptSensitiveData(formData.business_email);
+      const encryptedPhone = formData.business_phone 
+        ? await encryptSensitiveData(formData.business_phone) 
+        : undefined;
       
       await submitClaim({
         business_name: formData.business_name,
