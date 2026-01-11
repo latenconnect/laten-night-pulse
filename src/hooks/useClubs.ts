@@ -47,19 +47,19 @@ export const useClubs = (limit?: number, filterByCity?: boolean, prioritizeNight
       setLoading(true);
       setError(null);
 
-      // Keywords that indicate non-nightlife venues to exclude
-      const excludedKeywords = ['wedding', 'catering', 'restaurant', 'hotel', 'pension', 'house', 'ház', 'étterem', 'esküvő', 'vendéglő', 'csárda', 'borház', 'pince', 'szálloda', 'szálló', 'ízműhely', 'műhely', 'fogadó', 'kúria', 'major', 'tanya', 'wine', 'winery', 'cellar', 'pincészet'];
-
       try {
         let query = supabase
           .from('clubs')
           .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type, description, services, highlights, music_genres, crowd_info')
           .eq('is_active', true)
+          .not('photos', 'is', null) // Must have photos
           .order('rating', { ascending: false, nullsFirst: false });
 
-        // Prioritize actual nightlife venues - only real clubs and lounges
+        // For nightlife prioritization, only show featured clubs with good ratings
         if (prioritizeNightlife) {
-          query = query.in('venue_type', ['night_club', 'club', 'lounge', 'disco', 'dance_club']);
+          query = query
+            .eq('is_featured', true) // Only admin-curated venues
+            .gte('rating', 4.0); // High-rated only
         }
 
         // Only filter by city if explicitly requested
@@ -67,23 +67,23 @@ export const useClubs = (limit?: number, filterByCity?: boolean, prioritizeNight
           query = query.eq('city', selectedCity);
         }
 
-        // Fetch more to allow for client-side filtering
         if (limit) {
-          query = query.limit(limit * 3);
+          query = query.limit(limit * 2);
         }
 
         const { data, error: fetchError } = await query;
 
         if (fetchError) throw fetchError;
         
-        // Filter out venues with excluded keywords in name
-        const filteredData = (data || []).filter(club => {
-          const nameLower = club.name.toLowerCase();
-          return !excludedKeywords.some(keyword => nameLower.includes(keyword.toLowerCase()));
-        });
+        // Filter to ensure venues have actual quality photos (not empty arrays)
+        const qualityVenues = (data || []).filter(club => 
+          club.photos && 
+          Array.isArray(club.photos) && 
+          club.photos.length > 0
+        );
         
         // Map data to Club type with proper casting
-        const mappedClubs: Club[] = filteredData.slice(0, limit || filteredData.length).map(club => ({
+        const mappedClubs: Club[] = qualityVenues.slice(0, limit || qualityVenues.length).map(club => ({
           ...club,
           opening_hours: club.opening_hours as OpeningHours | null,
           crowd_info: club.crowd_info as CrowdInfo | null
