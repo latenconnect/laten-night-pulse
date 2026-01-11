@@ -47,6 +47,9 @@ export const useClubs = (limit?: number, filterByCity?: boolean, prioritizeNight
       setLoading(true);
       setError(null);
 
+      // Keywords that indicate non-nightlife venues to exclude
+      const excludedKeywords = ['wedding', 'catering', 'restaurant', 'hotel', 'pension', 'house', 'ház', 'étterem', 'esküvő', 'vendéglő', 'csárda', 'borház', 'pince', 'szálloda', 'szálló', 'ízműhely', 'műhely', 'fogadó', 'kúria', 'major', 'tanya', 'wine', 'winery', 'cellar', 'pincészet'];
+
       try {
         let query = supabase
           .from('clubs')
@@ -54,9 +57,9 @@ export const useClubs = (limit?: number, filterByCity?: boolean, prioritizeNight
           .eq('is_active', true)
           .order('rating', { ascending: false, nullsFirst: false });
 
-        // Prioritize actual nightlife venues (clubs, bars, pubs)
+        // Prioritize actual nightlife venues - only real clubs and lounges
         if (prioritizeNightlife) {
-          query = query.in('venue_type', ['night_club', 'club', 'bar', 'pub', 'lounge']);
+          query = query.in('venue_type', ['night_club', 'club', 'lounge', 'disco', 'dance_club']);
         }
 
         // Only filter by city if explicitly requested
@@ -64,16 +67,23 @@ export const useClubs = (limit?: number, filterByCity?: boolean, prioritizeNight
           query = query.eq('city', selectedCity);
         }
 
+        // Fetch more to allow for client-side filtering
         if (limit) {
-          query = query.limit(limit);
+          query = query.limit(limit * 3);
         }
 
         const { data, error: fetchError } = await query;
 
         if (fetchError) throw fetchError;
         
+        // Filter out venues with excluded keywords in name
+        const filteredData = (data || []).filter(club => {
+          const nameLower = club.name.toLowerCase();
+          return !excludedKeywords.some(keyword => nameLower.includes(keyword.toLowerCase()));
+        });
+        
         // Map data to Club type with proper casting
-        const mappedClubs: Club[] = (data || []).map(club => ({
+        const mappedClubs: Club[] = filteredData.slice(0, limit || filteredData.length).map(club => ({
           ...club,
           opening_hours: club.opening_hours as OpeningHours | null,
           crowd_info: club.crowd_info as CrowdInfo | null
