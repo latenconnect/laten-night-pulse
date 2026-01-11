@@ -48,14 +48,21 @@ export const useFeaturedClubs = (city?: string, limit: number = 5) => {
     const fetchFeaturedClubs = async () => {
       setLoading(true);
 
+      // Quality venue types - only proper nightlife/entertainment venues
+      const qualityVenueTypes = ['night_club', 'club', 'lounge', 'disco', 'dance_club'];
+      
+      // Excluded keywords for venue names that indicate non-nightlife venues
+      const excludedKeywords = ['wedding', 'catering', 'restaurant', 'hotel', 'pension', 'house', 'ház', 'étterem', 'esküvő', 'vendéglő', 'csárda', 'borház', 'pince', 'szálloda', 'szálló'];
+
       // First try to get explicitly featured clubs
       let query = supabase
         .from('clubs')
         .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type, is_featured')
         .eq('is_active', true)
         .eq('is_featured', true)
+        .in('venue_type', qualityVenueTypes)
         .order('rating', { ascending: false, nullsFirst: false })
-        .limit(limit);
+        .limit(limit * 2); // Fetch more to filter later
 
       if (city) {
         query = query.eq('city', city);
@@ -69,9 +76,10 @@ export const useFeaturedClubs = (city?: string, limit: number = 5) => {
           .from('clubs')
           .select('id, name, address, city, latitude, longitude, rating, price_level, photos, google_maps_uri, business_status, opening_hours, venue_type, is_featured')
           .eq('is_active', true)
-          .in('venue_type', ['night_club', 'club', 'bar', 'pub', 'lounge'])
+          .in('venue_type', qualityVenueTypes)
+          .gte('rating', 4.0) // Only show well-rated venues
           .order('rating', { ascending: false, nullsFirst: false })
-          .limit(limit);
+          .limit(limit * 2);
 
         if (city) {
           fallbackQuery = fallbackQuery.eq('city', city);
@@ -85,7 +93,13 @@ export const useFeaturedClubs = (city?: string, limit: number = 5) => {
       if (error) {
         console.error('Error fetching featured clubs:', error);
       } else {
-        setClubs((data || []).map(club => ({
+        // Filter out venues with excluded keywords in name
+        const filteredData = (data || []).filter(club => {
+          const nameLower = club.name.toLowerCase();
+          return !excludedKeywords.some(keyword => nameLower.includes(keyword.toLowerCase()));
+        });
+        
+        setClubs(filteredData.slice(0, limit).map(club => ({
           ...club,
           opening_hours: club.opening_hours as Club['opening_hours'],
           crowd_info: null,
