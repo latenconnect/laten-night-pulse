@@ -12,7 +12,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Flag, Shield, Calendar, Users, ArrowLeft, Settings, Database, Music, Wine } from 'lucide-react';
+import { LayoutDashboard, Flag, Shield, Calendar, Users, ArrowLeft, Settings, Database, Music, Wine, Languages } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -25,6 +25,7 @@ const menuItems = [
   { title: 'DJs', url: '/admin/djs', icon: Music },
   { title: 'Bartenders', url: '/admin/bartenders', icon: Wine },
   { title: 'Club Import', url: '/admin/import', icon: Database },
+  { title: 'Translations', url: '/admin/translations', icon: Languages },
 ];
 
 const AdminSidebar = () => {
