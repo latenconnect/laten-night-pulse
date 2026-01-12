@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Check, Music2, Wine, Camera, Rocket, Globe, ExternalLink, Smartphone } from 'lucide-react';
+import { Crown, Check, Music2, Wine, Camera, Rocket, Apple, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -221,28 +221,10 @@ export const SubscriptionPlansSection: React.FC = () => {
       return;
     }
     
-    // On iOS, open the web version in system browser
+    // On iOS native, subscriptions must be via App Store (Guideline 3.1.1)
+    // Don't allow external payment navigation
     if (isIOS) {
-      const baseUrl = window.location.origin.replace('capacitor://', 'https://');
-      let path = '/profile';
-      
-      switch (tierId) {
-        case 'dj_standard':
-          path = '/dj/dashboard';
-          break;
-        case 'bartender_standard':
-          path = '/bartender/dashboard';
-          break;
-        case 'professional_standard':
-          path = '/professional/dashboard';
-          break;
-        case 'party_boost':
-          path = '/profile';
-          break;
-      }
-      
-      window.open(`${baseUrl}${path}?subscribe=true`, '_system');
-      toast.info('Opening subscription page in browser...');
+      toast.info('Subscriptions will be available via App Store soon!');
       return;
     }
     
@@ -289,18 +271,21 @@ export const SubscriptionPlansSection: React.FC = () => {
         {t('business.subscriptionDescription')}
       </p>
 
-      {/* iOS Notice */}
+      {/* iOS Notice - App Store Guideline 3.1.1 Compliance */}
       {isIOS && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20"
+          className="mb-4 p-4 rounded-xl bg-muted/30 border border-muted-foreground/20"
         >
-          <div className="flex items-center gap-2 text-sm">
-            <Smartphone className="w-4 h-4 text-amber-500" />
-            <span className="text-muted-foreground">
-              Subscriptions are managed via web browser. Tap a plan to continue.
-            </span>
+          <div className="flex items-start gap-3">
+            <Apple className="w-5 h-5 text-foreground shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-sm mb-1">App Store Subscriptions Coming Soon</h4>
+              <p className="text-xs text-muted-foreground">
+                Premium subscriptions will be available for purchase directly in the app. We're working on bringing you the full subscription experience via the App Store.
+              </p>
+            </div>
           </div>
         </motion.div>
       )}
@@ -320,8 +305,8 @@ export const SubscriptionPlansSection: React.FC = () => {
       <p className="text-xs text-center text-muted-foreground mt-4">
         {isIOS ? (
           <>
-            <Globe className="w-3 h-3 inline mr-1" />
-            Subscriptions are processed securely via our website
+            <Info className="w-3 h-3 inline mr-1" />
+            Subscriptions will be processed via App Store
           </>
         ) : (
           t('business.stripeSecurePayment')
