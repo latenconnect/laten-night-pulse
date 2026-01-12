@@ -58,7 +58,28 @@ serve(async (req) => {
     }
 
     const body = await req.text();
-    console.log('Received webhook payload:', body);
+    
+    // Validate content type
+    const contentType = req.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.warn('Invalid content type:', contentType);
+      return new Response(JSON.stringify({ error: 'Invalid content type' }), {
+        status: 415,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Limit body size to prevent DoS (max 1MB)
+    if (body.length > 1024 * 1024) {
+      console.warn('Payload too large:', body.length);
+      return new Response(JSON.stringify({ error: 'Payload too large' }), {
+        status: 413,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Don't log raw payloads in production - only log session ID
+    console.log('Received webhook, body size:', body.length);
 
     // Verify webhook signature - REQUIRED
     const signature = req.headers.get('x-signature');
@@ -97,25 +118,70 @@ serve(async (req) => {
       });
     }
 
-    const payload = JSON.parse(body);
-    console.log('Parsed webhook data:', JSON.stringify(payload, null, 2));
-
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-
-    // Extract user ID from vendor_data
-    const userId = payload.vendor_data;
-    const sessionId = payload.session_id;
-    const status = payload.status;
-
-    if (!userId) {
-      console.error('No user ID in vendor_data');
-      return new Response(JSON.stringify({ error: 'Missing user ID' }), {
+    let payload;
+    try {
+      payload = JSON.parse(body);
+    } catch {
+      console.error('Invalid JSON payload');
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    // Validate required payload fields
+    if (!payload.vendor_data || typeof payload.vendor_data !== 'string') {
+      console.error('Invalid vendor_data in payload');
+      return new Response(JSON.stringify({ error: 'Invalid payload structure' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Validate UUID format for user ID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(payload.vendor_data)) {
+      console.error('Invalid user ID format');
+      return new Response(JSON.stringify({ error: 'Invalid user identifier' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Log only non-sensitive data
+    console.log('Processing webhook for session:', payload.session_id, 'status:', payload.status);
 
-    console.log('Processing verification for user:', userId, 'status:', status);
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+
+    // Extract validated user ID from vendor_data
+    const userId = payload.vendor_data;
+    const sessionId = payload.session_id;
+    const status = payload.status;
+    
+    // Verify the session belongs to this user (prevents session hijacking)
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('didit_session_id')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (profileError || !profileData) {
+      console.error('User not found:', userId);
+      return new Response(JSON.stringify({ error: 'User not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    if (profileData.didit_session_id !== sessionId) {
+      console.error('Session mismatch for user:', userId, 'expected:', profileData.didit_session_id, 'got:', sessionId);
+      return new Response(JSON.stringify({ error: 'Session mismatch' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Verified session ownership for user:', userId);
 
     // Check if verification was successful and user is 18+
     let ageVerified = false;
