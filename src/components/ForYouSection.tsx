@@ -115,8 +115,7 @@ const ForYouSection: React.FC<ForYouSectionProps> = ({ events, loading, hasPerso
             {/* Relevance indicator */}
             <div className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 rounded-full bg-card/80 backdrop-blur-sm">
               <TrendingUp className="w-3 h-3 text-secondary" />
-              <span className="text-xs font-semibold">{event.relevanceScore}% {t('common.match')}</span>
-              <span className="text-xs font-semibold">{event.relevanceScore}% match</span>
+              <span className="text-xs font-semibold">{event.relevanceScore}% {t('common.match') || 'match'}</span>
             </div>
           </motion.div>
         ))}

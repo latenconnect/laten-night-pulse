@@ -58,33 +58,6 @@ export const transformDbEvent = (dbEvent: DbEvent): Event => ({
   createdAt: new Date(dbEvent.created_at),
 });
 
-export interface DbEvent {
-  id: string;
-  name: string;
-  description: string | null;
-  type: string;
-  cover_image: string | null;
-  photos: string[] | null;
-  location_name: string;
-  location_address: string | null;
-  location_lat: number | null;
-  location_lng: number | null;
-  city: string;
-  country: string | null;
-  start_time: string;
-  end_time: string | null;
-  price: number | null;
-  age_limit: number | null;
-  max_attendees: number | null;
-  expected_attendance: number | null;
-  actual_rsvp: number | null;
-  is_featured: boolean | null;
-  is_active: boolean | null;
-  safety_rules: string | null;
-  host_id: string;
-  created_at: string;
-}
-
 export const useEvents = (city?: string) => {
   const [events, setEvents] = useState<DbEvent[]>([]);
   const [loading, setLoading] = useState(true);
