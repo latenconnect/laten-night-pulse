@@ -1,11 +1,10 @@
 import { motion } from 'framer-motion';
-import { Crown, Check, AlertCircle, Settings } from 'lucide-react';
+import { Crown, Check, AlertCircle, Settings, Apple } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/LanguageContext';
 import { BARTENDER_SUBSCRIPTION_PRICE, BartenderSubscription } from '@/hooks/useBartenders';
-import { useSubscription } from '@/hooks/useSubscription';
 import { usePlatform } from '@/hooks/usePlatform';
 import IOSSubscriptionNotice from '@/components/subscription/iOSSubscriptionNotice';
 import { format } from 'date-fns';
@@ -34,7 +33,6 @@ export const BartenderSubscriptionCard = ({
   loading 
 }: BartenderSubscriptionCardProps) => {
   const { t } = useLanguage();
-  const { openCustomerPortal, loading: portalLoading } = useSubscription();
   const { isIOS } = usePlatform();
 
   const isActive = subscription?.status === 'active' && 
@@ -121,15 +119,12 @@ export const BartenderSubscriptionCard = ({
           )}
 
           {isActive && (
-            <Button 
-              variant="outline" 
-              className="w-full gap-2" 
-              onClick={openCustomerPortal}
-              disabled={portalLoading}
-            >
-              <Settings className="h-4 w-4" />
-              {portalLoading ? t('processing') : t('manageSubscription')}
-            </Button>
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-sm">
+              <Apple className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">
+                {t('manageViaAppStore')}
+              </span>
+            </div>
           )}
 
           {/* Note */}

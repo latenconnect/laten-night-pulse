@@ -10,15 +10,15 @@ import { useAuth } from '@/context/AuthContext';
 import { usePlatform } from '@/hooks/usePlatform';
 import { toast } from 'sonner';
 
-// Stripe Product & Price IDs (synced with Stripe dashboard)
-export const STRIPE_PRODUCTS = {
-  dj: { productId: 'prod_TdnvAia219rtSO', priceId: 'price_1SgWJX0pDoPM38rzyMLDI7F7' },
-  bartender: { productId: 'prod_TdnwYmmUIal76I', priceId: 'price_1SgWKs0pDoPM38rzgwmlBQlE' },
-  professional: { productId: 'prod_Tdnyd3McApSwtc', priceId: 'price_1SgWN00pDoPM38rzSkYpOsR4' },
-  party_boost: { productId: 'prod_Te7JXXsqH06QCu', priceId: 'price_1Sgp4n0pDoPM38rzfTeVwGjo' },
+// iOS Product IDs
+export const IOS_PRODUCTS = {
+  dj: { productId: 'com.laten.dj.subscription' },
+  bartender: { productId: 'com.laten.bartender.subscription' },
+  professional: { productId: 'com.laten.professional.subscription' },
+  party_boost: { productId: 'com.laten.partyboost.subscription' },
 };
 
-// Subscription tier configuration - synced with Stripe prices in EUR
+// Subscription tier configuration
 export const SUBSCRIPTION_TIERS = {
   dj: {
     id: 'dj_standard',
@@ -35,7 +35,7 @@ export const SUBSCRIPTION_TIERS = {
       'Collect ratings & reviews',
       'Priority support',
     ],
-    stripePriceId: STRIPE_PRODUCTS.dj.priceId,
+    iosProductId: IOS_PRODUCTS.dj.productId,
   },
   bartender: {
     id: 'bartender_standard',
@@ -52,7 +52,7 @@ export const SUBSCRIPTION_TIERS = {
       'Collect ratings & reviews',
       'Priority support',
     ],
-    stripePriceId: STRIPE_PRODUCTS.bartender.priceId,
+    iosProductId: IOS_PRODUCTS.bartender.productId,
   },
   professional: {
     id: 'professional_standard',
@@ -69,7 +69,7 @@ export const SUBSCRIPTION_TIERS = {
       'Portfolio showcase',
       'Priority support',
     ],
-    stripePriceId: STRIPE_PRODUCTS.professional.priceId,
+    iosProductId: IOS_PRODUCTS.professional.productId,
   },
   partyBoost: {
     id: 'party_boost',
@@ -87,7 +87,7 @@ export const SUBSCRIPTION_TIERS = {
       'Trending section visibility',
       'Social share templates',
     ],
-    stripePriceId: STRIPE_PRODUCTS.party_boost.priceId,
+    iosProductId: IOS_PRODUCTS.party_boost.productId,
   },
 };
 
@@ -221,13 +221,6 @@ export const SubscriptionPlansSection: React.FC = () => {
       return;
     }
     
-    // On iOS native, subscriptions must be via App Store (Guideline 3.1.1)
-    // Don't allow external payment navigation
-    if (isIOS) {
-      toast.info('Subscriptions will be available via App Store soon!');
-      return;
-    }
-    
     // Navigate to the appropriate dashboard/profile page based on tier
     switch (tierId) {
       case 'dj_standard':
@@ -271,7 +264,7 @@ export const SubscriptionPlansSection: React.FC = () => {
         {t('business.subscriptionDescription')}
       </p>
 
-      {/* iOS Notice - App Store Guideline 3.1.1 Compliance */}
+      {/* iOS In-App Purchase Notice */}
       {isIOS && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -281,9 +274,9 @@ export const SubscriptionPlansSection: React.FC = () => {
           <div className="flex items-start gap-3">
             <Apple className="w-5 h-5 text-foreground shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-sm mb-1">App Store Subscriptions Coming Soon</h4>
+              <h4 className="font-semibold text-sm mb-1">In-App Subscriptions</h4>
               <p className="text-xs text-muted-foreground">
-                Premium subscriptions will be available for purchase directly in the app. We're working on bringing you the full subscription experience via the App Store.
+                Subscriptions are purchased via the App Store. Create your profile first, then subscribe from your dashboard.
               </p>
             </div>
           </div>
@@ -303,14 +296,8 @@ export const SubscriptionPlansSection: React.FC = () => {
       
       {/* Payment note */}
       <p className="text-xs text-center text-muted-foreground mt-4">
-        {isIOS ? (
-          <>
-            <Info className="w-3 h-3 inline mr-1" />
-            Subscriptions will be processed via App Store
-          </>
-        ) : (
-          t('business.stripeSecurePayment')
-        )}
+        <Apple className="w-3 h-3 inline mr-1" />
+        Subscriptions are processed via App Store
       </p>
     </section>
   );

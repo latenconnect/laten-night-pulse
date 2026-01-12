@@ -23,12 +23,12 @@ const PartyBoostCard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { host, isVerifiedHost, loading: hostLoading } = useHost();
-  const { subscription, isSubscribed, loading, createCheckout, refetch } = useHostSubscription(host?.id);
+  const { subscription, isSubscribed, loading, purchaseBoost, refetch } = useHostSubscription(host?.id);
   const { isIOS } = usePlatform();
 
   const handleSubscribe = async () => {
     if (!host?.id) return;
-    await createCheckout(host.id);
+    await purchaseBoost(host.id);
   };
 
   // Only show for verified hosts
@@ -86,71 +86,20 @@ const PartyBoostCard: React.FC = () => {
     );
   }
 
-  // Show iOS purchase option if on native iOS
-  if (isIOS) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl p-6"
-        style={{
-          background: 'linear-gradient(135deg, hsl(330 100% 50% / 0.1) 0%, hsl(270 100% 60% / 0.1) 100%)',
-        }}
-      >
-        <div className="absolute inset-0 border border-pink-500/20 rounded-2xl" />
-        
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
-              <Rocket className="w-6 h-6 text-pink-500" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-display font-bold text-lg">Party Boost</h3>
-              <p className="text-sm text-muted-foreground">
-                Boost all your events automatically
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {BOOST_FEATURES.slice(0, 4).map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div key={feature.label} className="flex items-center gap-2">
-                  <div className="h-5 w-5 rounded-full bg-pink-500/10 flex items-center justify-center">
-                    <Icon className="h-3 w-3 text-pink-400" />
-                  </div>
-                  <span className="text-muted-foreground text-xs">{feature.label}</span>
-                </div>
-              );
-            })}
-          </div>
-          
-          <IOSSubscriptionNotice 
-            subscriptionType="party_boost" 
-            profileId={host?.id}
-            onPurchaseComplete={() => refetch()}
-          />
-        </div>
-      </motion.div>
-    );
-  }
-
-  // Show subscribe CTA for web/Android
+  // Show iOS purchase option
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.01 }}
       className="relative overflow-hidden rounded-2xl p-6"
       style={{
         background: 'linear-gradient(135deg, hsl(330 100% 50% / 0.1) 0%, hsl(270 100% 60% / 0.1) 100%)',
       }}
     >
-      <div className="absolute inset-0 border border-pink-500/20 hover:border-pink-500/40 rounded-2xl transition-colors" />
+      <div className="absolute inset-0 border border-pink-500/20 rounded-2xl" />
       
       <div className="relative z-10">
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
             <Rocket className="w-6 h-6 text-pink-500" />
           </div>
@@ -181,18 +130,26 @@ const PartyBoostCard: React.FC = () => {
           })}
         </div>
         
-        <Button 
-          onClick={handleSubscribe}
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 gap-2"
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Crown className="w-4 h-4" />
-          )}
-          Subscribe & Boost Events
-        </Button>
+        {isIOS ? (
+          <IOSSubscriptionNotice 
+            subscriptionType="party_boost" 
+            profileId={host?.id}
+            onPurchaseComplete={() => refetch()}
+          />
+        ) : (
+          <Button 
+            onClick={handleSubscribe}
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 gap-2"
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Crown className="w-4 h-4" />
+            )}
+            Subscribe via App Store
+          </Button>
+        )}
       </div>
     </motion.div>
   );

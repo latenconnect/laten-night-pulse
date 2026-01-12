@@ -24,7 +24,7 @@ const DJDashboard = () => {
   const { data: profile, isLoading: profileLoading } = useMyDJProfile();
   const { data: subscription, isLoading: subscriptionLoading } = useMyDJSubscription();
   const { data: bookingRequests } = useDJBookingRequests();
-  const { createCheckout, loading: checkoutLoading } = useSubscription();
+  const { purchaseSubscription, loading: checkoutLoading } = useSubscription();
 
   if (!user) {
     navigate('/auth');
@@ -33,7 +33,7 @@ const DJDashboard = () => {
 
   const handleSubscribe = async () => {
     if (!profile) return;
-    await createCheckout('dj_standard', profile.id);
+    await purchaseSubscription('dj_standard', profile.id);
   };
 
   const isSubscribed = subscription?.status === 'active' && 

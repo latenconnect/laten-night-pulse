@@ -24,7 +24,7 @@ const BartenderDashboard = () => {
   const { data: profile, isLoading: profileLoading } = useMyBartenderProfile();
   const { data: subscription, isLoading: subscriptionLoading } = useMyBartenderSubscription();
   const { data: bookingRequests } = useBartenderBookingRequests();
-  const { createCheckout, loading: checkoutLoading } = useSubscription();
+  const { purchaseSubscription, loading: checkoutLoading } = useSubscription();
 
   if (!user) {
     navigate('/auth');
@@ -33,7 +33,7 @@ const BartenderDashboard = () => {
 
   const handleSubscribe = async () => {
     if (!profile) return;
-    await createCheckout('bartender_standard', profile.id);
+    await purchaseSubscription('bartender_standard', profile.id);
   };
 
   const isSubscribed = subscription?.status === 'active' && 

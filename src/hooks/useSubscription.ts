@@ -1,9 +1,10 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { usePlatform } from './usePlatform';
+import { useIOSPurchases } from './useIOSPurchases';
 
 export type SubscriptionType = 'dj' | 'bartender' | 'professional' | 'party_boost';
 export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'trial' | 'inactive';
@@ -16,31 +17,18 @@ export interface SubscriptionConfig {
   currency: string;
   interval: 'month' | 'year';
   features: string[];
-  stripePriceId: string;
-  stripeProductId: string;
+  iosProductId: string;
 }
 
-// Stripe Product & Price IDs
-export const STRIPE_PRODUCTS = {
-  dj: {
-    productId: 'prod_TdnvAia219rtSO',
-    priceId: 'price_1SgWJX0pDoPM38rzyMLDI7F7',
-  },
-  bartender: {
-    productId: 'prod_TdnwYmmUIal76I',
-    priceId: 'price_1SgWKs0pDoPM38rzgwmlBQlE',
-  },
-  professional: {
-    productId: 'prod_Tdnyd3McApSwtc',
-    priceId: 'price_1SgWN00pDoPM38rzSkYpOsR4',
-  },
-  party_boost: {
-    productId: 'prod_Te7JXXsqH06QCu',
-    priceId: 'price_1Sgp4n0pDoPM38rzfTeVwGjo',
-  },
+// iOS Product IDs mapped to subscription types
+export const IOS_PRODUCT_IDS = {
+  dj: 'com.laten.dj.subscription',
+  bartender: 'com.laten.bartender.subscription',
+  professional: 'com.laten.professional.subscription',
+  party_boost: 'com.laten.partyboost.subscription',
 };
 
-// Subscription pricing configuration - synced with Stripe
+// Subscription pricing configuration
 export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
   dj_standard: {
     type: 'dj',
@@ -55,8 +43,7 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Collect ratings & reviews',
       'Priority support',
     ],
-    stripePriceId: STRIPE_PRODUCTS.dj.priceId,
-    stripeProductId: STRIPE_PRODUCTS.dj.productId,
+    iosProductId: IOS_PRODUCT_IDS.dj,
   },
   bartender_standard: {
     type: 'bartender',
@@ -71,8 +58,7 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Collect ratings & reviews',
       'Priority support',
     ],
-    stripePriceId: STRIPE_PRODUCTS.bartender.priceId,
-    stripeProductId: STRIPE_PRODUCTS.bartender.productId,
+    iosProductId: IOS_PRODUCT_IDS.bartender,
   },
   professional_standard: {
     type: 'professional',
@@ -87,8 +73,7 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Portfolio showcase',
       'Priority support',
     ],
-    stripePriceId: STRIPE_PRODUCTS.professional.priceId,
-    stripeProductId: STRIPE_PRODUCTS.professional.productId,
+    iosProductId: IOS_PRODUCT_IDS.professional,
   },
   party_boost: {
     type: 'party_boost',
@@ -104,20 +89,16 @@ export const SUBSCRIPTION_CONFIGS: Record<string, SubscriptionConfig> = {
       'Trending section visibility',
       'Social share templates',
     ],
-    stripePriceId: STRIPE_PRODUCTS.party_boost.priceId,
-    stripeProductId: STRIPE_PRODUCTS.party_boost.productId,
+    iosProductId: IOS_PRODUCT_IDS.party_boost,
   },
 };
 
 interface ActiveSubscription {
-  stripeSubscriptionId: string;
   subscriptionType: string;
-  productId: string;
-  priceId: string;
   profileId?: string;
   status: string;
-  currentPeriodEnd: string;
-  cancelAtPeriodEnd: boolean;
+  expiresAt: string;
+  iosTransactionId?: string;
 }
 
 interface UseSubscriptionReturn {
@@ -125,14 +106,12 @@ interface UseSubscriptionReturn {
   error: string | null;
   subscriptions: ActiveSubscription[];
   hasActiveSubscription: boolean;
-  createCheckout: (configKey: string, profileId: string) => Promise<boolean>;
-  cancelSubscription: (subscriptionId: string, type: SubscriptionType) => Promise<boolean>;
+  purchaseSubscription: (configKey: string, profileId: string) => Promise<boolean>;
+  restorePurchases: () => Promise<boolean>;
   checkSubscriptionStatus: (profileId: string, type: SubscriptionType) => Promise<boolean>;
-  openCustomerPortal: () => Promise<boolean>;
   refreshSubscriptions: () => void;
   isSubscribed: (type: SubscriptionType) => boolean;
   isIOSNative: boolean;
-  openWebSubscription: (type: SubscriptionType) => void;
 }
 
 export const useSubscription = (): UseSubscriptionReturn => {
@@ -141,62 +120,103 @@ export const useSubscription = (): UseSubscriptionReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { isIOS } = usePlatform();
+  const { purchase: purchaseProduct, restorePurchases: restoreIOSPurchases, loading: iosLoading } = useIOSPurchases();
 
-  // Fetch subscription status from Stripe via edge function
+  // Fetch subscription status from database
   const { data: subscriptionData, refetch: refreshSubscriptions } = useQuery({
-    queryKey: ['stripe-subscriptions', user?.id],
+    queryKey: ['subscriptions', user?.id],
     queryFn: async () => {
       if (!user) return { subscriptions: [], hasActiveSubscription: false };
       
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      
-      if (error) {
-        console.error('Error checking subscription:', error);
-        return { subscriptions: [], hasActiveSubscription: false };
+      const subscriptions: ActiveSubscription[] = [];
+      const now = new Date().toISOString();
+
+      // Check all subscription tables
+      const [djSub, bartenderSub, professionalSub, hostSub] = await Promise.all([
+        supabase
+          .from('dj_subscriptions')
+          .select('*, dj_profiles!inner(user_id)')
+          .eq('dj_profiles.user_id', user.id)
+          .eq('status', 'active')
+          .gte('expires_at', now)
+          .maybeSingle(),
+        supabase
+          .from('bartender_subscriptions')
+          .select('*, bartender_profiles!inner(user_id)')
+          .eq('bartender_profiles.user_id', user.id)
+          .eq('status', 'active')
+          .gte('expires_at', now)
+          .maybeSingle(),
+        supabase
+          .from('professional_subscriptions')
+          .select('*, professionals!inner(user_id)')
+          .eq('professionals.user_id', user.id)
+          .eq('status', 'active')
+          .gte('expires_at', now)
+          .maybeSingle(),
+        supabase
+          .from('host_subscriptions')
+          .select('*, hosts!inner(user_id)')
+          .eq('hosts.user_id', user.id)
+          .eq('status', 'active')
+          .gte('expires_at', now)
+          .maybeSingle(),
+      ]);
+
+      if (djSub.data) {
+        subscriptions.push({
+          subscriptionType: 'dj',
+          profileId: djSub.data.dj_profile_id,
+          status: djSub.data.status,
+          expiresAt: djSub.data.expires_at,
+        });
       }
-      
-      return data as { subscriptions: ActiveSubscription[]; hasActiveSubscription: boolean };
+
+      if (bartenderSub.data) {
+        subscriptions.push({
+          subscriptionType: 'bartender',
+          profileId: bartenderSub.data.bartender_profile_id,
+          status: bartenderSub.data.status,
+          expiresAt: bartenderSub.data.expires_at,
+        });
+      }
+
+      if (professionalSub.data) {
+        subscriptions.push({
+          subscriptionType: 'professional',
+          profileId: professionalSub.data.professional_id,
+          status: professionalSub.data.status,
+          expiresAt: professionalSub.data.expires_at,
+        });
+      }
+
+      if (hostSub.data) {
+        subscriptions.push({
+          subscriptionType: 'party_boost',
+          profileId: hostSub.data.host_id,
+          status: hostSub.data.status,
+          expiresAt: hostSub.data.expires_at,
+        });
+      }
+
+      return {
+        subscriptions,
+        hasActiveSubscription: subscriptions.length > 0,
+      };
     },
     enabled: !!user,
-    staleTime: 30000, // Cache for 30 seconds
-    refetchInterval: 30000, // Auto-refresh every 30 seconds for faster updates
-    refetchOnWindowFocus: true, // Refresh when user returns to tab
+    staleTime: 30000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: true,
   });
 
   /**
-   * Open web subscription page for iOS users
+   * Purchase subscription via iOS In-App Purchase
    */
-  const openWebSubscription = useCallback((type: SubscriptionType) => {
-    const baseUrl = window.location.origin.replace('capacitor://', 'https://');
-    const paths: Record<SubscriptionType, string> = {
-      dj: '/dj/dashboard',
-      bartender: '/bartender/dashboard',
-      professional: '/professional/dashboard',
-      party_boost: '/profile',
-    };
-    const path = paths[type] || '/profile';
-    window.open(`${baseUrl}${path}?subscribe=true`, '_system');
-    toast.info('Opening subscription page in browser...');
-  }, []);
-
-  /**
-   * Create a Stripe checkout session and redirect to payment
-   */
-  const createCheckout = useCallback(async (
+  const purchaseSubscription = useCallback(async (
     configKey: string, 
     profileId: string
   ): Promise<boolean> => {
-    // Block checkout on iOS native - must use web
-    if (isIOS) {
-      const config = SUBSCRIPTION_CONFIGS[configKey];
-      if (config) {
-        openWebSubscription(config.type);
-      } else {
-        toast.error('Please subscribe via our website');
-      }
-      return false;
-    }
-
     if (!user) {
       setError('Must be logged in to subscribe');
       toast.error('Please log in to subscribe');
@@ -210,85 +230,58 @@ export const useSubscription = (): UseSubscriptionReturn => {
       return false;
     }
 
+    if (!isIOS) {
+      toast.error('Subscriptions are only available on iOS');
+      return false;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          priceId: config.stripePriceId,
-          profileId,
-          subscriptionType: config.type,
-          successUrl: `${window.location.origin}/subscription/success`,
-          cancelUrl: `${window.location.origin}/subscription/cancelled`,
-        }
-      });
-
-      if (invokeError) {
-        throw new Error(invokeError.message || 'Failed to create checkout session');
+      // Map config type to IOSProductType
+      const iosProductType = config.type as 'dj' | 'bartender' | 'professional' | 'party_boost';
+      const success = await purchaseProduct(iosProductType, profileId);
+      
+      if (success) {
+        // Refresh subscription data
+        await refreshSubscriptions();
+        queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
       }
-
-      if (data?.url) {
-        // Open Stripe checkout in new tab
-        window.open(data.url, '_blank');
-        toast.success('Redirecting to payment...');
-        return true;
-      } else {
-        throw new Error('No checkout URL received');
-      }
+      
+      return success;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to start checkout';
+      const message = err instanceof Error ? err.message : 'Failed to purchase subscription';
       setError(message);
       toast.error(message);
       return false;
     } finally {
       setLoading(false);
     }
-  }, [user, isIOS, openWebSubscription]);
+  }, [user, isIOS, purchaseProduct, refreshSubscriptions, queryClient]);
 
   /**
-   * Open Stripe Customer Portal for subscription management
+   * Restore previous purchases
    */
-  const openCustomerPortal = useCallback(async (): Promise<boolean> => {
-    if (!user) {
-      toast.error('Please log in to manage subscriptions');
+  const restorePurchases = useCallback(async (): Promise<boolean> => {
+    if (!isIOS) {
+      toast.info('Restore purchases is only available on iOS');
       return false;
     }
-
-    setLoading(true);
 
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke('customer-portal');
-
-      if (invokeError) {
-        throw new Error(invokeError.message || 'Failed to open customer portal');
+      const success = await restoreIOSPurchases();
+      if (success) {
+        await refreshSubscriptions();
+        queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
       }
-
-      if (data?.url) {
-        window.open(data.url, '_blank');
-        return true;
-      } else {
-        throw new Error('No portal URL received');
-      }
+      return success;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to open subscription management';
+      const message = err instanceof Error ? err.message : 'Failed to restore purchases';
       toast.error(message);
       return false;
-    } finally {
-      setLoading(false);
     }
-  }, [user]);
-
-  /**
-   * Cancel an existing subscription via customer portal
-   */
-  const cancelSubscription = useCallback(async (
-    _subscriptionId: string,
-    _type: SubscriptionType
-  ): Promise<boolean> => {
-    // For cancellation, redirect to customer portal
-    return openCustomerPortal();
-  }, [openCustomerPortal]);
+  }, [isIOS, restoreIOSPurchases, refreshSubscriptions, queryClient]);
 
   /**
    * Check if a profile has an active subscription
@@ -358,18 +351,16 @@ export const useSubscription = (): UseSubscriptionReturn => {
   }, [subscriptionData]);
 
   return {
-    loading,
+    loading: loading || iosLoading,
     error,
     subscriptions: subscriptionData?.subscriptions || [],
     hasActiveSubscription: subscriptionData?.hasActiveSubscription || false,
-    createCheckout,
-    cancelSubscription,
+    purchaseSubscription,
+    restorePurchases,
     checkSubscriptionStatus,
-    openCustomerPortal,
     refreshSubscriptions,
     isSubscribed,
     isIOSNative: isIOS,
-    openWebSubscription,
   };
 };
 
