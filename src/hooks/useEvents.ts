@@ -89,10 +89,6 @@ export const useEvents = (city?: string) => {
   const [events, setEvents] = useState<DbEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchEvents();
-  }, [city]);
-
   const fetchEvents = async () => {
     let query = supabase
       .from('events')
@@ -113,6 +109,62 @@ export const useEvents = (city?: string) => {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [city]);
+
+  // Subscribe to realtime changes for events
+  useEffect(() => {
+    const channel = supabase
+      .channel('events-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'events'
+        },
+        (payload) => {
+          console.log('Realtime event update:', payload.eventType);
+          
+          if (payload.eventType === 'INSERT') {
+            const newEvent = payload.new as DbEvent;
+            // Only add if active and matches city filter
+            if (newEvent.is_active && (!city || newEvent.city === city)) {
+              setEvents(prev => [...prev, newEvent].sort((a, b) => 
+                new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+              ));
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedEvent = payload.new as DbEvent;
+            setEvents(prev => {
+              // If event is no longer active or doesn't match city, remove it
+              if (!updatedEvent.is_active || (city && updatedEvent.city !== city)) {
+                return prev.filter(e => e.id !== updatedEvent.id);
+              }
+              // Otherwise update or add the event
+              const exists = prev.find(e => e.id === updatedEvent.id);
+              if (exists) {
+                return prev.map(e => e.id === updatedEvent.id ? updatedEvent : e);
+              } else {
+                return [...prev, updatedEvent].sort((a, b) => 
+                  new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+                );
+              }
+            });
+          } else if (payload.eventType === 'DELETE') {
+            const deletedEvent = payload.old as DbEvent;
+            setEvents(prev => prev.filter(e => e.id !== deletedEvent.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [city]);
 
   return { events, loading, refetch: fetchEvents };
 };
