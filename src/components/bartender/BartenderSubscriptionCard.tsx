@@ -6,11 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/LanguageContext';
 import { BARTENDER_SUBSCRIPTION_PRICE, BartenderSubscription } from '@/hooks/useBartenders';
 import { useSubscription } from '@/hooks/useSubscription';
+import { usePlatform } from '@/hooks/usePlatform';
+import IOSSubscriptionNotice from '@/components/subscription/iOSSubscriptionNotice';
 import { format } from 'date-fns';
 
 interface BartenderSubscriptionCardProps {
   subscription: BartenderSubscription | null;
+  profileId?: string;
   onSubscribe: () => void;
+  onPurchaseComplete?: () => void;
   loading?: boolean;
 }
 
@@ -22,9 +26,16 @@ const SUBSCRIPTION_FEATURES = [
   'prioritySupport',
 ];
 
-export const BartenderSubscriptionCard = ({ subscription, onSubscribe, loading }: BartenderSubscriptionCardProps) => {
+export const BartenderSubscriptionCard = ({ 
+  subscription, 
+  profileId,
+  onSubscribe, 
+  onPurchaseComplete,
+  loading 
+}: BartenderSubscriptionCardProps) => {
   const { t } = useLanguage();
   const { openCustomerPortal, loading: portalLoading } = useSubscription();
+  const { isIOS } = usePlatform();
 
   const isActive = subscription?.status === 'active' && 
     subscription.expires_at && 
@@ -87,8 +98,17 @@ export const BartenderSubscriptionCard = ({ subscription, onSubscribe, loading }
             </div>
           )}
 
-          {/* Subscribe Button */}
-          {!isActive && (
+          {/* Subscribe Button - iOS */}
+          {!isActive && isIOS && (
+            <IOSSubscriptionNotice 
+              subscriptionType="bartender" 
+              profileId={profileId}
+              onPurchaseComplete={onPurchaseComplete}
+            />
+          )}
+
+          {/* Subscribe Button - Web/Android */}
+          {!isActive && !isIOS && (
             <Button 
               className="w-full gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black" 
               size="lg"
