@@ -35,6 +35,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminImport from "./pages/admin/AdminImport";
 import AdminDJs from "./pages/admin/AdminDJs";
 import AdminBartenders from "./pages/admin/AdminBartenders";
+import AdminTranslations from "./pages/admin/AdminTranslations";
 import DJMarketplace from "./pages/DJMarketplace";
 import DJProfile from "./pages/DJProfile";
 import DJDashboard from "./pages/DJDashboard";
@@ -118,6 +119,7 @@ const AppContent = () => {
         <Route path="/admin/djs" element={<AdminDJs />} />
         <Route path="/admin/bartenders" element={<AdminBartenders />} />
         <Route path="/admin/import" element={<AdminImport />} />
+        <Route path="/admin/translations" element={<AdminTranslations />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <GlobalSearch isOpen={isSearchOpen} onClose={closeSearch} />
