@@ -47,3 +47,9 @@ verify_jwt = true
 
 [functions.weekly-recap]
 verify_jwt = true
+
+[functions.algolia-sync-single]
+verify_jwt = false
+
+[functions.apple-subscription-webhook]
+verify_jwt = false
