@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { STRIPE_PRODUCTS } from './useSubscription';
+import { usePlatform } from './usePlatform';
+import { useIOSPurchases } from './useIOSPurchases';
+import { IOS_PRODUCT_IDS } from './useSubscription';
 
 export interface HostSubscription {
   id: string;
@@ -12,7 +14,6 @@ export interface HostSubscription {
   status: string;
   price_cents: number;
   currency: string;
-  stripe_subscription_id: string | null;
   started_at: string | null;
   expires_at: string | null;
   auto_renew: boolean;
@@ -22,6 +23,8 @@ export const useHostSubscription = (hostId?: string) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const { isIOS } = usePlatform();
+  const { purchase: purchaseProduct, loading: iosLoading } = useIOSPurchases();
 
   // Fetch host subscription from database
   const { data: subscription, refetch, isLoading } = useQuery({
@@ -55,45 +58,39 @@ export const useHostSubscription = (hostId?: string) => {
 
   const isSubscribed = !!subscription && subscription.status === 'active';
 
-  // Create checkout for party boost subscription
-  const createCheckout = useCallback(async (hostIdParam: string): Promise<boolean> => {
+  // Purchase party boost subscription via iOS IAP
+  const purchaseBoost = useCallback(async (hostIdParam: string): Promise<boolean> => {
     if (!user) {
       toast.error('Please log in to subscribe');
+      return false;
+    }
+
+    if (!isIOS) {
+      toast.error('Subscriptions are only available on iOS');
       return false;
     }
 
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          priceId: STRIPE_PRODUCTS.party_boost.priceId,
-          profileId: hostIdParam, // This is the host_id
-          subscriptionType: 'party_boost',
-          successUrl: `${window.location.origin}/subscription/success`,
-          cancelUrl: `${window.location.origin}/subscription/cancelled`,
-        },
-      });
-
-      if (error) {
-        throw new Error(error.message || 'Failed to create checkout session');
+      const success = await purchaseProduct('party_boost', hostIdParam);
+      
+      if (success) {
+        await refetch();
+        queryClient.invalidateQueries({ queryKey: ['host-subscription'] });
+        queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+        toast.success('Party Boost activated!');
       }
-
-      if (data?.url) {
-        window.open(data.url, '_blank');
-        toast.success('Redirecting to payment...');
-        return true;
-      } else {
-        throw new Error('No checkout URL received');
-      }
+      
+      return success;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to start checkout';
+      const message = err instanceof Error ? err.message : 'Failed to purchase subscription';
       toast.error(message);
       return false;
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isIOS, purchaseProduct, refetch, queryClient]);
 
   // Check what boost features are available
   const hasFeature = useCallback((feature: 'priority_feed' | 'featured_badge' | 'push_notifications' | 'analytics' | 'trending' | 'social_templates') => {
@@ -104,11 +101,11 @@ export const useHostSubscription = (hostId?: string) => {
 
   return {
     subscription,
-    loading: loading || isLoading,
+    loading: loading || isLoading || iosLoading,
     isSubscribed,
     tier: subscription?.tier,
     hasFeature,
-    createCheckout,
+    purchaseBoost,
     refetch,
   };
 };

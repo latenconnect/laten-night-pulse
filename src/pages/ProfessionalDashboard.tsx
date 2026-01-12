@@ -61,7 +61,7 @@ const ProfessionalDashboard = () => {
   const { data: bookingRequests } = useMyProfessionalBookings();
   const createProfile = useCreateProfessionalProfile();
   const updateProfile = useUpdateProfessionalProfile();
-  const { createCheckout } = useSubscription();
+  const { purchaseSubscription } = useSubscription();
 
   // Form state
   const [displayName, setDisplayName] = useState('');
@@ -197,7 +197,7 @@ const ProfessionalDashboard = () => {
 
   const handleSubscribe = async () => {
     if (!profile) return;
-    await createCheckout('professional_standard', profile.id);
+    await purchaseSubscription('professional_standard', profile.id);
   };
 
   const isSubscribed = subscription?.status === 'active' && 
