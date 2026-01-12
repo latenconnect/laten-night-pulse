@@ -23,7 +23,7 @@ const PartyBoostCard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { host, isVerifiedHost, loading: hostLoading } = useHost();
-  const { subscription, isSubscribed, loading, createCheckout } = useHostSubscription(host?.id);
+  const { subscription, isSubscribed, loading, createCheckout, refetch } = useHostSubscription(host?.id);
   const { isIOS } = usePlatform();
 
   const handleSubscribe = async () => {
@@ -86,7 +86,7 @@ const PartyBoostCard: React.FC = () => {
     );
   }
 
-  // Show iOS notice if on native iOS
+  // Show iOS purchase option if on native iOS
   if (isIOS) {
     return (
       <motion.div
@@ -105,19 +105,32 @@ const PartyBoostCard: React.FC = () => {
               <Rocket className="w-6 h-6 text-pink-500" />
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-display font-bold text-lg">Party Boost</h3>
-                <Badge className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 text-xs">
-                  €10/mo
-                </Badge>
-              </div>
+              <h3 className="font-display font-bold text-lg">Party Boost</h3>
               <p className="text-sm text-muted-foreground">
                 Boost all your events automatically
               </p>
             </div>
           </div>
           
-          <IOSSubscriptionNotice subscriptionType="party_boost" />
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {BOOST_FEATURES.slice(0, 4).map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div key={feature.label} className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-pink-500/10 flex items-center justify-center">
+                    <Icon className="h-3 w-3 text-pink-400" />
+                  </div>
+                  <span className="text-muted-foreground text-xs">{feature.label}</span>
+                </div>
+              );
+            })}
+          </div>
+          
+          <IOSSubscriptionNotice 
+            subscriptionType="party_boost" 
+            profileId={host?.id}
+            onPurchaseComplete={() => refetch()}
+          />
         </div>
       </motion.div>
     );

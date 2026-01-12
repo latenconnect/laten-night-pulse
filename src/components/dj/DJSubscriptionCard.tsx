@@ -6,11 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/LanguageContext';
 import { DJ_SUBSCRIPTION_PRICE, DJSubscription } from '@/hooks/useDJs';
 import { useSubscription } from '@/hooks/useSubscription';
+import { usePlatform } from '@/hooks/usePlatform';
+import IOSSubscriptionNotice from '@/components/subscription/iOSSubscriptionNotice';
 import { format } from 'date-fns';
 
 interface DJSubscriptionCardProps {
   subscription: DJSubscription | null;
+  profileId?: string;
   onSubscribe: () => void;
+  onPurchaseComplete?: () => void;
   loading?: boolean;
 }
 
@@ -22,9 +26,16 @@ const SUBSCRIPTION_FEATURES = [
   'prioritySupport',
 ];
 
-export const DJSubscriptionCard = ({ subscription, onSubscribe, loading }: DJSubscriptionCardProps) => {
+export const DJSubscriptionCard = ({ 
+  subscription, 
+  profileId,
+  onSubscribe, 
+  onPurchaseComplete,
+  loading 
+}: DJSubscriptionCardProps) => {
   const { t } = useLanguage();
   const { openCustomerPortal, loading: portalLoading } = useSubscription();
+  const { isIOS } = usePlatform();
 
   const isActive = subscription?.status === 'active' && 
     subscription.expires_at && 
@@ -87,8 +98,17 @@ export const DJSubscriptionCard = ({ subscription, onSubscribe, loading }: DJSub
             </div>
           )}
 
-          {/* Subscribe Button */}
-          {!isActive && (
+          {/* Subscribe Button - iOS */}
+          {!isActive && isIOS && (
+            <IOSSubscriptionNotice 
+              subscriptionType="dj" 
+              profileId={profileId}
+              onPurchaseComplete={onPurchaseComplete}
+            />
+          )}
+
+          {/* Subscribe Button - Web/Android */}
+          {!isActive && !isIOS && (
             <Button 
               className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70" 
               size="lg"
