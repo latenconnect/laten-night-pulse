@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["6BA8ZY4ZPX.com.laten.app"],
+        "components": [
+          { "/": "/*" }
+        ]
+      }
+    ]
+  }
+}
