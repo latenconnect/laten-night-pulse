@@ -4,6 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.laten.app',
   appName: 'Laten',
   webDir: 'dist',
+  // NOTE: For development, uncomment the server block below to enable hot-reload
+  // server: {
+  //   url: 'https://6a2687d6-1d71-46e4-9501-a7e4fcd69fac.lovableproject.com?forceHideBadge=true',
+  //   cleartext: true
+  // },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2500,
