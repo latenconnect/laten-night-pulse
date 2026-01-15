@@ -1,15 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Cookie, X } from 'lucide-react';
+import { Shield, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const COOKIE_CONSENT_KEY = 'laten_cookie_consent';
 
+/**
+ * Session & Essential Cookies Notice
+ * 
+ * This component informs users about essential cookies used for:
+ * - Authentication (keeping users logged in)
+ * - Session management
+ * - User preferences (language, theme)
+ * 
+ * IMPORTANT: This app does NOT use cookies for tracking or advertising.
+ * We do NOT share data with third parties for advertising purposes.
+ * This notice is for transparency only - not for tracking consent.
+ */
 const CookieConsent: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    // Check if we're in a native app environment - skip cookie notice
+    const isNative = window.hasOwnProperty('Capacitor') && (window as any).Capacitor?.isNativePlatform?.();
+    if (isNative) {
+      return; // Don't show cookie notice in native apps
+    }
+
     const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
     if (!consent) {
       // Show after a short delay for better UX
@@ -18,13 +36,13 @@ const CookieConsent: React.FC = () => {
     }
   }, []);
 
-  const handleAccept = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+  const handleAcknowledge = () => {
+    localStorage.setItem(COOKIE_CONSENT_KEY, 'acknowledged');
     setIsVisible(false);
   };
 
-  const handleDecline = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
+  const handleDismiss = () => {
+    localStorage.setItem(COOKIE_CONSENT_KEY, 'dismissed');
     setIsVisible(false);
   };
 
@@ -41,39 +59,32 @@ const CookieConsent: React.FC = () => {
           <div className="glass-card p-4 border border-border shadow-2xl">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <Cookie className="w-5 h-5 text-primary" />
+                <Shield className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground mb-1">Cookie Consent</h3>
+                <h3 className="font-semibold text-foreground mb-1">Session & Security</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  We use essential cookies to enhance your experience. We do not track you or share your data with third parties. 
-                  By continuing to use Laten, you consent to our use of cookies.{' '}
+                  We use essential cookies only for authentication and keeping you logged in. 
+                  <strong className="text-foreground"> We do not track you or use cookies for advertising.</strong>{' '}
                   <Link to="/privacy" className="text-primary hover:underline">
-                    Learn more
+                    Privacy Policy
                   </Link>
                 </p>
                 <div className="flex gap-2">
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDecline}
-                    className="flex-1"
-                  >
-                    Decline
-                  </Button>
-                  <Button
                     variant="neon"
                     size="sm"
-                    onClick={handleAccept}
+                    onClick={handleAcknowledge}
                     className="flex-1"
                   >
-                    Accept All
+                    Got it
                   </Button>
                 </div>
               </div>
               <button
-                onClick={handleDecline}
+                onClick={handleDismiss}
                 className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Dismiss"
               >
                 <X className="w-4 h-4" />
               </button>

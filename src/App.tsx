@@ -11,6 +11,7 @@ import SplashScreen from "@/components/SplashScreen";
 import CookieConsent from "@/components/CookieConsent";
 import NotificationPrompt from "@/components/NotificationPrompt";
 import GlobalSearch from "@/components/GlobalSearch";
+import DeepLinkHandler from "@/components/DeepLinkHandler";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
@@ -52,6 +53,8 @@ import { SearchContext } from "@/context/SearchContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 
 const queryClient = new QueryClient();
+
+// queryClient is defined above
 
 const AppContent = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -162,6 +165,7 @@ const App = () => {
                 {isLoading && <SplashScreen key="splash" />}
               </AnimatePresence>
               <BrowserRouter>
+                <DeepLinkHandler />
                 <AppContent />
               </BrowserRouter>
             </TooltipProvider>
