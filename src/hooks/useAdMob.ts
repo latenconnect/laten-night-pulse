@@ -43,6 +43,9 @@ export const useAdMob = () => {
       try {
         const { AdMob } = await import('@capacitor-community/admob');
         
+        // Initialize AdMob with testing mode in dev
+        // NON-PERSONALIZED ADS: We don't request tracking authorization
+        // and ads will be served without personalization
         await AdMob.initialize({
           initializeForTesting: __DEV__ || false,
         });
@@ -51,6 +54,8 @@ export const useAdMob = () => {
           isInitialized: true,
           isNativeSupported: true,
         });
+        
+        console.log('AdMob initialized with non-personalized ads only (no tracking)');
       } catch (error) {
         console.warn('AdMob initialization failed:', error);
         setState({
