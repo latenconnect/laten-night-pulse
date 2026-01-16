@@ -2891,7 +2891,7 @@ export type Database = {
       delete_dj_profile: { Args: { profile_id: string }; Returns: boolean }
       delete_user_account: {
         Args: { user_id_to_delete: string }
-        Returns: boolean
+        Returns: Json
       }
       get_user_bartender_profile_id: { Args: { uid: string }; Returns: string }
       get_user_dj_profile_id: { Args: { uid: string }; Returns: string }
