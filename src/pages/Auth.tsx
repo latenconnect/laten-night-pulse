@@ -198,64 +198,104 @@ const Auth: React.FC = () => {
   const handleAppleSignIn = async () => {
     setLoading(true);
     try {
-      // For native iOS apps, we need to use the app's custom URL scheme
       // Check if we're in a native Capacitor environment
       const isNative = window.hasOwnProperty('Capacitor') && (window as any).Capacitor?.isNativePlatform?.();
       
-      // Use custom scheme for native apps, web origin for browser
-      const redirectUrl = isNative 
-        ? 'laten://auth/callback' 
-        : window.location.origin;
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-          redirectTo: redirectUrl,
-          scopes: 'name email',
-          skipBrowserRedirect: isNative, // Skip automatic redirect on native
-        },
-      });
-      
-      if (error) {
-        console.error('Apple Sign-In error:', error);
-        // Handle specific error cases gracefully
-        if (error.message.includes('provider is not enabled') || error.message.includes('Provider not found')) {
-          toast.error('Apple Sign-In is currently unavailable. Please use email/password or Google.');
-        } else if (error.message.includes('popup') || error.message.includes('blocked')) {
-          toast.error('Please allow popups for this site to use Apple Sign-In.');
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          toast.error('Network error. Please check your connection and try again.');
-        } else if (error.message.includes('cancelled') || error.message.includes('canceled')) {
-          // User cancelled - don't show error
+      if (isNative) {
+        // Use native Sign in with Apple for iOS - this uses ASAuthorizationController
+        // which Apple requires for native apps
+        try {
+          const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
+          
+          // Generate a nonce for security
+          const rawNonce = crypto.randomUUID();
+          
+          const result = await SignInWithApple.authorize({
+            clientId: 'com.laten.app',
+            redirectURI: 'https://laten-night-pulse.lovable.app',
+            scopes: 'email name',
+            state: crypto.randomUUID(),
+            nonce: rawNonce,
+          });
+          
+          console.log('Native Apple Sign-In result:', result);
+          
+          if (result.response?.identityToken) {
+            // Use signInWithIdToken to authenticate with Supabase using the native token
+            const { error: signInError } = await supabase.auth.signInWithIdToken({
+              provider: 'apple',
+              token: result.response.identityToken,
+              nonce: rawNonce,
+            });
+            
+            if (signInError) {
+              console.error('Supabase signInWithIdToken error:', signInError);
+              toast.error('Unable to complete sign in. Please try again.');
+              setLoading(false);
+              return;
+            }
+            
+            toast.success('Welcome!');
+            navigate('/explore');
+          } else {
+            toast.error('Apple Sign-In failed. Please try again.');
+            setLoading(false);
+          }
+        } catch (nativeError: any) {
+          console.error('Native Apple Sign-In error:', nativeError);
+          
+          // Handle user cancellation silently
+          if (nativeError?.message?.includes('cancelled') || 
+              nativeError?.message?.includes('canceled') ||
+              nativeError?.code === 1001 ||
+              nativeError?.code === 'ERR_CANCELED') {
+            setLoading(false);
+            return;
+          }
+          
+          toast.error('Apple Sign-In is currently unavailable. Please try another method.');
+          setLoading(false);
+        }
+      } else {
+        // Web fallback - use OAuth redirect
+        const redirectUrl = window.location.origin;
+        
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'apple',
+          options: {
+            redirectTo: redirectUrl,
+            scopes: 'name email',
+          },
+        });
+        
+        if (error) {
+          console.error('Apple Sign-In error:', error);
+          if (error.message.includes('provider is not enabled') || error.message.includes('Provider not found')) {
+            toast.error('Apple Sign-In is currently unavailable. Please use email/password or Google.');
+          } else if (error.message.includes('popup') || error.message.includes('blocked')) {
+            toast.error('Please allow popups for this site to use Apple Sign-In.');
+          } else if (error.message.includes('cancelled') || error.message.includes('canceled')) {
+            setLoading(false);
+            return;
+          } else {
+            toast.error('Apple Sign-In is currently unavailable. Please try email/password or Google.');
+          }
           setLoading(false);
           return;
-        } else {
-          // Generic fallback - don't expose technical details
-          toast.error('Apple Sign-In is currently unavailable. Please try email/password or Google.');
         }
-        setLoading(false);
-        return;
+        
+        if (!data?.url) {
+          toast.error('Apple Sign-In is currently unavailable. Please try email/password or Google.');
+          setLoading(false);
+        }
+        // Success - user will be redirected
       }
-      
-      // For native apps, we need to open the URL manually
-      if (isNative && data?.url) {
-        // Open the OAuth URL in the system browser
-        window.open(data.url, '_system');
-      } else if (!data?.url) {
-        toast.error('Apple Sign-In is currently unavailable. Please try email/password or Google.');
-        setLoading(false);
-        return;
-      }
-      
-      // Success - user will be redirected, don't set loading to false
     } catch (err: any) {
       console.error('Apple Sign-In exception:', err);
-      // Handle user cancellation silently
       if (err?.message?.includes('cancelled') || err?.message?.includes('canceled') || err?.code === 'ERR_CANCELED') {
         setLoading(false);
         return;
       }
-      // Don't show technical errors - use friendly message
       toast.error('Apple Sign-In is currently unavailable. Please use email/password or Google.');
       setLoading(false);
     }
