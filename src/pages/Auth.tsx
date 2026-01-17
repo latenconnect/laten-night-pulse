@@ -125,7 +125,7 @@ const Auth: React.FC = () => {
       });
       
       if (error) {
-        console.error('Google Sign-In error:', error);
+        // Error handled below
         if (error.message.includes('provider is not enabled')) {
           toast.error('Google Sign-In is not configured. Please use email/password.');
         } else if (error.message.includes('popup')) {
@@ -143,7 +143,7 @@ const Auth: React.FC = () => {
       }
       // Don't set loading to false on success - user will be redirected
     } catch (err: any) {
-      console.error('Google Sign-In exception:', err);
+      // Exception handled below
       if (err?.message?.includes('cancelled') || err?.code === 'ERR_CANCELED') {
         setLoading(false);
         return;
@@ -171,7 +171,7 @@ const Auth: React.FC = () => {
       });
       
       if (error) {
-        console.error('Facebook Sign-In error:', error);
+        // Error handled below
         if (error.message.includes('provider is not enabled')) {
           toast.error('Facebook Sign-In is not configured. Please use email/password.');
         } else {
@@ -185,7 +185,7 @@ const Auth: React.FC = () => {
         window.open(data.url, '_system');
       }
     } catch (err: any) {
-      console.error('Facebook Sign-In exception:', err);
+      // Exception handled below
       if (err?.message?.includes('cancelled') || err?.code === 'ERR_CANCELED') {
         setLoading(false);
         return;
@@ -203,7 +203,7 @@ const Auth: React.FC = () => {
       const isNative = capacitor?.isNativePlatform?.();
       const platform = capacitor?.getPlatform?.() || 'web';
       
-      console.log('Apple Sign-In initiated:', { isNative, platform });
+      // Native Apple Sign-In for iOS, OAuth for web/Android
       
       if (isNative && platform === 'ios') {
         // Use native Sign in with Apple for iOS - this uses ASAuthorizationController
@@ -215,7 +215,7 @@ const Auth: React.FC = () => {
           const rawNonce = crypto.randomUUID();
           const state = crypto.randomUUID();
           
-          console.log('Calling SignInWithApple.authorize...');
+          
           
           // Note: For native iOS, clientId must be the App Bundle ID
           // The redirectURI is used for validation but the actual flow is handled natively
@@ -227,15 +227,9 @@ const Auth: React.FC = () => {
             nonce: rawNonce,
           });
           
-          console.log('Native Apple Sign-In response received:', {
-            hasIdentityToken: !!result.response?.identityToken,
-            hasAuthorizationCode: !!result.response?.authorizationCode,
-            email: result.response?.email ? '[REDACTED]' : 'not provided',
-            user: result.response?.user ? '[REDACTED]' : 'not provided',
-          });
           
           if (result.response?.identityToken) {
-            console.log('Authenticating with Supabase using identity token...');
+            
             
             // Use signInWithIdToken to authenticate with Supabase using the native token
             const { data: authData, error: signInError } = await supabase.auth.signInWithIdToken({
@@ -245,11 +239,7 @@ const Auth: React.FC = () => {
             });
             
             if (signInError) {
-              console.error('Supabase signInWithIdToken error:', {
-                message: signInError.message,
-                status: signInError.status,
-                name: signInError.name,
-              });
+              // Handle sign-in error
               
               // Provide more specific error messages
               if (signInError.message.includes('nonce')) {
@@ -263,25 +253,16 @@ const Auth: React.FC = () => {
               return;
             }
             
-            console.log('Supabase authentication successful:', {
-              userId: authData?.user?.id ? '[REDACTED]' : 'none',
-              hasSession: !!authData?.session,
-            });
             
             toast.success('Welcome!');
             navigate('/explore');
           } else {
-            console.error('No identity token received from Apple');
+            
             toast.error('Apple Sign-In failed. No authentication token received.');
             setLoading(false);
           }
         } catch (nativeError: any) {
-          console.error('Native Apple Sign-In error:', {
-            message: nativeError?.message,
-            code: nativeError?.code,
-            name: nativeError?.name,
-            stack: nativeError?.stack,
-          });
+          // Handle native error
           
           // Handle user cancellation silently (multiple error codes for different iOS versions)
           const isCancellation = 
@@ -292,7 +273,7 @@ const Auth: React.FC = () => {
             nativeError?.code === 'PLUGIN_ERROR' && nativeError?.message?.includes('cancel');
           
           if (isCancellation) {
-            console.log('User cancelled Apple Sign-In');
+            
             setLoading(false);
             return;
           }
@@ -314,7 +295,7 @@ const Auth: React.FC = () => {
         }
       } else {
         // Web or Android fallback - use OAuth redirect
-        console.log('Using OAuth redirect flow for Apple Sign-In');
+        // Web/Android: Use OAuth redirect flow
         const redirectUrl = `${window.location.origin}/auth`;
         
         const { data, error } = await supabase.auth.signInWithOAuth({
@@ -326,7 +307,7 @@ const Auth: React.FC = () => {
         });
         
         if (error) {
-          console.error('Apple OAuth error:', error);
+          // Handle OAuth error
           if (error.message.includes('provider is not enabled') || error.message.includes('Provider not found')) {
             toast.error('Apple Sign-In is currently unavailable. Please use email/password or Google.');
           } else if (error.message.includes('popup') || error.message.includes('blocked')) {
@@ -342,14 +323,14 @@ const Auth: React.FC = () => {
         }
         
         if (!data?.url) {
-          console.error('No OAuth URL returned for Apple Sign-In');
+          // No URL returned
           toast.error('Apple Sign-In is currently unavailable. Please try email/password or Google.');
           setLoading(false);
         }
         // Success - user will be redirected
       }
     } catch (err: any) {
-      console.error('Apple Sign-In exception:', err);
+      // Handle exception
       if (err?.message?.includes('cancelled') || err?.message?.includes('canceled') || err?.code === 'ERR_CANCELED') {
         setLoading(false);
         return;
