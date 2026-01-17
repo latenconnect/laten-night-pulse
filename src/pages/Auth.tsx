@@ -199,66 +199,123 @@ const Auth: React.FC = () => {
     setLoading(true);
     try {
       // Check if we're in a native Capacitor environment
-      const isNative = window.hasOwnProperty('Capacitor') && (window as any).Capacitor?.isNativePlatform?.();
+      const capacitor = (window as any).Capacitor;
+      const isNative = capacitor?.isNativePlatform?.();
+      const platform = capacitor?.getPlatform?.() || 'web';
       
-      if (isNative) {
+      console.log('Apple Sign-In initiated:', { isNative, platform });
+      
+      if (isNative && platform === 'ios') {
         // Use native Sign in with Apple for iOS - this uses ASAuthorizationController
         // which Apple requires for native apps
         try {
           const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
           
-          // Generate a nonce for security
+          // Generate a cryptographically secure nonce
           const rawNonce = crypto.randomUUID();
+          const state = crypto.randomUUID();
           
+          console.log('Calling SignInWithApple.authorize...');
+          
+          // Note: For native iOS, clientId must be the App Bundle ID
+          // The redirectURI is used for validation but the actual flow is handled natively
           const result = await SignInWithApple.authorize({
             clientId: 'com.laten.app',
-            redirectURI: 'https://laten-night-pulse.lovable.app',
+            redirectURI: 'https://laten-night-pulse.lovable.app/auth/callback',
             scopes: 'email name',
-            state: crypto.randomUUID(),
+            state: state,
             nonce: rawNonce,
           });
           
-          console.log('Native Apple Sign-In result:', result);
+          console.log('Native Apple Sign-In response received:', {
+            hasIdentityToken: !!result.response?.identityToken,
+            hasAuthorizationCode: !!result.response?.authorizationCode,
+            email: result.response?.email ? '[REDACTED]' : 'not provided',
+            user: result.response?.user ? '[REDACTED]' : 'not provided',
+          });
           
           if (result.response?.identityToken) {
+            console.log('Authenticating with Supabase using identity token...');
+            
             // Use signInWithIdToken to authenticate with Supabase using the native token
-            const { error: signInError } = await supabase.auth.signInWithIdToken({
+            const { data: authData, error: signInError } = await supabase.auth.signInWithIdToken({
               provider: 'apple',
               token: result.response.identityToken,
               nonce: rawNonce,
             });
             
             if (signInError) {
-              console.error('Supabase signInWithIdToken error:', signInError);
-              toast.error('Unable to complete sign in. Please try again.');
+              console.error('Supabase signInWithIdToken error:', {
+                message: signInError.message,
+                status: signInError.status,
+                name: signInError.name,
+              });
+              
+              // Provide more specific error messages
+              if (signInError.message.includes('nonce')) {
+                toast.error('Authentication verification failed. Please try again.');
+              } else if (signInError.message.includes('token')) {
+                toast.error('Invalid authentication token. Please try again.');
+              } else {
+                toast.error('Unable to complete sign in. Please try again.');
+              }
               setLoading(false);
               return;
             }
             
+            console.log('Supabase authentication successful:', {
+              userId: authData?.user?.id ? '[REDACTED]' : 'none',
+              hasSession: !!authData?.session,
+            });
+            
             toast.success('Welcome!');
             navigate('/explore');
           } else {
-            toast.error('Apple Sign-In failed. Please try again.');
+            console.error('No identity token received from Apple');
+            toast.error('Apple Sign-In failed. No authentication token received.');
             setLoading(false);
           }
         } catch (nativeError: any) {
-          console.error('Native Apple Sign-In error:', nativeError);
+          console.error('Native Apple Sign-In error:', {
+            message: nativeError?.message,
+            code: nativeError?.code,
+            name: nativeError?.name,
+            stack: nativeError?.stack,
+          });
           
-          // Handle user cancellation silently
-          if (nativeError?.message?.includes('cancelled') || 
-              nativeError?.message?.includes('canceled') ||
-              nativeError?.code === 1001 ||
-              nativeError?.code === 'ERR_CANCELED') {
+          // Handle user cancellation silently (multiple error codes for different iOS versions)
+          const isCancellation = 
+            nativeError?.message?.toLowerCase()?.includes('cancel') ||
+            nativeError?.code === 1001 ||  // ASAuthorizationError.canceled
+            nativeError?.code === 1000 ||  // ASAuthorizationError.unknown (sometimes used for cancel)
+            nativeError?.code === 'ERR_CANCELED' ||
+            nativeError?.code === 'PLUGIN_ERROR' && nativeError?.message?.includes('cancel');
+          
+          if (isCancellation) {
+            console.log('User cancelled Apple Sign-In');
             setLoading(false);
             return;
           }
           
-          toast.error('Apple Sign-In is currently unavailable. Please try another method.');
+          // Handle specific error codes
+          if (nativeError?.code === 1002) {
+            // ASAuthorizationError.invalidResponse
+            toast.error('Apple Sign-In received an invalid response. Please try again.');
+          } else if (nativeError?.code === 1003) {
+            // ASAuthorizationError.notHandled
+            toast.error('Apple Sign-In was not handled. Please ensure you have an Apple ID configured.');
+          } else if (nativeError?.code === 1004) {
+            // ASAuthorizationError.failed
+            toast.error('Apple Sign-In failed. Please check your internet connection and try again.');
+          } else {
+            toast.error('Apple Sign-In is currently unavailable. Please try email/password.');
+          }
           setLoading(false);
         }
       } else {
-        // Web fallback - use OAuth redirect
-        const redirectUrl = window.location.origin;
+        // Web or Android fallback - use OAuth redirect
+        console.log('Using OAuth redirect flow for Apple Sign-In');
+        const redirectUrl = `${window.location.origin}/auth`;
         
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'apple',
@@ -269,7 +326,7 @@ const Auth: React.FC = () => {
         });
         
         if (error) {
-          console.error('Apple Sign-In error:', error);
+          console.error('Apple OAuth error:', error);
           if (error.message.includes('provider is not enabled') || error.message.includes('Provider not found')) {
             toast.error('Apple Sign-In is currently unavailable. Please use email/password or Google.');
           } else if (error.message.includes('popup') || error.message.includes('blocked')) {
@@ -285,6 +342,7 @@ const Auth: React.FC = () => {
         }
         
         if (!data?.url) {
+          console.error('No OAuth URL returned for Apple Sign-In');
           toast.error('Apple Sign-In is currently unavailable. Please try email/password or Google.');
           setLoading(false);
         }
