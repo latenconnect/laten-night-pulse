@@ -213,23 +213,41 @@ const Auth: React.FC = () => {
           
           // Generate a cryptographically secure nonce
           const rawNonce = crypto.randomUUID();
-          const state = crypto.randomUUID();
           
+          console.log('[Apple Sign-In] Starting native authorization...');
           
-          
-          // Note: For native iOS, clientId must be the App Bundle ID
-          // The redirectURI is used for validation but the actual flow is handled natively
-          const result = await SignInWithApple.authorize({
+          // Create a promise race with timeout to handle iPad presentation issues
+          const authorizationPromise = SignInWithApple.authorize({
             clientId: 'com.laten.app',
             redirectURI: 'https://laten-night-pulse.lovable.app/auth/callback',
             scopes: 'email name',
-            state: state,
             nonce: rawNonce,
           });
           
+          // Add a 60 second timeout for the authorization
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => {
+              reject(new Error('APPLE_SIGNIN_TIMEOUT'));
+            }, 60000);
+          });
+          
+          let result;
+          try {
+            result = await Promise.race([authorizationPromise, timeoutPromise]);
+          } catch (raceError: any) {
+            if (raceError?.message === 'APPLE_SIGNIN_TIMEOUT') {
+              console.log('[Apple Sign-In] Timeout - authorization took too long');
+              toast.error('Apple Sign-In timed out. Please try again.');
+              setLoading(false);
+              return;
+            }
+            throw raceError;
+          }
+          
+          console.log('[Apple Sign-In] Authorization result received');
           
           if (result.response?.identityToken) {
-            
+            console.log('[Apple Sign-In] Identity token received, exchanging with Supabase...');
             
             // Use signInWithIdToken to authenticate with Supabase using the native token
             const { data: authData, error: signInError } = await supabase.auth.signInWithIdToken({
@@ -239,8 +257,7 @@ const Auth: React.FC = () => {
             });
             
             if (signInError) {
-              // Handle sign-in error
-              
+              console.error('[Apple Sign-In] Supabase error:', signInError);
               // Provide more specific error messages
               if (signInError.message.includes('nonce')) {
                 toast.error('Authentication verification failed. Please try again.');
@@ -253,49 +270,55 @@ const Auth: React.FC = () => {
               return;
             }
             
-            
+            console.log('[Apple Sign-In] Successfully authenticated!');
             toast.success('Welcome!');
             navigate('/explore');
           } else {
-            
+            console.error('[Apple Sign-In] No identity token in response');
             toast.error('Apple Sign-In failed. No authentication token received.');
             setLoading(false);
           }
         } catch (nativeError: any) {
-          // Handle native error
+          console.error('[Apple Sign-In] Native error:', nativeError);
           
           // Handle user cancellation silently (multiple error codes for different iOS versions)
+          const errorCode = nativeError?.code;
+          const errorMessage = nativeError?.message?.toLowerCase() || '';
+          
           const isCancellation = 
-            nativeError?.message?.toLowerCase()?.includes('cancel') ||
-            nativeError?.code === 1001 ||  // ASAuthorizationError.canceled
-            nativeError?.code === 1000 ||  // ASAuthorizationError.unknown (sometimes used for cancel)
-            nativeError?.code === 'ERR_CANCELED' ||
-            nativeError?.code === 'PLUGIN_ERROR' && nativeError?.message?.includes('cancel');
+            errorMessage.includes('cancel') ||
+            errorCode === 1001 ||  // ASAuthorizationError.canceled
+            errorCode === 1000 ||  // ASAuthorizationError.unknown (sometimes used for cancel)
+            errorCode === 'ERR_CANCELED' ||
+            (errorCode === 'PLUGIN_ERROR' && errorMessage.includes('cancel'));
           
           if (isCancellation) {
-            
+            console.log('[Apple Sign-In] User cancelled');
             setLoading(false);
             return;
           }
           
-          // Handle specific error codes
-          if (nativeError?.code === 1002) {
+          // Handle specific ASAuthorizationError codes
+          if (errorCode === 1002) {
             // ASAuthorizationError.invalidResponse
             toast.error('Apple Sign-In received an invalid response. Please try again.');
-          } else if (nativeError?.code === 1003) {
+          } else if (errorCode === 1003) {
             // ASAuthorizationError.notHandled
             toast.error('Apple Sign-In was not handled. Please ensure you have an Apple ID configured.');
-          } else if (nativeError?.code === 1004) {
+          } else if (errorCode === 1004) {
             // ASAuthorizationError.failed
             toast.error('Apple Sign-In failed. Please check your internet connection and try again.');
+          } else if (errorMessage.includes('not available') || errorMessage.includes('not supported')) {
+            // Plugin not properly initialized or not available
+            toast.error('Apple Sign-In is not available on this device. Please use email/password.');
           } else {
+            // Generic fallback error
             toast.error('Apple Sign-In is currently unavailable. Please try email/password.');
           }
           setLoading(false);
         }
       } else {
         // Web or Android fallback - use OAuth redirect
-        // Web/Android: Use OAuth redirect flow
         const redirectUrl = `${window.location.origin}/auth`;
         
         const { data, error } = await supabase.auth.signInWithOAuth({
@@ -307,7 +330,6 @@ const Auth: React.FC = () => {
         });
         
         if (error) {
-          // Handle OAuth error
           if (error.message.includes('provider is not enabled') || error.message.includes('Provider not found')) {
             toast.error('Apple Sign-In is currently unavailable. Please use email/password or Google.');
           } else if (error.message.includes('popup') || error.message.includes('blocked')) {
@@ -323,14 +345,13 @@ const Auth: React.FC = () => {
         }
         
         if (!data?.url) {
-          // No URL returned
           toast.error('Apple Sign-In is currently unavailable. Please try email/password or Google.');
           setLoading(false);
         }
         // Success - user will be redirected
       }
     } catch (err: any) {
-      // Handle exception
+      console.error('[Apple Sign-In] Unexpected error:', err);
       if (err?.message?.includes('cancelled') || err?.message?.includes('canceled') || err?.code === 'ERR_CANCELED') {
         setLoading(false);
         return;
