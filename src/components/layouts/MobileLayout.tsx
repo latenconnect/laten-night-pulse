@@ -14,27 +14,32 @@ interface MobileLayoutProps {
   enableSwipeBack?: boolean;
 }
 
-// iOS-style page transition variants
+// iOS-style page transition variants with spring physics
 const pageVariants = {
   initial: {
     opacity: 0,
-    x: 20,
+    x: 60,
+    scale: 0.98,
   },
   animate: {
     opacity: 1,
     x: 0,
+    scale: 1,
     transition: {
       type: 'spring' as const,
-      stiffness: 300,
-      damping: 30,
+      stiffness: 380,
+      damping: 35,
       mass: 0.8,
     },
   },
   exit: {
     opacity: 0,
-    x: -20,
+    x: -30,
+    scale: 0.98,
     transition: {
-      duration: 0.15,
+      type: 'spring' as const,
+      stiffness: 400,
+      damping: 40,
     },
   },
 };
@@ -53,8 +58,8 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
     navigate(-1);
   }, [navigate]);
   
-  // Enable iOS-style swipe-back gesture
-  useSwipeBack(handleBack);
+  // Enhanced iOS-style swipe-back gesture with visual feedback
+  const { isSwiping, swipeStyle, swipeProgress } = useSwipeBack(handleBack);
 
   return (
     <div className={cn(
@@ -62,11 +67,27 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
       'safe-top',
       className
     )}>
+      {/* Swipe back shadow indicator */}
+      <AnimatePresence>
+        {isSwiping && swipeProgress > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: swipeProgress * 0.3 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-30 pointer-events-none"
+            style={{
+              background: 'linear-gradient(to right, hsla(0, 0%, 0%, 0.2) 0%, transparent 30%)',
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {header && (
         <motion.header 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/30 safe-top-padding"
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          className="sticky top-0 z-40 ios-blur-material border-b border-border/20 safe-top-padding"
         >
           {header}
         </motion.header>
@@ -77,6 +98,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
         initial="initial"
         animate="animate"
         exit="exit"
+        style={enableSwipeBack ? swipeStyle : undefined}
         className={cn(
           'flex-1 overflow-y-auto overscroll-contain scroll-smooth-mobile',
           showNav ? 'pb-24' : '',
@@ -92,7 +114,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             exit={{ y: 100 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 35 }}
           >
             <BottomNav />
           </motion.div>
