@@ -12,44 +12,49 @@ export default {
   			'2xl': '1400px'
   		}
   	},
-  	extend: {
+	extend: {
   		fontFamily: {
+  			// iOS System Font Stack - SF Pro prioritized
+  			system: [
+  				'-apple-system',
+  				'BlinkMacSystemFont',
+  				'SF Pro Display',
+  				'SF Pro Text',
+  				'Helvetica Neue',
+  				'system-ui',
+  				'sans-serif'
+  			],
   			display: [
+  				'-apple-system',
+  				'BlinkMacSystemFont',
+  				'SF Pro Display',
   				'Outfit',
   				'system-ui',
   				'sans-serif'
   			],
   			body: [
+  				'-apple-system',
+  				'BlinkMacSystemFont',
+  				'SF Pro Text',
   				'DM Sans',
   				'system-ui',
   				'sans-serif'
   			],
   			sans: [
-  				'Inter',
-  				'ui-sans-serif',
+  				'-apple-system',
+  				'BlinkMacSystemFont',
+  				'SF Pro Text',
   				'system-ui',
   				'sans-serif',
   				'Apple Color Emoji',
-  				'Segoe UI Emoji',
-  				'Segoe UI Symbol',
-  				'Noto Color Emoji'
-  			],
-  			serif: [
-  				'ui-serif',
-  				'Georgia',
-  				'Cambria',
-  				'Times New Roman',
-  				'Times',
-  				'serif'
+  				'Segoe UI Emoji'
   			],
   			mono: [
+  				'SF Mono',
   				'ui-monospace',
   				'SFMono-Regular',
   				'Menlo',
   				'Monaco',
-  				'Consolas',
-  				'Liberation Mono',
-  				'Courier New',
   				'monospace'
   			]
   		},

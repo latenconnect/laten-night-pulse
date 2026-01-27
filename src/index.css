@@ -1,5 +1,5 @@
+/* iOS Native Font Stack - SF Pro prioritized */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
-@import url("https://fonts.googleapis.com/css2?family=Inter&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -7,6 +7,9 @@
 
 @layer base {
   :root {
+    /* iOS System Font Stack */
+    --font-system: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+    
     /* Laten Dark Theme - Nightlife Inspired */
     --background: 240 20% 4%;
     --foreground: 0 0% 98%;
@@ -47,6 +50,13 @@
     --dark-surface: 240 15% 6%;
     --glass: 240 15% 12%;
 
+    /* iOS-style Material Backgrounds */
+    --ios-blur-light: 240 15% 98%;
+    --ios-blur-dark: 240 15% 8%;
+    --ios-separator: 240 5% 25%;
+    --ios-grouped-background: 240 20% 6%;
+    --ios-grouped-secondary: 240 15% 10%;
+
     /* Gradients */
     --gradient-neon: linear-gradient(135deg, hsl(270 91% 65%) 0%, hsl(330 100% 65%) 50%, hsl(180 100% 50%) 100%);
     --gradient-purple: linear-gradient(135deg, hsl(270 91% 65%) 0%, hsl(280 100% 55%) 100%);
@@ -59,6 +69,7 @@
     --glow-pink: 0 0 30px hsla(330 100% 65% / 0.5);
     --shadow-card: 0 8px 32px hsla(0 0% 0% / 0.4);
     --shadow-elevated: 0 20px 60px hsla(0 0% 0% / 0.5);
+    --shadow-ios: 0 3px 12px hsla(0 0% 0% / 0.15);
 
     --sidebar-background: 240 15% 6%;
     --sidebar-foreground: 0 0% 98%;
@@ -68,7 +79,6 @@
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 15% 18%;
     --sidebar-ring: 270 91% 65%;
-    --font-sans: Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   }
 
   .dark {
@@ -91,7 +101,6 @@
     --border: 240 15% 18%;
     --input: 240 15% 12%;
     --ring: 270 91% 65%;
-    --font-sans: Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   }
 }
 
@@ -102,15 +111,20 @@
 
   html {
     scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-system);
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold tracking-tight;
+    font-family: var(--font-system);
+    @apply font-semibold tracking-tight;
   }
 }
 
@@ -243,6 +257,117 @@
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
+  }
+
+  /* iOS Grouped List Styles */
+  .ios-grouped-list {
+    @apply rounded-xl overflow-hidden;
+    background: hsl(var(--ios-grouped-secondary));
+  }
+
+  .ios-grouped-item {
+    @apply px-4 py-3 flex items-center justify-between;
+    background: hsl(var(--ios-grouped-secondary));
+  }
+
+  .ios-grouped-item:not(:last-child) {
+    border-bottom: 0.5px solid hsl(var(--ios-separator));
+  }
+
+  .ios-grouped-item:active {
+    background: hsl(var(--muted));
+  }
+
+  /* iOS Inset Grouped Style */
+  .ios-inset-grouped {
+    @apply mx-4 rounded-xl overflow-hidden;
+    background: hsl(var(--ios-grouped-secondary));
+  }
+
+  /* iOS Material Blur */
+  .ios-blur-material {
+    @apply backdrop-blur-2xl;
+    background: hsla(var(--ios-blur-dark) / 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  .ios-blur-material-light {
+    @apply backdrop-blur-2xl;
+    background: hsla(var(--ios-blur-light) / 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  /* iOS Navigation Bar */
+  .ios-nav-bar {
+    @apply sticky top-0 z-50 safe-top-padding;
+    background: hsla(var(--background) / 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 0.5px solid hsl(var(--ios-separator));
+  }
+
+  /* iOS Large Title */
+  .ios-large-title {
+    font-family: var(--font-system);
+    @apply text-[34px] font-bold tracking-tight leading-tight;
+  }
+
+  .ios-title {
+    font-family: var(--font-system);
+    @apply text-[17px] font-semibold;
+  }
+
+  /* iOS Action Sheet */
+  .ios-action-sheet {
+    @apply fixed inset-x-0 bottom-0 z-50 safe-bottom-nav;
+  }
+
+  .ios-action-sheet-content {
+    @apply mx-2 mb-2 rounded-2xl overflow-hidden;
+    background: hsl(var(--ios-grouped-secondary));
+  }
+
+  .ios-action-sheet-item {
+    @apply w-full py-4 text-center text-[20px] font-normal;
+    color: hsl(var(--primary));
+    border-bottom: 0.5px solid hsl(var(--ios-separator));
+  }
+
+  .ios-action-sheet-item:last-child {
+    border-bottom: none;
+  }
+
+  .ios-action-sheet-item:active {
+    background: hsl(var(--muted));
+  }
+
+  .ios-action-sheet-item.destructive {
+    color: hsl(var(--destructive));
+  }
+
+  .ios-action-sheet-cancel {
+    @apply mx-2 mb-2 rounded-2xl py-4 text-center text-[20px] font-semibold;
+    background: hsl(var(--ios-grouped-secondary));
+    color: hsl(var(--primary));
+  }
+
+  /* iOS Segmented Control */
+  .ios-segmented-control {
+    @apply flex p-0.5 rounded-lg;
+    background: hsl(var(--muted));
+  }
+
+  .ios-segment {
+    @apply flex-1 py-1.5 px-3 text-[13px] font-medium text-center rounded-md transition-all duration-200;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .ios-segment.active {
+    @apply shadow-sm;
+    background: hsl(var(--card));
+    color: hsl(var(--foreground));
   }
 
   @keyframes shimmer {
