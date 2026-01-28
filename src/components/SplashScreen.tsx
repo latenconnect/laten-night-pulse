@@ -113,15 +113,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
         ))}
       </motion.div>
       
-      {/* App name text */}
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.6 }}
-        transition={{ delay: 0.6, duration: 0.4 }}
-        className="mt-6 text-sm font-medium text-muted-foreground tracking-widest uppercase"
-      >
-        Laten
-      </motion.p>
     </motion.div>
   );
 };
