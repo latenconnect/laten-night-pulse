@@ -24,12 +24,22 @@ const Auth: React.FC = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string; displayName?: string }>({});
   const [passwordStrength, setPasswordStrength] = useState(0);
 
-  // Reset loading state on mount (handles interrupted OAuth flows)
+  // Reset loading state on mount and when page becomes visible again
+  // This handles interrupted OAuth flows where user leaves and returns
   useEffect(() => {
-    // If we're back on this page without a user, ensure loading is false
-    // This handles cases where user left during OAuth and came back
+    // Reset on mount
     setLoading(false);
-  }, []);
+    
+    // Also reset when page becomes visible again (handles back button, tab switching)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !user) {
+        setLoading(false);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user]);
 
   // Redirect if already logged in
   useEffect(() => {
