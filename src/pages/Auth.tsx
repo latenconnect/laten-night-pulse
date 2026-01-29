@@ -24,6 +24,13 @@ const Auth: React.FC = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string; displayName?: string }>({});
   const [passwordStrength, setPasswordStrength] = useState(0);
 
+  // Reset loading state on mount (handles interrupted OAuth flows)
+  useEffect(() => {
+    // If we're back on this page without a user, ensure loading is false
+    // This handles cases where user left during OAuth and came back
+    setLoading(false);
+  }, []);
+
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
