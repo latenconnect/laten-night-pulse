@@ -286,34 +286,34 @@ const EventDetails: React.FC = () => {
         </div>
 
         {/* Quick Info Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <Calendar className="w-4 h-4" />
-              <span className="text-xs">{t('events.date')}</span>
+        <div className="grid grid-cols-2 gap-2.5 mb-6">
+          <div className="glass-card p-3.5">
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+              <Calendar className="w-3.5 h-3.5" />
+              <span className="text-[11px] uppercase tracking-wide">{t('events.date')}</span>
             </div>
-            <p className="font-semibold">{format(event.startTime, 'EEEE, MMM d')}</p>
+            <p className="font-semibold text-[15px]">{format(event.startTime, 'EEEE, MMM d')}</p>
           </div>
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <Clock className="w-4 h-4" />
-              <span className="text-xs">{t('events.time')}</span>
+          <div className="glass-card p-3.5">
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="text-[11px] uppercase tracking-wide">{t('events.time')}</span>
             </div>
-            <p className="font-semibold">{format(event.startTime, 'h:mm a')}</p>
+            <p className="font-semibold text-[15px]">{format(event.startTime, 'h:mm a')}</p>
           </div>
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <Ticket className="w-4 h-4" />
-              <span className="text-xs">{t('events.entry')}</span>
+          <div className="glass-card p-3.5">
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+              <Ticket className="w-3.5 h-3.5" />
+              <span className="text-[11px] uppercase tracking-wide">{t('events.entry')}</span>
             </div>
-            <p className="font-semibold">{event.price ? `${event.price} Ft` : t('events.freeEntry')}</p>
+            <p className="font-semibold text-[15px]">{event.price ? `${event.price} Ft` : t('events.freeEntry')}</p>
           </div>
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <Shield className="w-4 h-4" />
-              <span className="text-xs">{t('events.age')}</span>
+          <div className="glass-card p-3.5">
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+              <Shield className="w-3.5 h-3.5" />
+              <span className="text-[11px] uppercase tracking-wide">{t('events.age')}</span>
             </div>
-            <p className="font-semibold">{event.ageLimit}+</p>
+            <p className="font-semibold text-[15px]">{event.ageLimit}+</p>
           </div>
         </div>
 
