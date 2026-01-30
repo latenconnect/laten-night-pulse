@@ -21,21 +21,21 @@ const EventCard: React.FC<EventCardProps> = ({ event, variant = 'default', onCli
       <motion.div
         onClick={onClick}
         whileTap={{ scale: 0.98 }}
-        className="glass-card p-3.5 cursor-pointer flex gap-3.5 transition-all duration-200 hover:border-primary/30"
+        className="glass-card p-3.5 cursor-pointer flex gap-3.5 transition-all duration-200 hover:border-primary/30 active:scale-[0.98]"
       >
-        <div className="w-[68px] h-[68px] rounded-xl overflow-hidden flex-shrink-0 bg-muted">
+        <div className="w-[72px] h-[72px] rounded-xl overflow-hidden flex-shrink-0 bg-muted">
           <img src={event.coverImage} alt={event.name} className="w-full h-full object-cover" />
         </div>
-        <div className="flex-1 min-w-0 py-0.5">
-          <div className="flex items-center gap-2 mb-1">
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <div className="flex items-center gap-2 mb-0.5">
             <span className="text-sm">{eventType?.icon}</span>
             <span className="text-[11px] text-muted-foreground font-medium">{event.location.city}</span>
           </div>
-          <h4 className="font-semibold text-[15px] truncate leading-snug">{event.name}</h4>
-          <p className="text-[13px] text-muted-foreground mt-0.5">{format(event.startTime, 'EEE, MMM d • h:mm a')}</p>
+          <h4 className="font-semibold text-[15px] truncate leading-snug mb-0.5">{event.name}</h4>
+          <p className="text-[13px] text-muted-foreground">{format(event.startTime, 'EEE, MMM d • h:mm a')}</p>
         </div>
         <div className="flex flex-col items-end justify-center">
-          <span className="text-primary font-semibold text-sm">
+          <span className="text-primary font-semibold text-[13px]">
             {event.price ? `${event.price} Ft` : 'Free'}
           </span>
         </div>

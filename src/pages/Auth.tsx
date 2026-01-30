@@ -427,21 +427,23 @@ const Auth: React.FC = () => {
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-1.5"
+                className="space-y-2"
               >
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5">
+                    <User className="w-[18px] h-[18px] text-muted-foreground/60" />
+                  </div>
                   <Input
                     type="text"
                     placeholder="Display name"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="pl-12 h-14"
+                    className="pl-12 h-[52px]"
                   />
                 </div>
                 {errors.displayName && (
-                  <p className="text-sm text-destructive flex items-center gap-1.5 pl-1">
-                    <AlertCircle className="w-4 h-4" />
+                  <p className="text-[13px] text-destructive flex items-center gap-1.5 pl-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
                     {errors.displayName}
                   </p>
                 )}
@@ -449,56 +451,60 @@ const Auth: React.FC = () => {
             )}
           </AnimatePresence>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5">
+                <Mail className="w-[18px] h-[18px] text-muted-foreground/60" />
+              </div>
               <Input
                 type="email"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-12 h-14"
+                className="pl-12 h-[52px]"
               />
             </div>
             {errors.email && (
-              <p className="text-sm text-destructive flex items-center gap-1.5 pl-1">
-                <AlertCircle className="w-4 h-4" />
+              <p className="text-[13px] text-destructive flex items-center gap-1.5 pl-1">
+                <AlertCircle className="w-3.5 h-3.5" />
                 {errors.email}
               </p>
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5">
+                <Lock className="w-[18px] h-[18px] text-muted-foreground/60" />
+              </div>
               <Input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-12 pr-12 h-14"
+                className="pl-12 pr-12 h-[52px]"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors touch-target flex items-center justify-center"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-destructive flex items-center gap-1.5 pl-1">
-                <AlertCircle className="w-4 h-4" />
+              <p className="text-[13px] text-destructive flex items-center gap-1.5 pl-1">
+                <AlertCircle className="w-3.5 h-3.5" />
                 {errors.password}
               </p>
             )}
             {!isLogin && password && (
-              <div className="mt-3 px-1">
+              <div className="mt-2 px-1">
                 <div className="flex gap-1.5 mb-1.5">
                   {[1, 2, 3, 4, 5].map((level) => (
                     <div
                       key={level}
-                      className={`h-1 flex-1 rounded-full transition-colors duration-200 ${
+                      className={`h-1.5 flex-1 rounded-full transition-colors duration-200 ${
                         passwordStrength >= level
                           ? level <= 2 ? 'bg-destructive' : level <= 3 ? 'bg-yellow-500' : 'bg-green-500'
                           : 'bg-muted/50'
@@ -506,7 +512,7 @@ const Auth: React.FC = () => {
                     />
                   ))}
                 </div>
-                <p className="text-[12px] text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   {passwordStrength <= 2 ? 'Weak' : passwordStrength <= 3 ? 'Medium' : 'Strong'} password
                 </p>
               </div>

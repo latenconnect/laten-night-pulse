@@ -110,10 +110,10 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
     <motion.div
       onClick={handleClick}
       whileTap={{ scale: 0.98 }}
-      className="w-[280px] flex-shrink-0 rounded-2xl overflow-hidden bg-card border border-border/50 cursor-pointer transition-all duration-200 hover:border-primary/40 group"
+      className="w-[280px] flex-shrink-0 rounded-2xl overflow-hidden bg-card border border-border/50 cursor-pointer transition-all duration-200 hover:border-primary/40 active:scale-[0.98] group"
     >
       {/* Photo */}
-      <div className="relative h-36 bg-muted overflow-hidden">
+      <div className="relative h-[140px] bg-muted overflow-hidden">
         {imageUrl && !imageError ? (
           <img
             src={imageUrl}
@@ -129,7 +129,7 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
         
         {/* Venue type badge */}
         <div className={cn(
-          "absolute top-3 left-3 px-2.5 py-1 rounded-full backdrop-blur-md flex items-center gap-1.5 border",
+          "absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full backdrop-blur-md flex items-center gap-1.5 border",
           venueConfig.color
         )}>
           <VenueIcon className="w-3 h-3" />
@@ -138,7 +138,7 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
         
         {/* Rating badge */}
         {club.rating && (
-          <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md">
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 backdrop-blur-md">
             <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
             <span className="text-[11px] font-medium text-white">{club.rating.toFixed(1)}</span>
           </div>
@@ -147,17 +147,17 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
 
       {/* Content */}
       <div className="p-3.5">
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-[15px] truncate">{club.name}</h3>
+        <div className="flex items-center gap-2 mb-1">
+          <h3 className="font-semibold text-[15px] truncate flex-1">{club.name}</h3>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium flex-shrink-0">{club.city}</span>
         </div>
         {club.address && (
-          <p className="text-[12px] text-muted-foreground truncate mt-1.5 flex items-center gap-1.5">
+          <p className="text-[12px] text-muted-foreground truncate flex items-center gap-1.5">
             <MapPin className="w-3 h-3 flex-shrink-0" />
             {club.address}
           </p>
         )}
-        <div className="flex items-center justify-between mt-2.5">
+        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/30">
           {priceIndicator || <span />}
           <span className="text-[11px] text-primary font-medium flex items-center gap-1 group-hover:gap-1.5 transition-all">
             View Details <ChevronRight className="w-3 h-3" />

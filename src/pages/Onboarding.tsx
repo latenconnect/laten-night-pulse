@@ -286,18 +286,18 @@ const Onboarding: React.FC = () => {
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
                     placeholder="Enter your age"
-                    className="w-full input-neon bg-card border border-border text-center text-2xl font-display font-bold py-4 mb-3"
+                    className="w-full h-[56px] rounded-xl border border-border/50 bg-card/80 text-center text-2xl font-display font-bold transition-all duration-200 focus:border-primary/60 focus:outline-none focus:ring-[3px] focus:ring-primary/15 placeholder:text-muted-foreground/50"
                   />
                   {ageError && (
                     <motion.p
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-destructive text-sm"
+                      className="text-destructive text-[13px] mt-2"
                     >
                       {ageError}
                     </motion.p>
                   )}
-                  <p className="text-muted-foreground text-xs mt-4">
+                  <p className="text-muted-foreground text-[11px] mt-4">
                     For full features, consider using ID Verification
                   </p>
                 </div>

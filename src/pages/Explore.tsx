@@ -129,10 +129,10 @@ const Explore: React.FC = () => {
           <Button 
             variant="glass" 
             size="icon" 
-            className="touch-target"
+            className="touch-target w-10 h-10"
             onClick={() => setActiveFilter(null)}
           >
-            <Filter className="w-5 h-5" />
+            <Filter className="w-[18px] h-[18px]" />
           </Button>
         </div>
       </div>

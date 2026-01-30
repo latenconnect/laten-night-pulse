@@ -14,32 +14,39 @@ interface MobileLayoutProps {
   enableSwipeBack?: boolean;
 }
 
+// Check for reduced motion preference
+const prefersReducedMotion = typeof window !== 'undefined' 
+  ? window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches 
+  : false;
+
 // iOS-style page transition variants with spring physics
 const pageVariants = {
-  initial: {
+  initial: prefersReducedMotion ? { opacity: 0 } : {
     opacity: 0,
-    x: 60,
-    scale: 0.98,
+    x: 50,
+    scale: 0.985,
   },
   animate: {
     opacity: 1,
     x: 0,
     scale: 1,
-    transition: {
-      type: 'spring' as const,
-      stiffness: 380,
-      damping: 35,
-      mass: 0.8,
-    },
+    transition: prefersReducedMotion 
+      ? { duration: 0.15 }
+      : {
+          type: 'spring' as const,
+          stiffness: 400,
+          damping: 38,
+          mass: 0.75,
+        },
   },
-  exit: {
+  exit: prefersReducedMotion ? { opacity: 0 } : {
     opacity: 0,
-    x: -30,
-    scale: 0.98,
+    x: -25,
+    scale: 0.985,
     transition: {
       type: 'spring' as const,
-      stiffness: 400,
-      damping: 40,
+      stiffness: 420,
+      damping: 42,
     },
   },
 };

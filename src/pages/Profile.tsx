@@ -319,13 +319,14 @@ const Profile: React.FC = () => {
       />
 
       {/* Instagram-style Header */}
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border safe-top">
-        <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="font-display font-bold text-xl">{username}</h1>
+      <header className="sticky top-0 z-20 ios-blur-material border-b border-border/30 safe-top">
+        <div className="flex items-center justify-between px-4 h-[52px]">
+          <h1 className="font-display font-bold text-lg">{username}</h1>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setSettingsSheetOpen(true)}
+            className="touch-target"
           >
             <Settings className="w-5 h-5" />
           </Button>

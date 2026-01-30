@@ -112,10 +112,10 @@ const BottomNav: React.FC = () => {
                 </div>
                 
                 <motion.span
-                  className="text-[10px] font-medium leading-tight"
+                  className="text-[11px] font-medium leading-tight"
                   animate={{
                     fontWeight: isActive ? 600 : 500,
-                    opacity: isActive ? 1 : 0.7,
+                    opacity: isActive ? 1 : 0.8,
                   }}
                   transition={{ duration: 0.15 }}
                 >

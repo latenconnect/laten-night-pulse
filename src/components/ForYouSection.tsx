@@ -93,10 +93,10 @@ const ForYouSection: React.FC<ForYouSectionProps> = ({ events, loading, hasPerso
 
   return (
     <section>
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2.5 mb-4">
         <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-        <h2 className="font-display font-bold text-xl">{t('home.forYou')}</h2>
-        <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">{t('common.aiPicks')}</span>
+        <h2 className="font-display font-bold text-xl tracking-tight">{t('home.forYou')}</h2>
+        <span className="text-[11px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">{t('common.aiPicks')}</span>
       </div>
       <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
         {events.map((event, index) => (
