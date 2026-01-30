@@ -23,7 +23,6 @@ const BottomNav: React.FC = () => {
   const { data: unreadCount } = useTotalUnreadCount();
 
   const handleNavPress = useCallback(async (path: string, isSpecial: boolean = false) => {
-    // Don't navigate if already on the same page
     if (location.pathname === path) {
       await selectionChanged();
       return;
@@ -39,11 +38,11 @@ const BottomNav: React.FC = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 safe-left safe-right">
-      {/* Gradient fade effect for content behind */}
-      <div className="absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+      {/* Gradient fade for content behind */}
+      <div className="absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-background/90 to-transparent pointer-events-none" />
       
-      <div className="bg-background/80 backdrop-blur-xl border-t border-border/30 safe-bottom-nav">
-        <div className="flex items-center justify-around py-2 px-2">
+      <div className="bg-background/85 backdrop-blur-2xl border-t border-border/20 safe-bottom-nav">
+        <div className="flex items-center justify-around py-2 px-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
@@ -53,36 +52,35 @@ const BottomNav: React.FC = () => {
                 <motion.button
                   key={item.path}
                   onClick={() => handleNavPress(item.path, true)}
-                  whileTap={{ scale: 0.9 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="relative -mt-6 touch-target no-select"
+                  whileTap={{ scale: 0.92 }}
+                  className="relative -mt-5 touch-target no-select"
                   aria-label={t(item.labelKey)}
                 >
                   <motion.div 
-                    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-neon-pink to-secondary flex items-center justify-center shadow-[0_0_25px_hsla(270,91%,65%,0.5)] gpu-accelerated"
+                    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-neon-pink to-secondary flex items-center justify-center gpu-accelerated"
                     animate={{
                       boxShadow: isActive 
-                        ? '0 0 30px hsla(270, 91%, 65%, 0.7)'
-                        : '0 0 20px hsla(270, 91%, 65%, 0.4)',
+                        ? '0 0 28px hsla(270, 91%, 65%, 0.6), 0 4px 12px hsla(0, 0%, 0%, 0.3)'
+                        : '0 0 20px hsla(270, 91%, 65%, 0.35), 0 4px 12px hsla(0, 0%, 0%, 0.2)',
                     }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                   >
-                    <Icon className="w-6 h-6 text-primary-foreground" />
+                    <Icon className="w-6 h-6 text-primary-foreground" strokeWidth={2.5} />
                   </motion.div>
                 </motion.button>
               );
             }
 
-            // Show badge on profile for unread messages
             const showBadge = item.path === '/profile' && unreadCount && unreadCount > 0;
 
             return (
               <motion.button
                 key={item.path}
                 onClick={() => handleNavPress(item.path)}
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ scale: 0.92 }}
                 className={cn(
-                  'flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors duration-200 touch-target no-select relative min-w-[60px]',
-                  isActive ? 'text-primary' : 'text-muted-foreground'
+                  'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors duration-150 touch-target no-select relative min-w-[56px]',
+                  isActive ? 'text-primary' : 'text-muted-foreground/70'
                 )}
                 aria-label={t(item.labelKey)}
                 aria-current={isActive ? 'page' : undefined}
@@ -90,12 +88,12 @@ const BottomNav: React.FC = () => {
                 <div className="relative">
                   <motion.div
                     animate={{
-                      scale: isActive ? 1.1 : 1,
-                      y: isActive ? -2 : 0,
+                      scale: isActive ? 1.08 : 1,
+                      y: isActive ? -1 : 0,
                     }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                    transition={{ type: 'spring', stiffness: 450, damping: 25 }}
                   >
-                    <Icon className="w-6 h-6" />
+                    <Icon className={cn("w-[22px] h-[22px]", isActive && "stroke-[2.5px]")} />
                   </motion.div>
                   
                   {/* Unread badge */}
@@ -105,7 +103,7 @@ const BottomNav: React.FC = () => {
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
-                        className="absolute -top-1 -right-2 min-w-[18px] h-[18px] bg-primary rounded-full text-[10px] font-bold flex items-center justify-center text-primary-foreground px-1 shadow-[0_0_8px_hsla(270,91%,65%,0.5)]"
+                        className="absolute -top-1.5 -right-2 min-w-[16px] h-[16px] bg-primary rounded-full text-[9px] font-bold flex items-center justify-center text-primary-foreground px-1 shadow-lg shadow-primary/40"
                       >
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </motion.span>
@@ -114,11 +112,12 @@ const BottomNav: React.FC = () => {
                 </div>
                 
                 <motion.span
-                  className="text-[11px] font-medium"
+                  className="text-[10px] font-medium leading-tight"
                   animate={{
                     fontWeight: isActive ? 600 : 500,
-                    opacity: isActive ? 1 : 0.8,
+                    opacity: isActive ? 1 : 0.7,
                   }}
+                  transition={{ duration: 0.15 }}
                 >
                   {t(item.labelKey)}
                 </motion.span>
@@ -130,7 +129,8 @@ const BottomNav: React.FC = () => {
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0, opacity: 0 }}
-                      className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-primary shadow-[0_0_6px_hsla(270,91%,65%,0.8)]"
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-primary shadow-[0_0_6px_hsla(270,91%,65%,0.7)]"
                     />
                   )}
                 </AnimatePresence>

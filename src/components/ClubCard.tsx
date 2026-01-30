@@ -110,15 +110,15 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
     <motion.div
       onClick={handleClick}
       whileTap={{ scale: 0.98 }}
-      className="w-[280px] flex-shrink-0 rounded-2xl overflow-hidden bg-card border border-border cursor-pointer hover:border-primary/50 transition-colors group"
+      className="w-[280px] flex-shrink-0 rounded-2xl overflow-hidden bg-card border border-border/50 cursor-pointer transition-all duration-200 hover:border-primary/40 group"
     >
       {/* Photo */}
-      <div className="relative h-36 bg-muted">
+      <div className="relative h-36 bg-muted overflow-hidden">
         {imageUrl && !imageError ? (
           <img
             src={imageUrl}
             alt={club.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={() => setImageError(true)}
           />
         ) : (
@@ -129,37 +129,37 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, variant = 'default' }) => {
         
         {/* Venue type badge */}
         <div className={cn(
-          "absolute top-2 left-2 px-2 py-1 rounded-full backdrop-blur-sm flex items-center gap-1 border",
+          "absolute top-3 left-3 px-2.5 py-1 rounded-full backdrop-blur-md flex items-center gap-1.5 border",
           venueConfig.color
         )}>
           <VenueIcon className="w-3 h-3" />
-          <span className="text-xs font-medium">{venueConfig.label}</span>
+          <span className="text-[11px] font-medium">{venueConfig.label}</span>
         </div>
         
         {/* Rating badge */}
         {club.rating && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 backdrop-blur-sm">
+          <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md">
             <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-            <span className="text-xs font-medium text-white">{club.rating.toFixed(1)}</span>
+            <span className="text-[11px] font-medium text-white">{club.rating.toFixed(1)}</span>
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-3">
+      <div className="p-3.5">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold truncate">{club.name}</h3>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary flex-shrink-0">{club.city}</span>
+          <h3 className="font-semibold text-[15px] truncate">{club.name}</h3>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium flex-shrink-0">{club.city}</span>
         </div>
         {club.address && (
-          <p className="text-xs text-muted-foreground truncate mt-1 flex items-center gap-1">
+          <p className="text-[12px] text-muted-foreground truncate mt-1.5 flex items-center gap-1.5">
             <MapPin className="w-3 h-3 flex-shrink-0" />
             {club.address}
           </p>
         )}
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between mt-2.5">
           {priceIndicator || <span />}
-          <span className="text-xs text-primary flex items-center gap-1">
+          <span className="text-[11px] text-primary font-medium flex items-center gap-1 group-hover:gap-1.5 transition-all">
             View Details <ChevronRight className="w-3 h-3" />
           </span>
         </div>
