@@ -129,9 +129,16 @@
 }
 
 @layer components {
+  /* Glass Card - Refined with subtle depth */
   .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-border/50 rounded-2xl;
-    background: linear-gradient(135deg, hsla(240, 15%, 12%, 0.8) 0%, hsla(240, 15%, 8%, 0.9) 100%);
+    @apply bg-card/60 backdrop-blur-xl border border-border/40 rounded-2xl;
+    background: linear-gradient(135deg, hsla(240, 15%, 12%, 0.85) 0%, hsla(240, 15%, 8%, 0.95) 100%);
+    box-shadow: 0 4px 24px hsla(0, 0%, 0%, 0.2), inset 0 1px 0 hsla(255, 100%, 100%, 0.03);
+  }
+
+  .glass-card-elevated {
+    @apply glass-card;
+    box-shadow: 0 8px 32px hsla(0, 0%, 0%, 0.3), inset 0 1px 0 hsla(255, 100%, 100%, 0.05);
   }
 
   .neon-glow {
@@ -239,13 +246,48 @@
     transform: translateY(-4px);
   }
 
+  /* Refined Input Styles */
   .input-neon {
-    @apply bg-input border-border/50 rounded-xl px-4 py-3 transition-all duration-300;
+    @apply bg-input border-border/50 rounded-xl px-4 py-3 transition-all duration-200;
   }
 
   .input-neon:focus {
-    @apply border-primary/50 outline-none;
-    box-shadow: 0 0 0 3px hsla(270, 91%, 65%, 0.1);
+    @apply border-primary/60 outline-none;
+    box-shadow: 0 0 0 3px hsla(270, 91%, 65%, 0.15), 0 0 0 1px hsl(var(--primary));
+  }
+
+  /* iOS-Style Form Input */
+  .ios-input {
+    @apply w-full rounded-xl border border-border/50 bg-card/80 px-4 py-3.5 text-foreground;
+    @apply transition-all duration-200 ease-out;
+    font-size: 17px; /* iOS default input size */
+    line-height: 1.4;
+  }
+
+  .ios-input::placeholder {
+    @apply text-muted-foreground/70;
+  }
+
+  .ios-input:focus {
+    @apply border-primary/60 outline-none;
+    box-shadow: 0 0 0 3px hsla(270, 91%, 65%, 0.12);
+  }
+
+  .ios-input:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  /* Form Field Container */
+  .form-field {
+    @apply space-y-2;
+  }
+
+  .form-field-label {
+    @apply text-sm font-medium text-foreground/80 pl-1;
+  }
+
+  .form-field-error {
+    @apply text-sm text-destructive flex items-center gap-1.5 pl-1;
   }
 
   .shimmer {
@@ -257,6 +299,34 @@
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
+  }
+
+  /* Section Header Styling */
+  .section-header {
+    @apply flex items-center gap-2.5 mb-5;
+  }
+
+  .section-header-icon {
+    @apply w-5 h-5;
+  }
+
+  .section-header-title {
+    @apply font-display font-bold text-xl tracking-tight;
+  }
+
+  /* Card Hover States */
+  .card-interactive {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .card-interactive:hover {
+    @apply border-primary/40;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.15);
+  }
+
+  .card-interactive:active {
+    transform: translateY(0);
   }
 
   /* iOS Grouped List Styles */
@@ -368,6 +438,40 @@
     @apply shadow-sm;
     background: hsl(var(--card));
     color: hsl(var(--foreground));
+  }
+
+  /* Divider with label */
+  .divider-with-label {
+    @apply relative flex items-center justify-center my-6;
+  }
+
+  .divider-with-label::before,
+  .divider-with-label::after {
+    content: '';
+    @apply flex-1 h-px bg-border/50;
+  }
+
+  .divider-with-label span {
+    @apply px-4 text-xs uppercase tracking-wider text-muted-foreground;
+  }
+
+  /* Social Login Button */
+  .social-login-btn {
+    @apply w-full h-14 flex items-center justify-center gap-3 rounded-xl border border-border/50;
+    @apply bg-card/60 backdrop-blur-sm transition-all duration-200;
+    @apply text-foreground font-medium;
+  }
+
+  .social-login-btn:hover {
+    @apply bg-card/80 border-border;
+  }
+
+  .social-login-btn:active {
+    @apply scale-[0.98];
+  }
+
+  .social-login-btn:disabled {
+    @apply opacity-50 pointer-events-none;
   }
 
   @keyframes shimmer {
