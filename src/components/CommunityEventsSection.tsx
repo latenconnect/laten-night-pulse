@@ -50,9 +50,7 @@ const CommunityEventsSection: React.FC<CommunityEventsSectionProps> = ({ limit =
     );
   }
 
-  if (communityEvents.length === 0) {
-    return null; // Don't show section if no community events
-  }
+  // Always show the section - even with no events, display the Create Event CTA
 
   return (
     <section>
