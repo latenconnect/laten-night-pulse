@@ -15,6 +15,7 @@ import ForYouSection from '@/components/ForYouSection';
 import ProfessionalsShowcase from '@/components/ProfessionalsShowcase';
 import FeaturedTalentSection from '@/components/FeaturedTalentSection';
 import SubscriptionPlansSection from '@/components/SubscriptionPlansSection';
+import CommunityEventsSection from '@/components/CommunityEventsSection';
 import StoriesBar from '@/components/stories/StoriesBar';
 import FeaturedBadge from '@/components/FeaturedBadge';
 import MobileLayout from '@/components/layouts/MobileLayout';
@@ -336,6 +337,9 @@ const Explore: React.FC = () => {
             </div>
           )}
         </section>
+
+        {/* Community Events - People Created */}
+        <CommunityEventsSection limit={6} />
 
         {/* Subscription Plans Section */}
         <SubscriptionPlansSection />
