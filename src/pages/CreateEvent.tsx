@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Camera, MapPin, Calendar, Clock, Ticket, Users, Info, Sparkles, Lock, Check } from 'lucide-react';
+import { ArrowLeft, Plus, Camera, MapPin, Calendar, Clock, Ticket, Users, Info, Sparkles, Lock, Check, Music, Shield, Shirt, Phone, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { EVENT_TYPES, HUNGARIAN_CITIES } from '@/types';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { EVENT_TYPES, HUNGARIAN_CITIES, INTERESTS } from '@/types';
 import { cn } from '@/lib/utils';
 import BottomNav from '@/components/BottomNav';
 import { useHost, useCreateEvent } from '@/hooks/useHost';
@@ -17,6 +19,14 @@ import { useHostSubscription } from '@/hooks/useHostSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { ShieldAlert, Loader2 } from 'lucide-react';
 
+const DRESS_CODE_OPTIONS = [
+  { id: 'casual', label: 'Casual', icon: '👕' },
+  { id: 'smart_casual', label: 'Smart Casual', icon: '👔' },
+  { id: 'formal', label: 'Formal', icon: '🎩' },
+  { id: 'themed', label: 'Themed', icon: '🎭' },
+  { id: 'none', label: 'No Dress Code', icon: '✨' },
+];
+
 const CreateEvent: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -28,18 +38,28 @@ const CreateEvent: React.FC = () => {
   const { startVerification, loading: verificationLoading } = useAgeVerification();
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [checkingAge, setCheckingAge] = useState(true);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
     type: 'club',
     date: '',
     time: '',
+    end_time: '',
     location_name: '',
+    location_address: '',
+    show_address: false,
     city: selectedCity,
     price: '',
     age_limit: '18',
     description: '',
     expected_attendance: '',
+    max_attendees: '',
+    dress_code: 'none',
+    music_genres: [] as string[],
+    safety_rules: '',
+    contact_info: '',
+    show_contact: false,
   });
   const [pendingCohostIds, setPendingCohostIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -78,8 +98,17 @@ const CreateEvent: React.FC = () => {
     }
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const toggleGenre = (genre: string) => {
+    setFormData(prev => ({
+      ...prev,
+      music_genres: prev.music_genres.includes(genre)
+        ? prev.music_genres.filter(g => g !== genre)
+        : prev.music_genres.length < 5 ? [...prev.music_genres, genre] : prev.music_genres
+    }));
   };
 
   const handleSubmit = async () => {
@@ -91,17 +120,24 @@ const CreateEvent: React.FC = () => {
     setSubmitting(true);
 
     const startTime = new Date(`${formData.date}T${formData.time}`).toISOString();
+    const endTime = formData.end_time 
+      ? new Date(`${formData.date}T${formData.end_time}`).toISOString() 
+      : undefined;
 
     const event = await createEvent({
       name: formData.name,
       type: formData.type,
       location_name: formData.location_name,
+      location_address: formData.show_address ? formData.location_address : undefined,
       city: formData.city,
       start_time: startTime,
+      end_time: endTime,
       price: formData.price ? parseFloat(formData.price) : 0,
       age_limit: parseInt(formData.age_limit),
       description: formData.description || undefined,
       expected_attendance: formData.expected_attendance ? parseInt(formData.expected_attendance) : undefined,
+      max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : undefined,
+      safety_rules: formData.safety_rules || undefined,
     });
 
     setSubmitting(false);
@@ -335,7 +371,7 @@ const CreateEvent: React.FC = () => {
           </div>
         </div>
 
-        {/* Location */}
+        {/* Location Name */}
         <div>
           <label className="text-sm text-muted-foreground mb-2 block">{t('host.venueNameRequired')}</label>
           <div className="relative">
@@ -349,6 +385,42 @@ const CreateEvent: React.FC = () => {
               className="w-full input-neon bg-card border border-border pl-12 disabled:opacity-50"
             />
           </div>
+        </div>
+
+        {/* Address with Privacy Toggle */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-muted-foreground">Address (Optional)</label>
+            <div className="flex items-center gap-2">
+              {formData.show_address ? (
+                <Eye className="w-4 h-4 text-primary" />
+              ) : (
+                <EyeOff className="w-4 h-4 text-muted-foreground" />
+              )}
+              <span className="text-xs text-muted-foreground">
+                {formData.show_address ? 'Public' : 'Hidden'}
+              </span>
+              <Switch
+                checked={formData.show_address}
+                onCheckedChange={(checked) => handleChange('show_address', checked)}
+                disabled={!canCreateEvent}
+              />
+            </div>
+          </div>
+          <input
+            type="text"
+            placeholder="e.g., 123 Main Street, Apt 4B"
+            value={formData.location_address}
+            onChange={(e) => handleChange('location_address', e.target.value)}
+            disabled={!canCreateEvent}
+            className="w-full input-neon bg-card border border-border disabled:opacity-50"
+          />
+          <p className="text-xs text-muted-foreground">
+            {formData.show_address 
+              ? '📍 Address will be visible to all attendees'
+              : '🔒 Address hidden until RSVP confirmed (for privacy)'
+            }
+          </p>
         </div>
 
         {/* City */}
@@ -416,18 +488,173 @@ const CreateEvent: React.FC = () => {
           </div>
         </div>
 
-        {/* Max Capacity */}
+        {/* Music Genres */}
         <div>
-          <label className="text-sm text-muted-foreground mb-2 block">{t('host.expectedAttendance')}</label>
-          <input
-            type="number"
-            placeholder="e.g., 200"
-            value={formData.expected_attendance}
-            onChange={(e) => handleChange('expected_attendance', e.target.value)}
-            disabled={!canCreateEvent}
-            className="w-full input-neon bg-card border border-border disabled:opacity-50"
-          />
+          <label className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+            <Music className="w-4 h-4" />
+            Music Genres (max 5)
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {INTERESTS.map(genre => (
+              <Badge
+                key={genre}
+                variant={formData.music_genres.includes(genre) ? "default" : "outline"}
+                className={cn(
+                  'cursor-pointer transition-all',
+                  formData.music_genres.includes(genre)
+                    ? 'bg-primary hover:bg-primary/90'
+                    : 'hover:border-primary/50',
+                  !canCreateEvent && 'opacity-50 pointer-events-none'
+                )}
+                onClick={() => canCreateEvent && toggleGenre(genre)}
+              >
+                {genre}
+              </Badge>
+            ))}
+          </div>
         </div>
+
+        {/* Advanced Options Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="w-full flex items-center justify-between py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <Plus className={cn("w-4 h-4 transition-transform", showAdvanced && "rotate-45")} />
+            More Options
+          </span>
+          <ChevronDown className={cn("w-4 h-4 transition-transform", showAdvanced && "rotate-180")} />
+        </button>
+
+        {/* Advanced Options */}
+        <AnimatePresence>
+          {showAdvanced && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-6 overflow-hidden"
+            >
+              {/* End Time */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">End Time (Optional)</label>
+                <div className="relative">
+                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <input
+                    type="time"
+                    value={formData.end_time}
+                    onChange={(e) => handleChange('end_time', e.target.value)}
+                    disabled={!canCreateEvent}
+                    className="w-full input-neon bg-card border border-border pl-12 disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              {/* Capacity */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">{t('host.expectedAttendance')}</label>
+                  <input
+                    type="number"
+                    placeholder="e.g., 50"
+                    value={formData.expected_attendance}
+                    onChange={(e) => handleChange('expected_attendance', e.target.value)}
+                    disabled={!canCreateEvent}
+                    className="w-full input-neon bg-card border border-border disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Max Capacity</label>
+                  <input
+                    type="number"
+                    placeholder="e.g., 100"
+                    value={formData.max_attendees}
+                    onChange={(e) => handleChange('max_attendees', e.target.value)}
+                    disabled={!canCreateEvent}
+                    className="w-full input-neon bg-card border border-border disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              {/* Dress Code */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                  <Shirt className="w-4 h-4" />
+                  Dress Code
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {DRESS_CODE_OPTIONS.map(option => (
+                    <button
+                      key={option.id}
+                      onClick={() => handleChange('dress_code', option.id)}
+                      disabled={!canCreateEvent}
+                      className={cn(
+                        'glass-card p-3 text-center transition-all',
+                        'flex flex-col items-center gap-1',
+                        formData.dress_code === option.id ? 'border-primary bg-primary/10' : 'hover:border-primary/50',
+                        !canCreateEvent && 'opacity-50 cursor-not-allowed'
+                      )}
+                    >
+                      <span className="text-xl">{option.icon}</span>
+                      <span className="text-xs">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Safety Rules / House Rules */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  House Rules (Optional)
+                </label>
+                <textarea
+                  placeholder="e.g., No smoking inside, BYOB allowed, Respect neighbors..."
+                  rows={3}
+                  value={formData.safety_rules}
+                  onChange={(e) => handleChange('safety_rules', e.target.value)}
+                  disabled={!canCreateEvent}
+                  className="w-full input-neon bg-card border border-border resize-none disabled:opacity-50"
+                />
+              </div>
+
+              {/* Contact Info with Privacy Toggle */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    Contact Info (Optional)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {formData.show_contact ? 'Public' : 'RSVP only'}
+                    </span>
+                    <Switch
+                      checked={formData.show_contact}
+                      onCheckedChange={(checked) => handleChange('show_contact', checked)}
+                      disabled={!canCreateEvent}
+                    />
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  placeholder="e.g., WhatsApp: +36 XX XXX XXXX"
+                  value={formData.contact_info}
+                  onChange={(e) => handleChange('contact_info', e.target.value)}
+                  disabled={!canCreateEvent}
+                  className="w-full input-neon bg-card border border-border disabled:opacity-50"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formData.show_contact 
+                    ? '📞 Contact visible to everyone'
+                    : '🔒 Only visible to confirmed attendees'
+                  }
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Co-Hosts Section */}
         {canCreateEvent && (
