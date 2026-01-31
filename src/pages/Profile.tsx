@@ -50,6 +50,7 @@ interface Profile {
   city: string | null;
   age_verified: boolean | null;
   is_verified: boolean | null;
+  show_city: boolean | null;
 }
 
 const Profile: React.FC = () => {
@@ -115,7 +116,7 @@ const Profile: React.FC = () => {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, avatar_url, bio, city, age_verified, is_verified')
+      .select('id, display_name, avatar_url, bio, city, age_verified, is_verified, show_city')
       .eq('id', user.id)
       .single();
     
@@ -148,6 +149,7 @@ const Profile: React.FC = () => {
           display_name: editName.trim() || null,
           bio: editBio.trim() || null,
           city: editCity.trim() || null,
+          show_city: profile?.show_city || false,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -158,7 +160,8 @@ const Profile: React.FC = () => {
         ...prev,
         display_name: editName.trim() || null,
         bio: editBio.trim() || null,
-        city: editCity.trim() || null
+        city: editCity.trim() || null,
+        show_city: profile?.show_city || false
       } : null);
       
       toast.success('Profile updated!');
@@ -389,7 +392,7 @@ const Profile: React.FC = () => {
                   </span>
                 )}
               </h2>
-              {profile?.city && (
+              {profile?.show_city && profile?.city && (
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
                   {profile.city}
@@ -582,6 +585,31 @@ const Profile: React.FC = () => {
                 placeholder="Your city"
                 maxLength={100}
               />
+              {/* Show city toggle */}
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Show city on profile</span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={profile?.show_city || false}
+                  onClick={() => setProfile(prev => prev ? { ...prev, show_city: !prev.show_city } : null)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    profile?.show_city ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
+                      profile?.show_city ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                When enabled, your city will be visible to others on your profile
+              </p>
             </div>
 
             {/* Save button */}

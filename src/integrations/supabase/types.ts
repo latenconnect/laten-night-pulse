@@ -1981,6 +1981,7 @@ export type Database = {
           display_name: string | null
           id: string
           is_verified: boolean | null
+          show_city: boolean | null
           show_connections: boolean | null
           updated_at: string | null
         }
@@ -1996,6 +1997,7 @@ export type Database = {
           display_name?: string | null
           id: string
           is_verified?: boolean | null
+          show_city?: boolean | null
           show_connections?: boolean | null
           updated_at?: string | null
         }
@@ -2011,6 +2013,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_verified?: boolean | null
+          show_city?: boolean | null
           show_connections?: boolean | null
           updated_at?: string | null
         }
@@ -3071,14 +3074,14 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
-          city?: string | null
+          city?: never
           display_name?: string | null
           id?: string | null
           is_verified?: boolean | null
         }
         Update: {
           avatar_url?: string | null
-          city?: string | null
+          city?: never
           display_name?: string | null
           id?: string | null
           is_verified?: boolean | null
