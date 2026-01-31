@@ -69,9 +69,11 @@ const CreateStoryDialog: React.FC<CreateStoryDialogProps> = ({
     setUploading(true);
     const result = await uploadStory(
       selectedFile,
-      textOverlay || undefined,
-      textPosition,
-      textColor
+      {
+        textOverlay: textOverlay || undefined,
+        textPosition,
+        textColor
+      }
     );
     setUploading(false);
 

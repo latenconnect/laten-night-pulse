@@ -272,6 +272,27 @@ export type Database = {
           },
         ]
       }
+      close_friends: {
+        Row: {
+          created_at: string | null
+          friend_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          friend_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          friend_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       club_analytics: {
         Row: {
           clicks: number | null
@@ -2165,10 +2186,15 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          media_type: string
           media_url: string
+          text_animation: string | null
+          text_background: string | null
           text_color: string | null
+          text_font: string | null
           text_overlay: string | null
           text_position: string | null
+          text_size: string | null
           user_id: string
           view_count: number | null
           visibility: string
@@ -2177,10 +2203,15 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          media_type?: string
           media_url: string
+          text_animation?: string | null
+          text_background?: string | null
           text_color?: string | null
+          text_font?: string | null
           text_overlay?: string | null
           text_position?: string | null
+          text_size?: string | null
           user_id: string
           view_count?: number | null
           visibility?: string
@@ -2189,15 +2220,211 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          media_type?: string
           media_url?: string
+          text_animation?: string | null
+          text_background?: string | null
           text_color?: string | null
+          text_font?: string | null
           text_overlay?: string | null
           text_position?: string | null
+          text_size?: string | null
           user_id?: string
           view_count?: number | null
           visibility?: string
         }
         Relationships: []
+      }
+      story_hidden_from: {
+        Row: {
+          created_at: string | null
+          hidden_user_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          hidden_user_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          hidden_user_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      story_highlight_items: {
+        Row: {
+          created_at: string | null
+          highlight_id: string
+          id: string
+          media_url: string
+          story_id: string
+          text_color: string | null
+          text_font: string | null
+          text_overlay: string | null
+          text_position: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          highlight_id: string
+          id?: string
+          media_url: string
+          story_id: string
+          text_color?: string | null
+          text_font?: string | null
+          text_overlay?: string | null
+          text_position?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          highlight_id?: string
+          id?: string
+          media_url?: string
+          story_id?: string
+          text_color?: string | null
+          text_font?: string | null
+          text_overlay?: string | null
+          text_position?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_highlight_items_highlight_id_fkey"
+            columns: ["highlight_id"]
+            isOneToOne: false
+            referencedRelation: "story_highlights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_highlight_items_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_highlights: {
+        Row: {
+          cover_image: string | null
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cover_image?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cover_image?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      story_replies: {
+        Row: {
+          conversation_id: string | null
+          created_at: string | null
+          id: string
+          message: string
+          recipient_id: string
+          sender_id: string
+          story_id: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          recipient_id: string
+          sender_id: string
+          story_id: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          recipient_id?: string
+          sender_id?: string
+          story_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_replies_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "dm_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_replies_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_stickers: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          position_x: number
+          position_y: number
+          rotation: number | null
+          scale: number | null
+          sticker_type: string
+          story_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          position_x?: number
+          position_y?: number
+          rotation?: number | null
+          scale?: number | null
+          sticker_type: string
+          story_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          position_x?: number
+          position_y?: number
+          rotation?: number | null
+          scale?: number | null
+          sticker_type?: string
+          story_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_stickers_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       story_views: {
         Row: {
@@ -2921,6 +3148,10 @@ export type Database = {
       }
       increment_event_analytics: {
         Args: { p_event_id: string; p_field: string }
+        Returns: undefined
+      }
+      increment_story_view_count: {
+        Args: { p_story_id: string }
         Returns: undefined
       }
       is_dev_user: { Args: { _user_id: string }; Returns: boolean }
