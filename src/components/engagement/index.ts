@@ -1,5 +1,6 @@
 // Confetti celebrations
 export { useConfetti, ConfettiCelebration } from './ConfettiCelebration';
+export { useConfetti as useConfettiHook, ConfettiTrigger } from './useConfetti';
 
 // Social signals
 export { 
@@ -26,6 +27,9 @@ export {
 // Streak display with real data
 export { default as StreakDisplay } from './StreakDisplay';
 
+// Streak widget
+export { StreakWidget } from './StreakWidget';
+
 // Weekly recap card
 export { default as WeeklyRecapCard } from './WeeklyRecapCard';
 
@@ -36,6 +40,9 @@ export {
   FriendActivityItem, 
   FriendActivityFeed 
 } from './LiveFeedHeader';
+
+// Live friends presence
+export { LiveFriendsBar, LiveFriendsDot } from './LiveFriendsBar';
 
 // Micro-interactions
 export { 
