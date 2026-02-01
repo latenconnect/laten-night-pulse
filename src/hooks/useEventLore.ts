@@ -151,9 +151,10 @@ export const useEventLore = (eventId?: string) => {
 
   const incrementViewCount = async (clipId: string) => {
     try {
+      const currentCount = clips.find(c => c.id === clipId)?.view_count ?? 0;
       await supabase
         .from('event_lore_clips')
-        .update({ view_count: clips.find(c => c.id === clipId)?.view_count ?? 0 + 1 })
+        .update({ view_count: currentCount + 1 })
         .eq('id', clipId);
     } catch (error) {
       console.error('Error incrementing view count:', error);
