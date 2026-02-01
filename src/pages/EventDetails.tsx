@@ -20,6 +20,9 @@ import { EventQA } from '@/components/EventQA';
 import { EventChat } from '@/components/EventChat';
 import { EventAnalyticsDashboard } from '@/components/host/EventAnalyticsDashboard';
 import { SocialShareTemplates } from '@/components/host/SocialShareTemplates';
+import { EventLoreFeed } from '@/components/lore';
+import { IcebreakerRooms } from '@/components/icebreaker';
+import { SafetyBuddyWidget } from '@/components/safety';
 import { EVENT_TYPES } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -368,6 +371,21 @@ const EventDetails: React.FC = () => {
             <p className="font-semibold mt-1">{event.dressCode}</p>
           </div>
         )}
+
+        {/* Event Lore Feed - Collaborative vibe clips */}
+        <div className="mb-6">
+          <EventLoreFeed eventId={event.id} variant="full" />
+        </div>
+
+        {/* Icebreaker Rooms - Find your squad */}
+        <div className="mb-6">
+          <IcebreakerRooms eventId={event.id} />
+        </div>
+
+        {/* Safety Buddy Widget */}
+        <div className="mb-6">
+          <SafetyBuddyWidget eventId={event.id} variant="full" />
+        </div>
 
         {/* Q&A Section */}
         <div className="mb-6">

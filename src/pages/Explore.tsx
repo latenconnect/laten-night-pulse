@@ -25,6 +25,8 @@ import { LiveFeedHeader, SocialSignal, StreakDisplay, WeeklyRecapCard, StreakWid
 import { SocialActivityFeed, FriendsSuggestions } from '@/components/social';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { NativeAdCard } from '@/components/ads';
+import { XPLevelCard, PartyQuestsCard, AchievementsBadges } from '@/components/gamification';
+import { SafetyBuddyWidget } from '@/components/safety';
 import { useEvents, transformDbEvent } from '@/hooks/useEvents';
 import { useApp } from '@/context/AppContext';
 import { SearchContext } from '@/context/SearchContext';
@@ -197,11 +199,15 @@ const Explore: React.FC = () => {
       {/* Stories Bar */}
       <StoriesBar />
 
-      {/* Friend Presence & Streak - Addictive engagement elements */}
+      {/* Friend Presence & Gamification - Addictive engagement elements */}
       {user && (
         <div className="px-4 pt-4 space-y-3">
           <LiveFriendsBar />
-          <StreakWidget variant="compact" />
+          <XPLevelCard variant="compact" />
+          <div className="grid grid-cols-2 gap-3">
+            <StreakWidget variant="mini" />
+            <PartyQuestsCard variant="compact" />
+          </div>
         </div>
       )}
 
@@ -209,8 +215,13 @@ const Explore: React.FC = () => {
         {/* Tonight's Picks - Curated events for tonight */}
         <TonightsPicksSection />
 
-        {/* User Streaks & Weekly Recap */}
-        {user && <StreakDisplay />}
+        {/* Gamification & Safety */}
+        {user && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <AchievementsBadges variant="compact" />
+            <SafetyBuddyWidget variant="compact" />
+          </div>
+        )}
         {user && <WeeklyRecapCard />}
 
         {/* Party Groups - Plan events with friends */}

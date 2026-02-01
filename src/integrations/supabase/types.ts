@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          is_secret: boolean | null
+          name: string
+          requirement_type: string
+          requirement_value: number
+          xp_reward: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          icon: string
+          id?: string
+          is_secret?: boolean | null
+          name: string
+          requirement_type: string
+          requirement_value?: number
+          xp_reward?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          is_secret?: boolean | null
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       bartender_availability: {
         Row: {
           bartender_profile_id: string
@@ -1107,6 +1146,60 @@ export type Database = {
           },
         ]
       }
+      event_lore_clips: {
+        Row: {
+          caption: string | null
+          created_at: string
+          event_id: string
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          media_type: string
+          media_url: string
+          user_id: string
+          view_count: number | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          event_id: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          media_type?: string
+          media_url: string
+          user_id: string
+          view_count?: number | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          event_id?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          media_type?: string
+          media_url?: string
+          user_id?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_lore_clips_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_lore_clips_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_messages: {
         Row: {
           created_at: string
@@ -1299,6 +1392,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_featured: boolean | null
+          is_sober_friendly: boolean | null
           location_address: string | null
           location_lat: number | null
           location_lng: number | null
@@ -1312,6 +1406,7 @@ export type Database = {
           start_time: string
           type: Database["public"]["Enums"]["event_type"]
           updated_at: string | null
+          wellness_tags: string[] | null
         }
         Insert: {
           actual_rsvp?: number | null
@@ -1327,6 +1422,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sober_friendly?: boolean | null
           location_address?: string | null
           location_lat?: number | null
           location_lng?: number | null
@@ -1340,6 +1436,7 @@ export type Database = {
           start_time: string
           type?: Database["public"]["Enums"]["event_type"]
           updated_at?: string | null
+          wellness_tags?: string[] | null
         }
         Update: {
           actual_rsvp?: number | null
@@ -1355,6 +1452,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sober_friendly?: boolean | null
           location_address?: string | null
           location_lat?: number | null
           location_lng?: number | null
@@ -1368,6 +1466,7 @@ export type Database = {
           start_time?: string
           type?: Database["public"]["Enums"]["event_type"]
           updated_at?: string | null
+          wellness_tags?: string[] | null
         }
         Relationships: [
           {
@@ -1544,6 +1643,193 @@ export type Database = {
         }
         Relationships: []
       }
+      icebreaker_members: {
+        Row: {
+          id: string
+          joined_at: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "icebreaker_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "icebreaker_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      icebreaker_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "icebreaker_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "icebreaker_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      icebreaker_rooms: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_members: number | null
+          name: string
+          room_type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_members?: number | null
+          name: string
+          room_type?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_members?: number | null
+          name?: string
+          room_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "icebreaker_rooms_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "icebreaker_rooms_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leaderboards: {
+        Row: {
+          created_at: string
+          id: string
+          period_start: string
+          period_type: string
+          rank: number | null
+          total_xp: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          period_start: string
+          period_type: string
+          rank?: number | null
+          total_xp?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          period_start?: string
+          period_type?: string
+          rank?: number | null
+          total_xp?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      night_recaps: {
+        Row: {
+          created_at: string
+          friends_met: string[] | null
+          highlight_clips: string[] | null
+          id: string
+          montage_url: string | null
+          recap_date: string
+          shared_at: string | null
+          stats: Json | null
+          top_genre: string | null
+          total_hours: number | null
+          user_id: string
+          venues_visited: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          friends_met?: string[] | null
+          highlight_clips?: string[] | null
+          id?: string
+          montage_url?: string | null
+          recap_date?: string
+          shared_at?: string | null
+          stats?: Json | null
+          top_genre?: string | null
+          total_hours?: number | null
+          user_id: string
+          venues_visited?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          friends_met?: string[] | null
+          highlight_clips?: string[] | null
+          id?: string
+          montage_url?: string | null
+          recap_date?: string
+          shared_at?: string | null
+          stats?: Json | null
+          top_genre?: string | null
+          total_hours?: number | null
+          user_id?: string
+          venues_visited?: string[] | null
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -1688,6 +1974,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      party_quests: {
+        Row: {
+          created_at: string
+          description: string
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          quest_type: string
+          requirement_type: string
+          requirement_value: number
+          starts_at: string
+          title: string
+          xp_reward: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          quest_type?: string
+          requirement_type: string
+          requirement_value?: number
+          starts_at?: string
+          title: string
+          xp_reward?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          quest_type?: string
+          requirement_type?: string
+          requirement_value?: number
+          starts_at?: string
+          title?: string
+          xp_reward?: number
+        }
+        Relationships: []
       }
       professional_availability: {
         Row: {
@@ -2121,6 +2449,78 @@ export type Database = {
           },
         ]
       }
+      safety_buddies: {
+        Row: {
+          buddy_id: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          user_id: string
+        }
+        Insert: {
+          buddy_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          user_id: string
+        }
+        Update: {
+          buddy_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      safety_checkins: {
+        Row: {
+          checked_in_at: string | null
+          created_at: string
+          event_id: string | null
+          expected_home_time: string | null
+          id: string
+          location_note: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          checked_in_at?: string | null
+          created_at?: string
+          event_id?: string | null
+          expected_home_time?: string | null
+          id?: string
+          location_note?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          checked_in_at?: string | null
+          created_at?: string
+          event_id?: string | null
+          expected_home_time?: string | null
+          id?: string
+          location_note?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_checkins_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_checkins_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_events: {
         Row: {
           created_at: string | null
@@ -2511,6 +2911,35 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_connections: {
         Row: {
           connection_type: string
@@ -2696,6 +3125,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_quest_progress: {
+        Row: {
+          claimed_at: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          progress: number
+          quest_id: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          progress?: number
+          quest_id: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          progress?: number
+          quest_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_quest_progress_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "party_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -2750,6 +3217,45 @@ export type Database = {
           total_events_attended?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_xp: {
+        Row: {
+          created_at: string
+          current_level: number
+          id: string
+          month_reset_date: string | null
+          total_xp: number
+          updated_at: string
+          user_id: string
+          week_reset_date: string | null
+          xp_this_month: number | null
+          xp_this_week: number | null
+        }
+        Insert: {
+          created_at?: string
+          current_level?: number
+          id?: string
+          month_reset_date?: string | null
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+          week_reset_date?: string | null
+          xp_this_month?: number | null
+          xp_this_week?: number | null
+        }
+        Update: {
+          created_at?: string
+          current_level?: number
+          id?: string
+          month_reset_date?: string | null
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+          week_reset_date?: string | null
+          xp_this_month?: number | null
+          xp_this_week?: number | null
         }
         Relationships: []
       }
@@ -3090,6 +3596,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_user_xp: {
+        Args: { p_user_id: string; p_xp: number }
+        Returns: undefined
+      }
       can_view_event_location: {
         Args: { event_row: Database["public"]["Tables"]["events"]["Row"] }
         Returns: boolean
