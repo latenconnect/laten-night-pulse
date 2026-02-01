@@ -1,0 +1,1 @@
+export { EventLoreFeed } from './EventLoreFeed';
