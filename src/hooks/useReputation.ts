@@ -73,16 +73,19 @@ export const useReputation = () => {
       if (data) {
         setReputation(data as UserReputation);
       } else {
-        // Create initial reputation record
-        const { data: newRep, error: insertError } = await supabase
-          .from('user_reputation')
-          .insert({ user_id: user.id })
-          .select()
-          .single();
-
-        if (!insertError && newRep) {
-          setReputation(newRep as UserReputation);
-        }
+        // Reputation is created automatically via triggers on first check-in
+        // Show default newcomer state for users who haven't checked in yet
+        setReputation({
+          id: '',
+          user_id: user.id,
+          total_rep: 0,
+          reputation_level: 'newcomer',
+          events_attended: 0,
+          events_ghosted: 0,
+          average_vibe_rating: null,
+          total_vibe_votes: 0,
+          violations_count: 0,
+        });
       }
     } catch (error) {
       console.error('Error fetching reputation:', error);
