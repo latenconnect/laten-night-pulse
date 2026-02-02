@@ -941,6 +941,51 @@ export type Database = {
           },
         ]
       }
+      event_access_tiers: {
+        Row: {
+          created_at: string
+          early_access_hours: number | null
+          event_id: string
+          id: string
+          max_capacity: number | null
+          min_rep_level: string | null
+          min_rep_score: number | null
+        }
+        Insert: {
+          created_at?: string
+          early_access_hours?: number | null
+          event_id: string
+          id?: string
+          max_capacity?: number | null
+          min_rep_level?: string | null
+          min_rep_score?: number | null
+        }
+        Update: {
+          created_at?: string
+          early_access_hours?: number | null
+          event_id?: string
+          id?: string
+          max_capacity?: number | null
+          min_rep_level?: string | null
+          min_rep_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_access_tiers_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_access_tiers_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_analytics: {
         Row: {
           clicks: number | null
@@ -1090,6 +1135,57 @@ export type Database = {
           },
         ]
       }
+      event_check_ins: {
+        Row: {
+          check_in_time: string
+          check_out_time: string | null
+          created_at: string
+          duration_minutes: number | null
+          event_id: string
+          id: string
+          qr_code_id: string | null
+          rep_earned: number
+          user_id: string
+        }
+        Insert: {
+          check_in_time?: string
+          check_out_time?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          event_id: string
+          id?: string
+          qr_code_id?: string | null
+          rep_earned?: number
+          user_id: string
+        }
+        Update: {
+          check_in_time?: string
+          check_out_time?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          event_id?: string
+          id?: string
+          qr_code_id?: string | null
+          rep_earned?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_check_ins_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_check_ins_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_cohosts: {
         Row: {
           added_at: string
@@ -1142,6 +1238,51 @@ export type Database = {
             columns: ["host_id"]
             isOneToOne: false
             referencedRelation: "public_host_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_heat: {
+        Row: {
+          current_attendees: number
+          event_id: string
+          heat_level: number
+          id: string
+          peak_attendees: number
+          updated_at: string
+          vibe_tags: string[] | null
+        }
+        Insert: {
+          current_attendees?: number
+          event_id: string
+          heat_level?: number
+          id?: string
+          peak_attendees?: number
+          updated_at?: string
+          vibe_tags?: string[] | null
+        }
+        Update: {
+          current_attendees?: number
+          event_id?: string
+          heat_level?: number
+          id?: string
+          peak_attendees?: number
+          updated_at?: string
+          vibe_tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_heat_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_heat_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events_with_privacy"
             referencedColumns: ["id"]
           },
         ]
@@ -1235,6 +1376,51 @@ export type Database = {
           },
           {
             foreignKeyName: "event_messages_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_qr_codes: {
+        Row: {
+          code: string
+          created_at: string
+          event_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          scans_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          event_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          scans_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          event_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          scans_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_qr_codes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_qr_codes_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events_with_privacy"
@@ -1485,6 +1671,42 @@ export type Database = {
           },
         ]
       }
+      flex_cards: {
+        Row: {
+          card_type: string
+          created_at: string
+          id: string
+          is_public: boolean
+          share_code: string
+          stats: Json | null
+          subtitle: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          card_type: string
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          share_code?: string
+          stats?: Json | null
+          subtitle?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          card_type?: string
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          share_code?: string
+          stats?: Json | null
+          subtitle?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       friend_activity: {
         Row: {
           activity_type: string
@@ -1540,6 +1762,87 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      friend_locations: {
+        Row: {
+          event_id: string | null
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+          visible_to: string
+        }
+        Insert: {
+          event_id?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          visible_to?: string
+        }
+        Update: {
+          event_id?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          visible_to?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_locations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_locations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_match_requests: {
+        Row: {
+          created_at: string
+          id: string
+          requesting_group_id: string
+          status: string
+          target_group_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          requesting_group_id: string
+          status?: string
+          target_group_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          requesting_group_id?: string
+          status?: string
+          target_group_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_match_requests_requesting_group_id_fkey"
+            columns: ["requesting_group_id"]
+            isOneToOne: false
+            referencedRelation: "party_match_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_match_requests_target_group_id_fkey"
+            columns: ["target_group_id"]
+            isOneToOne: false
+            referencedRelation: "party_match_groups"
             referencedColumns: ["id"]
           },
         ]
@@ -1863,6 +2166,57 @@ export type Database = {
         }
         Relationships: []
       }
+      party_connections: {
+        Row: {
+          connection_date: string
+          connection_type: string
+          created_at: string
+          event_id: string | null
+          expires_at: string
+          id: string
+          matched_user_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          connection_date?: string
+          connection_type?: string
+          created_at?: string
+          event_id?: string | null
+          expires_at?: string
+          id?: string
+          matched_user_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          connection_date?: string
+          connection_type?: string
+          created_at?: string
+          event_id?: string | null
+          expires_at?: string
+          id?: string
+          matched_user_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_connections_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_connections_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       party_group_members: {
         Row: {
           created_at: string
@@ -1975,6 +2329,125 @@ export type Database = {
           },
         ]
       }
+      party_match_group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_match_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "party_match_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_match_groups: {
+        Row: {
+          created_at: string
+          creator_id: string
+          energy_level: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          looking_for_size: number | null
+          name: string | null
+          target_event_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          energy_level?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          looking_for_size?: number | null
+          name?: string | null
+          target_event_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          energy_level?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          looking_for_size?: number | null
+          name?: string | null
+          target_event_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_match_groups_target_event_id_fkey"
+            columns: ["target_event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_match_groups_target_event_id_fkey"
+            columns: ["target_event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_preferences: {
+        Row: {
+          age_range_max: number | null
+          age_range_min: number | null
+          city: string | null
+          energy_level: string
+          id: string
+          max_distance_km: number | null
+          music_vibes: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age_range_max?: number | null
+          age_range_min?: number | null
+          city?: string | null
+          energy_level?: string
+          id?: string
+          max_distance_km?: number | null
+          music_vibes?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age_range_max?: number | null
+          age_range_min?: number | null
+          city?: string | null
+          energy_level?: string
+          id?: string
+          max_distance_km?: number | null
+          music_vibes?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       party_quests: {
         Row: {
           created_at: string
@@ -2016,6 +2489,63 @@ export type Database = {
           xp_reward?: number
         }
         Relationships: []
+      }
+      party_timeline: {
+        Row: {
+          attended_date: string
+          created_at: string
+          duration_hours: number | null
+          event_city: string | null
+          event_id: string | null
+          event_name: string
+          highlight_moment: string | null
+          id: string
+          is_public: boolean
+          rep_earned: number
+          user_id: string
+        }
+        Insert: {
+          attended_date: string
+          created_at?: string
+          duration_hours?: number | null
+          event_city?: string | null
+          event_id?: string | null
+          event_name: string
+          highlight_moment?: string | null
+          id?: string
+          is_public?: boolean
+          rep_earned?: number
+          user_id: string
+        }
+        Update: {
+          attended_date?: string
+          created_at?: string
+          duration_hours?: number | null
+          event_city?: string | null
+          event_id?: string | null
+          event_name?: string
+          highlight_moment?: string | null
+          id?: string
+          is_public?: boolean
+          rep_earned?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_timeline_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_timeline_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       professional_availability: {
         Row: {
@@ -2449,6 +2979,51 @@ export type Database = {
           },
         ]
       }
+      reputation_violations: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_id: string | null
+          id: string
+          rep_penalty: number
+          user_id: string
+          violation_type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_id?: string | null
+          id?: string
+          rep_penalty?: number
+          user_id: string
+          violation_type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_id?: string | null
+          id?: string
+          rep_penalty?: number
+          user_id?: string
+          violation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reputation_violations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reputation_violations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       safety_buddies: {
         Row: {
           buddy_id: string
@@ -2858,6 +3433,62 @@ export type Database = {
           },
         ]
       }
+      talent_followers: {
+        Row: {
+          bartender_profile_id: string | null
+          created_at: string
+          dj_profile_id: string | null
+          follower_user_id: string
+          host_id: string | null
+          id: string
+        }
+        Insert: {
+          bartender_profile_id?: string | null
+          created_at?: string
+          dj_profile_id?: string | null
+          follower_user_id: string
+          host_id?: string | null
+          id?: string
+        }
+        Update: {
+          bartender_profile_id?: string | null
+          created_at?: string
+          dj_profile_id?: string | null
+          follower_user_id?: string
+          host_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "talent_followers_bartender_profile_id_fkey"
+            columns: ["bartender_profile_id"]
+            isOneToOne: false
+            referencedRelation: "bartender_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_followers_dj_profile_id_fkey"
+            columns: ["dj_profile_id"]
+            isOneToOne: false
+            referencedRelation: "dj_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_followers_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "hosts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_followers_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "public_host_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_purchases: {
         Row: {
           commission_cents: number
@@ -3163,6 +3794,48 @@ export type Database = {
           },
         ]
       }
+      user_reputation: {
+        Row: {
+          average_vibe_rating: number | null
+          created_at: string
+          events_attended: number
+          events_ghosted: number
+          id: string
+          reputation_level: string
+          total_rep: number
+          total_vibe_votes: number
+          updated_at: string
+          user_id: string
+          violations_count: number
+        }
+        Insert: {
+          average_vibe_rating?: number | null
+          created_at?: string
+          events_attended?: number
+          events_ghosted?: number
+          id?: string
+          reputation_level?: string
+          total_rep?: number
+          total_vibe_votes?: number
+          updated_at?: string
+          user_id: string
+          violations_count?: number
+        }
+        Update: {
+          average_vibe_rating?: number | null
+          created_at?: string
+          events_attended?: number
+          events_ghosted?: number
+          id?: string
+          reputation_level?: string
+          total_rep?: number
+          total_vibe_votes?: number
+          updated_at?: string
+          user_id?: string
+          violations_count?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -3315,6 +3988,48 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: true
             referencedRelation: "public_clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vibe_ratings: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          rated_user_id: string
+          rater_user_id: string
+          vibe_score: number
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          rated_user_id: string
+          rater_user_id: string
+          vibe_score: number
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          rated_user_id?: string
+          rater_user_id?: string
+          vibe_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vibe_ratings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vibe_ratings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
             referencedColumns: ["id"]
           },
         ]
@@ -3596,10 +4311,15 @@ export type Database = {
       }
     }
     Functions: {
+      add_reputation: {
+        Args: { p_amount: number; p_reason?: string; p_user_id: string }
+        Returns: undefined
+      }
       add_user_xp: {
         Args: { p_user_id: string; p_xp: number }
         Returns: undefined
       }
+      calculate_rep_level: { Args: { rep_score: number }; Returns: string }
       can_view_event_location: {
         Args: { event_row: Database["public"]["Tables"]["events"]["Row"] }
         Returns: boolean
@@ -3623,6 +4343,7 @@ export type Database = {
             }
             Returns: boolean
           }
+      cleanup_expired_connections: { Args: never; Returns: undefined }
       cleanup_expired_stories: { Args: never; Returns: undefined }
       delete_bartender_profile: {
         Args: { profile_id: string }
@@ -3668,6 +4389,10 @@ export type Database = {
         Returns: undefined
       }
       is_dev_user: { Args: { _user_id: string }; Returns: boolean }
+      record_ghost: {
+        Args: { p_event_id: string; p_user_id: string }
+        Returns: undefined
+      }
       scan_ticket: {
         Args: { p_qr_code: string; p_scanner_id: string }
         Returns: Json
