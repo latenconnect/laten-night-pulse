@@ -231,14 +231,19 @@ const Auth: React.FC = () => {
           // Generate a cryptographically secure nonce
           const rawNonce = crypto.randomUUID();
           
-          console.log('[Apple Sign-In] Starting native authorization...');
+          // Hash the nonce for Apple (Apple expects SHA-256 hashed nonce)
+          const encoder = new TextEncoder();
+          const data = encoder.encode(rawNonce);
+          const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const hashedNonce = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
           
           // Create a promise race with timeout to handle iPad presentation issues
           const authorizationPromise = SignInWithApple.authorize({
             clientId: 'com.laten.app',
             redirectURI: 'https://latenapp.com/auth/callback',
             scopes: 'email name',
-            nonce: rawNonce,
+            nonce: hashedNonce, // Apple gets the HASHED nonce
           });
           
           // Add a 60 second timeout for the authorization
@@ -253,7 +258,6 @@ const Auth: React.FC = () => {
             result = await Promise.race([authorizationPromise, timeoutPromise]);
           } catch (raceError: any) {
             if (raceError?.message === 'APPLE_SIGNIN_TIMEOUT') {
-              console.log('[Apple Sign-In] Timeout - authorization took too long');
               toast.error('Apple Sign-In timed out. Please try again.');
               setLoading(false);
               return;
@@ -261,16 +265,13 @@ const Auth: React.FC = () => {
             throw raceError;
           }
           
-          console.log('[Apple Sign-In] Authorization result received');
-          
           if (result.response?.identityToken) {
-            console.log('[Apple Sign-In] Identity token received, exchanging with Supabase...');
-            
             // Use signInWithIdToken to authenticate with Supabase using the native token
+            // Supabase gets the RAW (unhashed) nonce to verify against the hash in the token
             const { data: authData, error: signInError } = await supabase.auth.signInWithIdToken({
               provider: 'apple',
               token: result.response.identityToken,
-              nonce: rawNonce,
+              nonce: rawNonce, // Supabase gets the RAW nonce
             });
             
             if (signInError) {
