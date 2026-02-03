@@ -236,7 +236,7 @@ const Auth: React.FC = () => {
           // Create a promise race with timeout to handle iPad presentation issues
           const authorizationPromise = SignInWithApple.authorize({
             clientId: 'com.laten.app',
-            redirectURI: 'https://laten-night-pulse.lovable.app/auth/callback',
+            redirectURI: 'https://latenapp.com/auth/callback',
             scopes: 'email name',
             nonce: rawNonce,
           });
