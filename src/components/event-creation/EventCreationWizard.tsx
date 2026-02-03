@@ -182,17 +182,18 @@ export const EventCreationWizard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-50 ios-blur-material border-b border-border/30">
+      {/* Header - iOS optimized with larger touch targets */}
+      <header className="sticky top-0 z-50 ios-blur-material border-b border-border/30 safe-area-top">
         <div className="flex items-center justify-between px-4 py-3">
           <button 
             onClick={() => currentStep === 0 ? navigate(-1) : prevStep()}
-            className="p-2 -ml-2 rounded-full hover:bg-muted/50 transition-colors"
+            className="w-11 h-11 -ml-2 rounded-full hover:bg-muted/50 active:bg-muted/70 transition-colors flex items-center justify-center touch-manipulation"
+            aria-label={currentStep === 0 ? "Close" : "Go back"}
           >
             {currentStep === 0 ? (
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             ) : (
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-6 h-6" />
             )}
           </button>
           
@@ -201,7 +202,7 @@ export const EventCreationWizard: React.FC = () => {
             <h1 className="font-semibold">{STEPS[currentStep].label}</h1>
           </div>
 
-          <div className="w-9" /> {/* Spacer for centering */}
+          <div className="w-11" /> {/* Spacer for centering - matches button width */}
         </div>
         
         <WizardProgress steps={STEPS} currentStep={currentStep} />
