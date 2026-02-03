@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Calendar, Clock, Sparkles } from 'lucide-react';
+import { Camera, Calendar, Clock, Sparkles, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { EVENT_TYPES } from '@/types';
 import { cn } from '@/lib/utils';
 import { EventFormData } from '../EventCreationWizard';
+import { toast } from 'sonner';
 
 interface StepBasicsProps {
   formData: EventFormData;
@@ -12,6 +13,40 @@ interface StepBasicsProps {
 }
 
 export const StepBasics: React.FC<StepBasicsProps> = ({ formData, updateFormData }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be under 10MB');
+      return;
+    }
+
+    // Create a local URL for preview
+    const imageUrl = URL.createObjectURL(file);
+    updateFormData({ cover_image: imageUrl });
+  };
+
+  const removeCoverImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (formData.cover_image) {
+      URL.revokeObjectURL(formData.cover_image);
+    }
+    updateFormData({ cover_image: undefined });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Hero Section */}
@@ -28,24 +63,57 @@ export const StepBasics: React.FC<StepBasicsProps> = ({ formData, updateFormData
         <p className="text-muted-foreground">Start with the essentials</p>
       </div>
 
-      {/* Cover Image - Upgraded */}
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageSelect}
+        className="hidden"
+      />
+
+      {/* Cover Image - Functional */}
       <motion.button
         type="button"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
+        onClick={() => fileInputRef.current?.click()}
         className="relative w-full aspect-video rounded-2xl overflow-hidden group"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-primary/5" />
-        <div className="absolute inset-0 border-2 border-dashed border-primary/30 rounded-2xl group-hover:border-primary/60 transition-colors" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-            <Camera className="w-7 h-7 text-primary" />
-          </div>
-          <div className="text-center">
-            <p className="font-medium">Add cover photo</p>
-            <p className="text-xs text-muted-foreground">Makes your event stand out</p>
-          </div>
-        </div>
+        {formData.cover_image ? (
+          <>
+            <img 
+              src={formData.cover_image} 
+              alt="Event cover" 
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <button
+              type="button"
+              onClick={removeCoverImage}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors z-10"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs font-medium">
+              Tap to change
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-primary/5" />
+            <div className="absolute inset-0 border-2 border-dashed border-primary/30 rounded-2xl group-hover:border-primary/60 transition-colors" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+              <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+                <Camera className="w-7 h-7 text-primary" />
+              </div>
+              <div className="text-center">
+                <p className="font-medium">Add cover photo</p>
+                <p className="text-xs text-muted-foreground">Makes your event stand out</p>
+              </div>
+            </div>
+          </>
+        )}
       </motion.button>
 
       {/* Event Name */}
