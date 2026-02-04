@@ -68,54 +68,96 @@ const MapView: React.FC = () => {
           showHeatmap={showHeatmap}
         />
 
-        {/* Top Overlay */}
-        <div className="absolute top-0 left-0 right-0 z-30 p-4 safe-top-padding bg-gradient-to-b from-background via-background/80 to-transparent">
-          {/* Search Bar */}
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search location..."
-                className="w-full input-neon pl-12 pr-4 bg-card/90 backdrop-blur-xl border border-border touch-target"
-              />
+        {/* Top Overlay - Refined Glassmorphism */}
+        <div className="absolute top-0 left-0 right-0 z-30 safe-top-padding">
+          <div className="p-4 bg-gradient-to-b from-background/95 via-background/80 to-transparent pb-8">
+            {/* Search Bar - Enhanced */}
+            <div className="flex gap-2.5">
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative flex-1"
+              >
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Search className="w-4 h-4 text-primary" />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search events or venues..."
+                  className="w-full pl-14 pr-4 py-3.5 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/60 focus:border-primary/60 transition-all touch-target text-[15px]"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-muted flex items-center justify-center"
+                  >
+                    <X className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                )}
+              </motion.div>
+              <Button 
+                variant="glass" 
+                size="icon" 
+                className="w-[52px] h-[52px] rounded-2xl bg-card/95 backdrop-blur-xl border border-border/60"
+                onClick={() => setSearchQuery('')}
+              >
+                <Filter className="w-5 h-5" />
+              </Button>
             </div>
-            <Button 
-              variant="glass" 
-              size="icon" 
-              className="touch-target"
-              onClick={() => setSearchQuery('')}
-            >
-              <Filter className="w-5 h-5" />
-            </Button>
-          </div>
 
-          {/* City Badge & Heatmap Toggle */}
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-card/90 backdrop-blur-sm border border-border">
-                <MapPin className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">{selectedCity}</span>
+            {/* Stats & Toggles Row */}
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center gap-2.5">
+                {/* City Badge */}
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-card/95 backdrop-blur-xl border border-border/60"
+                >
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">{selectedCity}</span>
+                </motion.div>
+                
+                {/* Live Stats Badge */}
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30"
+                >
+                  <Flame className="w-4 h-4 text-primary animate-pulse" />
+                  <span className="text-sm font-semibold">
+                    <span className="text-primary">{cityEvents.length}</span>
+                    <span className="text-muted-foreground"> events</span>
+                    <span className="text-muted-foreground mx-1">•</span>
+                    <span className="text-secondary">{clubs.length}</span>
+                    <span className="text-muted-foreground"> venues</span>
+                  </span>
+                </motion.div>
               </div>
-              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/50">
-                <Flame className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-primary">{cityEvents.length} events • {clubs.length} venues</span>
-              </div>
+              
+              {/* Heatmap Toggle */}
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                onClick={() => setShowHeatmap(!showHeatmap)}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 touch-target-sm',
+                  showHeatmap 
+                    ? 'bg-primary/30 border border-primary/60 shadow-[0_0_15px_hsla(270,91%,65%,0.3)]' 
+                    : 'bg-card/95 border border-border/60'
+                )}
+              >
+                <Layers className={cn('w-4 h-4 transition-colors', showHeatmap ? 'text-primary' : 'text-muted-foreground')} />
+                <span className={cn('text-xs font-medium', showHeatmap ? 'text-primary' : 'text-muted-foreground')}>
+                  Heatmap
+                </span>
+              </motion.button>
             </div>
-            <Button
-              variant="glass"
-              size="sm"
-              onClick={() => setShowHeatmap(!showHeatmap)}
-              className={cn(
-                'gap-2 transition-all touch-target-sm',
-                showHeatmap && 'bg-primary/20 border-primary/50'
-              )}
-            >
-              <Layers className="w-4 h-4" />
-              <span className="text-xs">Heatmap</span>
-            </Button>
           </div>
         </div>
 
@@ -171,14 +213,17 @@ const MapView: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* Pull Up List */}
+        {/* Pull Up List - Enhanced */}
         <motion.button
           onClick={() => setShowEventList(true)}
-          whileTap={{ scale: 0.98 }}
-          className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-3 rounded-full bg-card/90 backdrop-blur-xl border border-border touch-target no-select"
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.97 }}
+          className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/60 shadow-lg touch-target no-select"
         >
-          <ChevronUp className="w-4 h-4" />
-          <span className="text-sm font-medium">View all events</span>
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+            <ChevronUp className="w-4 h-4 text-primary" />
+          </div>
+          <span className="text-sm font-semibold">View all {cityEvents.length} events</span>
         </motion.button>
       </div>
 

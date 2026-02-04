@@ -218,22 +218,35 @@ const EventDetails: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Image */}
-      <div className="relative h-80">
-        <img 
-          src={event.coverImage} 
-          alt={event.name} 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+      {/* Hero Section with Parallax Effect */}
+      <div className="relative h-[420px] overflow-hidden">
+        <motion.div
+          initial={{ scale: 1.1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.8 }}
+          className="absolute inset-0"
+        >
+          <img 
+            src={event.coverImage} 
+            alt={event.name} 
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
         
-        {/* Top Bar */}
-        <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
+        
+        {/* Floating Navigation */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-0 left-0 right-0 p-4 safe-top-padding flex items-center justify-between z-10"
+        >
           <Button
             variant="glass"
             size="icon"
             onClick={() => navigate(-1)}
-            className="rounded-full"
+            className="w-11 h-11 rounded-full backdrop-blur-xl bg-black/30 border-white/10 hover:bg-black/50"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -242,127 +255,166 @@ const EventDetails: React.FC = () => {
               variant="glass"
               size="icon"
               onClick={handleShare}
-              className="rounded-full"
+              className="w-11 h-11 rounded-full backdrop-blur-xl bg-black/30 border-white/10 hover:bg-black/50"
             >
               <Share2 className="w-5 h-5" />
             </Button>
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={handleLike}
-              className="rounded-full"
-            >
-              <Heart className={cn('w-5 h-5', isLiked && 'fill-destructive text-destructive')} />
-            </Button>
+            <motion.div whileTap={{ scale: 0.9 }}>
+              <Button
+                variant="glass"
+                size="icon"
+                onClick={handleLike}
+                className="w-11 h-11 rounded-full backdrop-blur-xl bg-black/30 border-white/10 hover:bg-black/50"
+              >
+                <Heart className={cn('w-5 h-5 transition-all', isLiked && 'fill-red-500 text-red-500 scale-110')} />
+              </Button>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Event Type Badge */}
-        <div className="absolute bottom-4 left-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{eventType?.icon}</span>
-            <span className="px-3 py-1 rounded-full bg-card/80 backdrop-blur-sm text-sm font-medium">
-              {eventType?.label}
-            </span>
+        {/* Event Info Overlay at Bottom */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="absolute bottom-0 left-0 right-0 p-5"
+        >
+          {/* Event Type & Verified Badges */}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10">
+              <span className="text-lg">{eventType?.icon}</span>
+              <span className="text-sm font-medium">{eventType?.label}</span>
+            </div>
             {event.isVerified && (
-              <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
-                <svg className="w-4 h-4 text-secondary-foreground" fill="currentColor" viewBox="0 0 20 20">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/90 backdrop-blur-xl">
+                <svg className="w-3.5 h-3.5 text-secondary-foreground" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
+                <span className="text-xs font-semibold text-secondary-foreground">Verified</span>
               </div>
             )}
           </div>
-        </div>
+          
+          {/* Event Title */}
+          <h1 className="font-display font-bold text-3xl mb-2 leading-tight">{event.name}</h1>
+          
+          {/* Host Info */}
+          <div className="flex items-center gap-3">
+            {event.hostAvatar && (
+              <img src={event.hostAvatar} alt={event.hostName} className="w-9 h-9 rounded-full ring-2 ring-primary/50" />
+            )}
+            <span className="text-white/80">{t('events.hostedBy')} <span className="text-white font-medium">{event.hostName}</span></span>
+          </div>
+        </motion.div>
       </div>
 
       {/* Content */}
-      <div className="px-4 -mt-4 relative z-10 pb-32">
-        {/* Title & Host */}
-        <div className="mb-6">
-          <h1 className="font-display font-bold text-3xl mb-2 neon-text">{event.name}</h1>
-          <div className="flex items-center gap-3">
-            {event.hostAvatar && (
-              <img src={event.hostAvatar} alt={event.hostName} className="w-8 h-8 rounded-full" />
-            )}
-            <span className="text-muted-foreground">{t('events.hostedBy')} <span className="text-foreground">{event.hostName}</span></span>
+      <div className="px-4 pt-6 pb-32 space-y-5">
+        {/* Quick Info Pills - Horizontal scroll */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="-mx-4 px-4 flex gap-3 overflow-x-auto no-scrollbar pb-1"
+        >
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-card border border-border shrink-0">
+            <Calendar className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">{format(event.startTime, 'EEE, MMM d')}</span>
           </div>
-        </div>
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-card border border-border shrink-0">
+            <Clock className="w-4 h-4 text-secondary" />
+            <span className="text-sm font-medium">{format(event.startTime, 'h:mm a')}</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary/20 border border-primary/40 shrink-0">
+            <Ticket className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold text-primary">{event.price ? `${event.price} Ft` : t('events.freeEntry')}</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-card border border-border shrink-0">
+            <Shield className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium">{event.ageLimit}+</span>
+          </div>
+        </motion.div>
 
-        {/* Quick Info Cards */}
-        <div className="grid grid-cols-2 gap-2.5 mb-6">
-          <div className="glass-card p-3.5">
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-              <Calendar className="w-3.5 h-3.5" />
-              <span className="text-[11px] uppercase tracking-wide">{t('events.date')}</span>
+        {/* Attendance Progress - More Visual */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="glass-card p-5"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="font-bold text-2xl">{event.currentRSVP}</p>
+                <p className="text-sm text-muted-foreground">{t('events.going')}</p>
+              </div>
             </div>
-            <p className="font-semibold text-[15px]">{format(event.startTime, 'EEEE, MMM d')}</p>
-          </div>
-          <div className="glass-card p-3.5">
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-              <Clock className="w-3.5 h-3.5" />
-              <span className="text-[11px] uppercase tracking-wide">{t('events.time')}</span>
+            <div className="text-right">
+              <p className="font-semibold text-lg">{event.expectedAttendance - event.currentRSVP}</p>
+              <p className="text-sm text-muted-foreground">{t('events.spotsLeft')}</p>
             </div>
-            <p className="font-semibold text-[15px]">{format(event.startTime, 'h:mm a')}</p>
           </div>
-          <div className="glass-card p-3.5">
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-              <Ticket className="w-3.5 h-3.5" />
-              <span className="text-[11px] uppercase tracking-wide">{t('events.entry')}</span>
-            </div>
-            <p className="font-semibold text-[15px]">{event.price ? `${event.price} Ft` : t('events.freeEntry')}</p>
-          </div>
-          <div className="glass-card p-3.5">
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-              <Shield className="w-3.5 h-3.5" />
-              <span className="text-[11px] uppercase tracking-wide">{t('events.age')}</span>
-            </div>
-            <p className="font-semibold text-[15px]">{event.ageLimit}+</p>
-          </div>
-        </div>
-
-        {/* Attendance */}
-        <div className="glass-card p-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
-              <span className="font-semibold">{event.currentRSVP} {t('events.going')}</span>
-            </div>
-            <span className="text-sm text-muted-foreground">
-              {event.expectedAttendance - event.currentRSVP} {t('events.spotsLeft')}
-            </span>
-          </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-3 bg-muted rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${attendancePercentage}%` }}
-              transition={{ duration: 1, delay: 0.5 }}
-              className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+              transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
+              className={cn(
+                "h-full rounded-full",
+                attendancePercentage >= 80 
+                  ? "bg-gradient-to-r from-orange-500 to-red-500" 
+                  : "bg-gradient-to-r from-primary via-purple-500 to-secondary"
+              )}
             />
           </div>
-        </div>
+          {attendancePercentage >= 80 && (
+            <p className="text-xs text-orange-400 mt-2 flex items-center gap-1">
+              <span className="animate-pulse">🔥</span> Filling up fast!
+            </p>
+          )}
+        </motion.div>
 
-        {/* Location */}
-        <div className="glass-card p-4 mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin className="w-5 h-5 text-primary" />
-            <span className="font-semibold">{t('events.location')}</span>
+        {/* Location Card - Enhanced */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="glass-card overflow-hidden"
+        >
+          {/* Mini Map Preview Placeholder */}
+          <div className="h-32 bg-gradient-to-br from-primary/10 via-card to-secondary/10 relative">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center animate-pulse">
+                <MapPin className="w-4 h-4 text-primary-foreground" />
+              </div>
+            </div>
           </div>
-          <p className="text-foreground mb-1">{event.location.name}</p>
-          <p className="text-sm text-muted-foreground mb-4">{event.location.address}, {event.location.city}</p>
-          <Button variant="outline" className="w-full gap-2">
-            <Navigation className="w-4 h-4" />
-            {t('events.getDirections')}
-          </Button>
-        </div>
+          <div className="p-4">
+            <h3 className="font-semibold text-lg mb-1">{event.location.name}</h3>
+            <p className="text-sm text-muted-foreground mb-4">{event.location.address}, {event.location.city}</p>
+            <Button variant="outline" className="w-full gap-2 h-12">
+              <Navigation className="w-4 h-4" />
+              {t('events.getDirections')}
+            </Button>
+          </div>
+        </motion.div>
 
-        {/* Description */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
+        {/* Description - Collapsible Style */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="space-y-3"
+        >
+          <div className="flex items-center gap-2">
             <Info className="w-5 h-5 text-primary" />
-            <span className="font-semibold">{t('events.about')}</span>
+            <span className="font-semibold text-lg">{t('events.about')}</span>
           </div>
           <p className="text-muted-foreground leading-relaxed">{event.description}</p>
-        </div>
+        </motion.div>
 
         {/* Dress Code */}
         {event.dressCode && (

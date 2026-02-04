@@ -321,7 +321,7 @@ const Profile: React.FC = () => {
         onChange={handleAvatarUpload}
       />
 
-      {/* Instagram-style Header */}
+      {/* iOS-style Header with blur */}
       <header className="sticky top-0 z-20 ios-blur-material border-b border-border/30 safe-top">
         <div className="flex items-center justify-between px-4 h-[52px]">
           <h1 className="font-display font-bold text-lg">{username}</h1>
@@ -329,142 +329,159 @@ const Profile: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={() => setSettingsSheetOpen(true)}
-            className="touch-target"
+            className="touch-target rounded-xl"
           >
             <Settings className="w-5 h-5" />
           </Button>
         </div>
       </header>
 
-      {/* Profile Section */}
-      <section className="px-4 py-4">
-        <div className="flex items-start gap-6">
-          {/* Avatar */}
-          <button
+      {/* Profile Hero Section */}
+      <section className="px-5 py-6">
+        {/* Avatar & Stats Row */}
+        <div className="flex items-center gap-6">
+          {/* Enhanced Avatar with Gradient Ring */}
+          <motion.button
             onClick={handleAvatarClick}
             disabled={uploadingAvatar || !user}
-            className="relative group shrink-0"
+            whileTap={{ scale: 0.95 }}
+            className="relative shrink-0 group"
           >
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary via-neon-pink to-secondary p-[3px]">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary via-pink-500 to-secondary p-[3px] shadow-lg shadow-primary/20">
               <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
                 {uploadingAvatar ? (
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 ) : profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <UserIcon className="w-10 h-10 text-muted-foreground" />
+                  <UserIcon className="w-12 h-12 text-muted-foreground" />
                 )}
               </div>
             </div>
             {user && (
-              <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center border-2 border-background">
-                <Camera className="w-3 h-3 text-primary-foreground" />
-              </div>
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary flex items-center justify-center border-3 border-background shadow-lg"
+              >
+                <Camera className="w-4 h-4 text-primary-foreground" />
+              </motion.div>
             )}
-          </button>
+          </motion.button>
 
-          {/* Stats - Instagram style */}
-          <div className="flex-1 flex justify-around pt-2">
-            <button className="text-center" onClick={() => navigate('/saved')}>
-              <p className="font-display font-bold text-lg">{savedCount}</p>
-              <p className="text-xs text-muted-foreground">{t('events.saved')}</p>
+          {/* Stats Grid - Larger numbers */}
+          <div className="flex-1 grid grid-cols-3 gap-1">
+            <button className="text-center py-2 rounded-xl hover:bg-card/50 transition-colors" onClick={() => navigate('/saved')}>
+              <p className="font-display font-bold text-2xl">{savedCount}</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider mt-0.5">{t('events.saved')}</p>
             </button>
-            <button className="text-center" onClick={() => navigate('/friends')}>
-              <p className="font-display font-bold text-lg">{followers.length}</p>
-              <p className="text-xs text-muted-foreground">Followers</p>
+            <button className="text-center py-2 rounded-xl hover:bg-card/50 transition-colors" onClick={() => navigate('/friends')}>
+              <p className="font-display font-bold text-2xl">{followers.length}</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider mt-0.5">Followers</p>
             </button>
-            <button className="text-center" onClick={() => navigate('/friends')}>
-              <p className="font-display font-bold text-lg">{following.length}</p>
-              <p className="text-xs text-muted-foreground">Following</p>
+            <button className="text-center py-2 rounded-xl hover:bg-card/50 transition-colors" onClick={() => navigate('/friends')}>
+              <p className="font-display font-bold text-2xl">{following.length}</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider mt-0.5">Following</p>
             </button>
           </div>
         </div>
 
-        {/* Name, Bio, Location */}
-        <div className="mt-4 space-y-1">
+        {/* Name, Bio, Location - Enhanced */}
+        <div className="mt-5 space-y-2">
           {user ? (
             <>
-              <h2 className="font-semibold flex items-center gap-1">
+              <h2 className="font-semibold text-lg flex items-center gap-2">
                 {profile?.display_name || user.email?.split('@')[0]}
                 {profile?.is_verified && (
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500">
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 shadow-lg shadow-blue-500/30">
                     <Check className="w-3 h-3 text-white" />
                   </span>
                 )}
               </h2>
               {profile?.show_city && profile?.city && (
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" />
                   {profile.city}
                 </p>
               )}
               {profile?.bio && (
-                <p className="text-sm mt-2">{profile.bio}</p>
+                <p className="text-[15px] leading-relaxed mt-3">{profile.bio}</p>
               )}
             </>
           ) : (
             <>
-              <h2 className="font-semibold">{t('common.loading')}</h2>
+              <h2 className="font-semibold text-lg">{t('common.loading')}</h2>
               <p className="text-sm text-muted-foreground">{t('auth.signIn')}</p>
             </>
           )}
         </div>
 
-        {/* Action Buttons - Instagram style */}
-        <div className="flex gap-2 mt-4">
+        {/* Action Buttons - Enhanced iOS Style */}
+        <div className="flex gap-2.5 mt-5">
           {user ? (
             <>
               <Button
                 variant="outline"
-                className="flex-1 h-9"
+                className="flex-1 h-11 rounded-xl font-medium"
                 onClick={handleOpenEditSheet}
               >
+                <Pencil className="w-4 h-4 mr-2" />
                 Edit profile
               </Button>
               <Button
                 variant="outline"
-                className="flex-1 h-9"
+                className="flex-1 h-11 rounded-xl font-medium"
                 onClick={handleShare}
               >
-                Share profile
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
               </Button>
               <Button
                 variant="outline"
                 size="icon"
-                className="h-9 w-9 shrink-0"
+                className="h-11 w-11 rounded-xl shrink-0"
                 onClick={() => navigate('/friends')}
               >
                 <UserPlus className="w-4 h-4" />
               </Button>
             </>
           ) : (
-            <Button variant="neon" className="flex-1" onClick={() => navigate('/auth')}>
+            <Button variant="neon" className="flex-1 h-12 rounded-xl" onClick={() => navigate('/auth')}>
               {t('auth.signIn')}
             </Button>
           )}
         </div>
 
-        {/* Interests as story-like highlights */}
+        {/* Interests as Highlight Circles - Enhanced */}
         {interests.length > 0 && (
-          <div className="mt-4 overflow-x-auto scrollbar-hide">
+          <div className="mt-6 overflow-x-auto scrollbar-hide -mx-5 px-5">
             <div className="flex gap-4">
-              {interests.slice(0, 5).map((interest) => (
-                <div key={interest} className="flex flex-col items-center gap-1 shrink-0">
-                  <div className="w-16 h-16 rounded-full border-2 border-border flex items-center justify-center bg-muted">
-                    <span className="text-lg">🎵</span>
+              {interests.slice(0, 5).map((interest, index) => (
+                <motion.div 
+                  key={interest} 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex flex-col items-center gap-2 shrink-0"
+                >
+                  <div className="w-[68px] h-[68px] rounded-full bg-gradient-to-br from-card to-muted border-2 border-border/60 flex items-center justify-center shadow-inner">
+                    <span className="text-xl">🎵</span>
                   </div>
-                  <span className="text-xs text-center max-w-16 truncate">{interest}</span>
-                </div>
+                  <span className="text-[11px] text-center max-w-[68px] truncate text-muted-foreground">{interest}</span>
+                </motion.div>
               ))}
-              <button 
+              <motion.button 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: interests.length * 0.1 }}
                 onClick={() => navigate('/onboarding')}
-                className="flex flex-col items-center gap-1 shrink-0"
+                className="flex flex-col items-center gap-2 shrink-0"
               >
-                <div className="w-16 h-16 rounded-full border-2 border-dashed border-muted-foreground/50 flex items-center justify-center">
+                <div className="w-[68px] h-[68px] rounded-full border-2 border-dashed border-muted-foreground/40 flex items-center justify-center hover:border-primary/50 transition-colors">
                   <span className="text-2xl text-muted-foreground">+</span>
                 </div>
-                <span className="text-xs text-muted-foreground">Add</span>
-              </button>
+                <span className="text-[11px] text-muted-foreground">Add</span>
+              </motion.button>
             </div>
           </div>
         )}
