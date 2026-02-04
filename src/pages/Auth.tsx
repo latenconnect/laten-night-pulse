@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import { emailSchema, passwordSchema, displayNameSchema } from '@/lib/validations';
 import { supabase } from '@/integrations/supabase/client';
 import latenLogo from '@/assets/laten-logo.png';
+import { BiometricAuthButton } from '@/components/auth/BiometricAuthButton';
+import { useBiometricLogin } from '@/hooks/useBiometricLogin';
 
 const Auth: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +25,19 @@ const Auth: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; displayName?: string }>({});
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
+  const [pendingCredentials, setPendingCredentials] = useState<{ email: string; password: string } | null>(null);
+
+  // Biometric login hook
+  const {
+    isAvailable: biometricAvailable,
+    hasStoredCredentials,
+    performBiometricLogin,
+    saveCredentialsForBiometric,
+    getBiometricLabel,
+    initialized: biometricInitialized,
+    isNative,
+  } = useBiometricLogin();
 
   // Reset loading state on mount and when page becomes visible again
   // This handles interrupted OAuth flows where user leaves and returns
@@ -100,8 +115,14 @@ const Auth: React.FC = () => {
             toast.error(error.message);
           }
         } else {
-          toast.success('Welcome back!');
-          navigate('/explore');
+          // On successful login, check if we should offer biometric enrollment
+          if (isNative && biometricAvailable && !hasStoredCredentials) {
+            setPendingCredentials({ email, password });
+            setShowBiometricPrompt(true);
+          } else {
+            toast.success('Welcome back!');
+            navigate('/explore');
+          }
         }
       } else {
         const { error } = await signUp(email, password, displayName);
@@ -120,6 +141,27 @@ const Auth: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle biometric login
+  const handleBiometricLogin = async () => {
+    setLoading(true);
+    const success = await performBiometricLogin();
+    if (success) {
+      navigate('/explore');
+    }
+    setLoading(false);
+  };
+
+  // Handle biometric enrollment response
+  const handleBiometricEnrollment = async (enroll: boolean) => {
+    if (enroll && pendingCredentials) {
+      await saveCredentialsForBiometric(pendingCredentials.email, pendingCredentials.password);
+    }
+    setShowBiometricPrompt(false);
+    setPendingCredentials(null);
+    toast.success('Welcome back!');
+    navigate('/explore');
   };
 
   const handleGoogleSignIn = async () => {
@@ -560,6 +602,15 @@ const Auth: React.FC = () => {
             </div>
           </div>
 
+          {/* Biometric Login - Only show for returning users on native with stored credentials */}
+          {isLogin && biometricInitialized && hasStoredCredentials && (
+            <BiometricAuthButton
+              onAuthenticate={handleBiometricLogin}
+              disabled={loading}
+              className="mt-4"
+            />
+          )}
+
           {/* Social Login Buttons */}
           <div className="space-y-3">
             {/* Sign in with Apple - Listed FIRST per Apple Guidelines 4.8 */}
@@ -620,6 +671,63 @@ const Auth: React.FC = () => {
             </Button>
           </div>
         </motion.form>
+
+        {/* Biometric Enrollment Prompt */}
+        <AnimatePresence>
+          {showBiometricPrompt && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="bg-card border border-border rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              >
+                <div className="text-center mb-6">
+                  {/* Face ID / Touch ID Icon */}
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 8V6a2 2 0 0 1 2-2h2" />
+                      <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+                      <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+                      <path d="M16 20h2a2 2 0 0 0 2-2v-2" />
+                      <path d="M9 9v2" />
+                      <path d="M15 9v2" />
+                      <path d="M12 9v3" />
+                      <path d="M9 15c.83.67 1.83 1 3 1s2.17-.33 3-1" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">
+                    Enable {getBiometricLabel()}?
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    Sign in faster next time with {getBiometricLabel()}. Your credentials will be stored securely on this device.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => handleBiometricEnrollment(true)}
+                    className="w-full h-12"
+                  >
+                    Enable {getBiometricLabel()}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleBiometricEnrollment(false)}
+                    className="w-full h-12 text-muted-foreground"
+                  >
+                    Not now
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Toggle */}
         <motion.div
