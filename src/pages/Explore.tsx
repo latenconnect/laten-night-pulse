@@ -92,35 +92,39 @@ const Explore: React.FC = () => {
   }, [clubs, featuredClubs]);
 
   const ExploreHeader = (
-    <div className="px-4 py-4">
+    <div className="px-4 py-5">
+      {/* Location & Actions Row */}
       <div className="flex items-center justify-between mb-4">
         <div>
           {!translationsReady ? (
-            <Skeleton className="h-3 w-20 mb-1" />
+            <Skeleton className="h-3 w-20 mb-1.5" />
           ) : (
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('common.currentLocation')}</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">{t('common.currentLocation')}</p>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-1 hover:opacity-80 transition-opacity">
-                <MapPin className="w-4 h-4 text-primary" />
-                <span className="font-display font-semibold">{selectedCity}</span>
+              <button className="flex items-center gap-2 hover:opacity-80 transition-opacity mt-0.5">
+                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                  <MapPin className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <span className="font-display font-bold text-xl">{selectedCity}</span>
                 <ChevronDown className="w-4 h-4 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
               align="start" 
-              className="w-48 max-h-64 overflow-y-auto bg-card border border-border z-50"
+              className="w-52 max-h-72 overflow-y-auto bg-card/95 backdrop-blur-xl border border-border z-50"
             >
               {HUNGARIAN_CITIES.map((city) => (
                 <DropdownMenuItem
                   key={city}
                   onClick={() => setSelectedCity(city)}
                   className={cn(
-                    "cursor-pointer",
-                    city === selectedCity && "bg-primary/10 text-primary"
+                    "cursor-pointer py-3",
+                    city === selectedCity && "bg-primary/10 text-primary font-medium"
                   )}
                 >
+                  <MapPin className={cn("w-4 h-4 mr-2", city === selectedCity ? "text-primary" : "text-muted-foreground")} />
                   {city}
                 </DropdownMenuItem>
               ))}
@@ -132,37 +136,41 @@ const Explore: React.FC = () => {
           <Button 
             variant="glass" 
             size="icon" 
-            className="touch-target w-10 h-10"
+            className="touch-target w-11 h-11 rounded-xl"
             onClick={() => setActiveFilter(null)}
           >
             <Filter className="w-[18px] h-[18px]" />
           </Button>
         </div>
       </div>
-      {/* Search */}
-      <button
+      
+      {/* Search - Enhanced */}
+      <motion.button
         onClick={() => searchContext?.openSearch()}
-        className="w-full relative flex items-center"
+        whileTap={{ scale: 0.98 }}
+        className="w-full relative flex items-center group"
       >
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-        <div className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-xl text-left text-muted-foreground touch-target">
-          {!translationsReady ? <Skeleton className="h-4 w-24 inline-block" /> : `${t('common.search')}...`}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors">
+          <Search className="w-4 h-4 text-primary" />
         </div>
-        <kbd className="hidden md:inline-flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+        <div className="w-full pl-[60px] pr-4 py-4 bg-card/80 border border-border/60 rounded-2xl text-left text-muted-foreground touch-target hover:border-primary/40 transition-all">
+          {!translationsReady ? <Skeleton className="h-4 w-28 inline-block" /> : `${t('common.search')} events, venues...`}
+        </div>
+        <kbd className="hidden md:inline-flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-1 rounded-lg bg-muted/80 px-2 py-1 text-[10px] font-medium text-muted-foreground border border-border/50">
           ⌘K
         </kbd>
-      </button>
+      </motion.button>
       
-      {/* Category Pills */}
-      <div className="mt-3 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth-mobile pb-1">
+      {/* Category Pills - Improved spacing and styling */}
+      <div className="mt-4 -mx-4 px-4 flex gap-2.5 overflow-x-auto no-scrollbar scroll-smooth-mobile pb-1">
         <motion.button
           onClick={() => setActiveFilter(null)}
           whileTap={{ scale: 0.95 }}
           className={cn(
-            'flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all',
+            'flex-shrink-0 px-5 py-3 rounded-2xl text-sm font-semibold whitespace-nowrap transition-all',
             !activeFilter 
-              ? 'bg-primary text-primary-foreground shadow-[0_0_15px_hsla(270,91%,65%,0.4)]' 
-              : 'bg-card border border-border text-muted-foreground hover:border-primary/50'
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' 
+              : 'bg-card border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground'
           )}
         >
           {!translationsReady ? <Skeleton className="h-4 w-16 inline-block" /> : t('explore.allEvents')}
@@ -173,10 +181,10 @@ const Explore: React.FC = () => {
             onClick={() => setActiveFilter(type.id)}
             whileTap={{ scale: 0.95 }}
             className={cn(
-              'flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2',
+              'flex-shrink-0 px-5 py-3 rounded-2xl text-sm font-semibold whitespace-nowrap transition-all flex items-center gap-2',
               activeFilter === type.id
-                ? 'bg-primary text-primary-foreground shadow-[0_0_15px_hsla(270,91%,65%,0.4)]'
-                : 'bg-card border border-border text-muted-foreground hover:border-primary/50'
+                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+                : 'bg-card border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground'
             )}
           >
             <span className="text-base">{type.icon}</span>
@@ -246,22 +254,29 @@ const Explore: React.FC = () => {
         {/* Friend Activity Feed */}
         {user && <SocialActivityFeed limit={3} />}
 
-        {/* Featured Section */}
+        {/* Featured Section - Enhanced Visual */}
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-            <h2 className="font-display font-bold text-xl">
-              {!translationsReady ? <Skeleton className="h-5 w-32 inline-block" /> : `${t('home.featured')} ${t('common.tonight')}`}
-            </h2>
-            <FeaturedBadge variant="sponsored" size="sm" />
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400/20 to-orange-500/20 flex items-center justify-center">
+              <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-xl">
+                {!translationsReady ? <Skeleton className="h-5 w-32 inline-block" /> : `${t('home.featured')} ${t('common.tonight')}`}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Curated picks for you</p>
+            </div>
+            <div className="ml-auto">
+              <FeaturedBadge variant="sponsored" size="sm" />
+            </div>
           </div>
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth-mobile">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-3 -mx-4 px-4 scroll-smooth-mobile">
             {featuredEvents.map((event, index) => (
               <motion.div
                 key={event.id}
-                initial={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.1, type: "spring", stiffness: 300 }}
               >
                 <EventCard
                   event={event}
@@ -273,21 +288,26 @@ const Explore: React.FC = () => {
           </div>
         </section>
 
-        {/* Trending Section */}
+        {/* Trending Section - Enhanced */}
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-secondary" />
-            <h2 className="font-display font-bold text-xl">
-              {!translationsReady ? <Skeleton className="h-5 w-36 inline-block" /> : `${t('home.trending')} ${selectedCity}`}
-            </h2>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-2xl bg-secondary/20 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-secondary" />
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-xl">
+                {!translationsReady ? <Skeleton className="h-5 w-36 inline-block" /> : `${t('home.trending')} ${selectedCity}`}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Hot events right now</p>
+            </div>
           </div>
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {filteredEvents.slice(0, 3).map((event, index) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.08, type: "spring", stiffness: 300 }}
               >
                 <EventCard
                   event={event}
