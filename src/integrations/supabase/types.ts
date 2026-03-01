@@ -941,6 +941,57 @@ export type Database = {
           },
         ]
       }
+      emergency_alerts: {
+        Row: {
+          created_at: string | null
+          id: string
+          latitude: number
+          longitude: number
+          message: string | null
+          notified_friend_ids: string[] | null
+          resolved_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          latitude: number
+          longitude: number
+          message?: string | null
+          notified_friend_ids?: string[] | null
+          resolved_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          message?: string | null
+          notified_friend_ids?: string[] | null
+          resolved_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_access_tiers: {
         Row: {
           created_at: string
