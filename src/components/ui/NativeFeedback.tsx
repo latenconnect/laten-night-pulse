@@ -149,7 +149,7 @@ export const LongPress: React.FC<LongPressProps> = ({
   ...props
 }) => {
   const { heavyTap } = useHaptics();
-  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isPressed, setIsPressed] = React.useState(false);
   
   const handlePressStart = () => {

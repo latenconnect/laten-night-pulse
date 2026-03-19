@@ -49,7 +49,7 @@ interface MessageBubbleProps {
 
 const MessageBubble = ({ message, onReact, onEdit, onDelete, reactions }: MessageBubbleProps) => {
   const [showActions, setShowActions] = useState(false);
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
