@@ -351,7 +351,7 @@ export const useConversationMessages = (conversationId: string | null, otherUser
 export const useTypingIndicator = (conversationId: string | null, otherUserId: string | null) => {
   const { user } = useAuth();
   const [isOtherTyping, setIsOtherTyping] = useState(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Subscribe to typing indicator changes
   useEffect(() => {

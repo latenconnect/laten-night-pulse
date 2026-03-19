@@ -59,7 +59,7 @@ const SubscriptionSuccess = () => {
 
   useEffect(() => {
     let isMounted = true;
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     const attemptSync = async () => {
       if (!isMounted) return;
