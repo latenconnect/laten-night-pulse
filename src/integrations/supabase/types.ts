@@ -642,6 +642,7 @@ export type Database = {
       }
       content_reports: {
         Row: {
+          auto_flagged: boolean | null
           content_id: string
           content_type: string
           created_at: string | null
@@ -650,11 +651,13 @@ export type Database = {
           reason: string
           reported_user_id: string | null
           reporter_id: string | null
+          resolution_notes: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
         }
         Insert: {
+          auto_flagged?: boolean | null
           content_id: string
           content_type: string
           created_at?: string | null
@@ -663,11 +666,13 @@ export type Database = {
           reason: string
           reported_user_id?: string | null
           reporter_id?: string | null
+          resolution_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
         }
         Update: {
+          auto_flagged?: boolean | null
           content_id?: string
           content_type?: string
           created_at?: string | null
@@ -676,6 +681,7 @@ export type Database = {
           reason?: string
           reported_user_id?: string | null
           reporter_id?: string | null
+          resolution_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
@@ -724,6 +730,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      data_export_requests: {
+        Row: {
+          completed_at: string | null
+          download_url: string | null
+          error_message: string | null
+          expires_at: string | null
+          id: string
+          requested_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          download_url?: string | null
+          error_message?: string | null
+          expires_at?: string | null
+          id?: string
+          requested_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          download_url?: string | null
+          error_message?: string | null
+          expires_at?: string | null
+          id?: string
+          requested_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       direct_messages: {
         Row: {
@@ -1144,6 +1183,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dmca_claims: {
+        Row: {
+          accuracy_statement: boolean
+          claimant_address: string | null
+          claimant_email: string
+          claimant_name: string
+          claimant_user_id: string | null
+          copyrighted_work_description: string
+          created_at: string
+          electronic_signature: string
+          good_faith_statement: boolean
+          id: string
+          infringing_content_id: string | null
+          infringing_content_type: string | null
+          infringing_content_url: string
+          resolution_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          accuracy_statement?: boolean
+          claimant_address?: string | null
+          claimant_email: string
+          claimant_name: string
+          claimant_user_id?: string | null
+          copyrighted_work_description: string
+          created_at?: string
+          electronic_signature: string
+          good_faith_statement?: boolean
+          id?: string
+          infringing_content_id?: string | null
+          infringing_content_type?: string | null
+          infringing_content_url: string
+          resolution_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          accuracy_statement?: boolean
+          claimant_address?: string | null
+          claimant_email?: string
+          claimant_name?: string
+          claimant_user_id?: string | null
+          copyrighted_work_description?: string
+          created_at?: string
+          electronic_signature?: string
+          good_faith_statement?: boolean
+          id?: string
+          infringing_content_id?: string | null
+          infringing_content_type?: string | null
+          infringing_content_url?: string
+          resolution_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: []
       }
       emergency_alerts: {
         Row: {
@@ -3073,6 +3172,50 @@ export type Database = {
           },
         ]
       }
+      moderation_appeals: {
+        Row: {
+          appeal_text: string
+          created_at: string
+          id: string
+          resolution: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+          violation_id: string | null
+        }
+        Insert: {
+          appeal_text: string
+          created_at?: string
+          id?: string
+          resolution?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+          violation_id?: string | null
+        }
+        Update: {
+          appeal_text?: string
+          created_at?: string
+          id?: string
+          resolution?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+          violation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_appeals_violation_id_fkey"
+            columns: ["violation_id"]
+            isOneToOne: false
+            referencedRelation: "user_violations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       moderation_logs: {
         Row: {
           categories: Json | null
@@ -3175,6 +3318,39 @@ export type Database = {
           updated_at?: string
           user_id?: string
           weekly_recap_enabled?: boolean | null
+        }
+        Relationships: []
+      }
+      parental_consents: {
+        Row: {
+          attested_at: string
+          consent_method: string
+          id: string
+          ip_address: unknown
+          parent_email: string
+          parent_verified_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          attested_at?: string
+          consent_method?: string
+          id?: string
+          ip_address?: unknown
+          parent_email: string
+          parent_verified_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          attested_at?: string
+          consent_method?: string
+          id?: string
+          ip_address?: unknown
+          parent_email?: string
+          parent_verified_at?: string | null
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -3899,6 +4075,10 @@ export type Database = {
           id: string
           is_minor: boolean | null
           is_verified: boolean | null
+          minor_consent_acknowledged: boolean | null
+          minor_consent_acknowledged_at: string | null
+          parent_email: string | null
+          parent_verified: boolean | null
           show_city: boolean | null
           show_connections: boolean | null
           tags: Json | null
@@ -3918,6 +4098,10 @@ export type Database = {
           id: string
           is_minor?: boolean | null
           is_verified?: boolean | null
+          minor_consent_acknowledged?: boolean | null
+          minor_consent_acknowledged_at?: string | null
+          parent_email?: string | null
+          parent_verified?: boolean | null
           show_city?: boolean | null
           show_connections?: boolean | null
           tags?: Json | null
@@ -3937,6 +4121,10 @@ export type Database = {
           id?: string
           is_minor?: boolean | null
           is_verified?: boolean | null
+          minor_consent_acknowledged?: boolean | null
+          minor_consent_acknowledged_at?: string | null
+          parent_email?: string | null
+          parent_verified?: boolean | null
           show_city?: boolean | null
           show_connections?: boolean | null
           tags?: Json | null
@@ -4257,6 +4445,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      safety_disclaimer_views: {
+        Row: {
+          disclaimer_type: string
+          dismissed: boolean
+          id: string
+          last_viewed_at: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          disclaimer_type: string
+          dismissed?: boolean
+          id?: string
+          last_viewed_at?: string
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          disclaimer_type?: string
+          dismissed?: boolean
+          id?: string
+          last_viewed_at?: string
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: []
       }
       saved_events: {
         Row: {
@@ -4651,6 +4866,36 @@ export type Database = {
           },
         ]
       }
+      terms_versions: {
+        Row: {
+          consent_type: string
+          content_url: string | null
+          created_at: string
+          effective_at: string
+          id: string
+          is_current: boolean
+          version: string
+        }
+        Insert: {
+          consent_type: string
+          content_url?: string | null
+          created_at?: string
+          effective_at?: string
+          id?: string
+          is_current?: boolean
+          version: string
+        }
+        Update: {
+          consent_type?: string
+          content_url?: string | null
+          created_at?: string
+          effective_at?: string
+          id?: string
+          is_current?: boolean
+          version?: string
+        }
+        Relationships: []
+      }
       ticket_purchases: {
         Row: {
           commission_cents: number
@@ -4733,6 +4978,30 @@ export type Database = {
           },
         ]
       }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       user_connections: {
         Row: {
           connection_type: string
@@ -4760,6 +5029,36 @@ export type Database = {
           id?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_consents: {
+        Row: {
+          accepted_at: string
+          consent_type: string
+          id: string
+          ip_address: unknown
+          user_agent: string | null
+          user_id: string
+          version: string
+        }
+        Insert: {
+          accepted_at?: string
+          consent_type: string
+          id?: string
+          ip_address?: unknown
+          user_agent?: string | null
+          user_id: string
+          version: string
+        }
+        Update: {
+          accepted_at?: string
+          consent_type?: string
+          id?: string
+          ip_address?: unknown
+          user_agent?: string | null
+          user_id?: string
+          version?: string
         }
         Relationships: []
       }
@@ -4913,6 +5212,42 @@ export type Database = {
           pref_public?: number | null
           pref_university?: number | null
           preferred_cities?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_privacy_preferences: {
+        Row: {
+          analytics_decided_at: string | null
+          analytics_enabled: boolean
+          created_at: string
+          marketing_decided_at: string | null
+          marketing_emails_enabled: boolean
+          push_decided_at: string | null
+          push_notifications_enabled: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analytics_decided_at?: string | null
+          analytics_enabled?: boolean
+          created_at?: string
+          marketing_decided_at?: string | null
+          marketing_emails_enabled?: boolean
+          push_decided_at?: string | null
+          push_notifications_enabled?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analytics_decided_at?: string | null
+          analytics_enabled?: boolean
+          created_at?: string
+          marketing_decided_at?: string | null
+          marketing_emails_enabled?: boolean
+          push_decided_at?: string | null
+          push_notifications_enabled?: boolean | null
           updated_at?: string
           user_id?: string
         }
@@ -5126,6 +5461,53 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_violations: {
+        Row: {
+          action_taken: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          notes: string | null
+          related_report_id: string | null
+          severity: string
+          user_id: string
+          violation_type: string
+        }
+        Insert: {
+          action_taken?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          related_report_id?: string | null
+          severity?: string
+          user_id: string
+          violation_type: string
+        }
+        Update: {
+          action_taken?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          related_report_id?: string | null
+          severity?: string
+          user_id?: string
+          violation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_violations_related_report_id_fkey"
+            columns: ["related_report_id"]
+            isOneToOne: false
+            referencedRelation: "content_reports"
             referencedColumns: ["id"]
           },
         ]
@@ -5722,8 +6104,19 @@ export type Database = {
         Args: { p_story_id: string }
         Returns: undefined
       }
+      is_blocked_either_way: {
+        Args: { _user_a: string; _user_b: string }
+        Returns: boolean
+      }
       is_dev_user: { Args: { _user_id: string }; Returns: boolean }
       is_group_event_full: { Args: { event_id: string }; Returns: boolean }
+      needs_consent_reacceptance: {
+        Args: never
+        Returns: {
+          consent_type: string
+          current_version: string
+        }[]
+      }
       record_ghost: {
         Args: { p_event_id: string; p_user_id: string }
         Returns: undefined
