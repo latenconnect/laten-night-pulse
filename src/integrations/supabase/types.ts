@@ -365,6 +365,68 @@ export type Database = {
           },
         ]
       }
+      check_ins: {
+        Row: {
+          check_in_day: string | null
+          club_id: string
+          created_at: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          check_in_day?: string | null
+          club_id: string
+          created_at?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          check_in_day?: string | null
+          club_id?: string
+          created_at?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "check_ins_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_ins_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "public_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_ins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_ins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       close_friends: {
         Row: {
           created_at: string | null
@@ -578,8 +640,94 @@ export type Database = {
         }
         Relationships: []
       }
+      content_reports: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string | null
+          details: string | null
+          id: string
+          reason: string
+          reported_user_id: string | null
+          reporter_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          reason: string
+          reported_user_id?: string | null
+          reporter_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          reason?: string
+          reported_user_id?: string | null
+          reporter_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_reports_reported_user_id_fkey"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_reports_reported_user_id_fkey"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       direct_messages: {
         Row: {
+          client_dedupe_key: string | null
           conversation_id: string
           created_at: string
           edited_at: string | null
@@ -598,6 +746,7 @@ export type Database = {
           sender_id: string
         }
         Insert: {
+          client_dedupe_key?: string | null
           conversation_id: string
           created_at?: string
           edited_at?: string | null
@@ -616,6 +765,7 @@ export type Database = {
           sender_id: string
         }
         Update: {
+          client_dedupe_key?: string | null
           conversation_id?: string
           created_at?: string
           edited_at?: string | null
@@ -1795,13 +1945,17 @@ export type Database = {
         Row: {
           actual_rsvp: number | null
           age_limit: number | null
+          boost_visibility: boolean | null
           city: string
           country: string | null
           cover_image: string | null
           created_at: string | null
           description: string | null
           end_time: string | null
+          event_photos: string[] | null
           expected_attendance: number | null
+          hashtags: string[] | null
+          host_hidden: boolean | null
           host_id: string
           id: string
           is_active: boolean | null
@@ -1825,13 +1979,17 @@ export type Database = {
         Insert: {
           actual_rsvp?: number | null
           age_limit?: number | null
+          boost_visibility?: boolean | null
           city?: string
           country?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
           end_time?: string | null
+          event_photos?: string[] | null
           expected_attendance?: number | null
+          hashtags?: string[] | null
+          host_hidden?: boolean | null
           host_id: string
           id?: string
           is_active?: boolean | null
@@ -1855,13 +2013,17 @@ export type Database = {
         Update: {
           actual_rsvp?: number | null
           age_limit?: number | null
+          boost_visibility?: boolean | null
           city?: string
           country?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
           end_time?: string | null
+          event_photos?: string[] | null
           expected_attendance?: number | null
+          hashtags?: string[] | null
+          host_hidden?: boolean | null
           host_id?: string
           id?: string
           is_active?: boolean | null
@@ -1895,6 +2057,233 @@ export type Database = {
             columns: ["host_id"]
             isOneToOne: false
             referencedRelation: "public_host_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faction_join_requests: {
+        Row: {
+          created_at: string | null
+          faction_id: string
+          id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          faction_id: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          faction_id?: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faction_join_requests_faction_id_fkey"
+            columns: ["faction_id"]
+            isOneToOne: false
+            referencedRelation: "factions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faction_join_requests_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faction_join_requests_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faction_join_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faction_join_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faction_members: {
+        Row: {
+          faction_id: string
+          id: string
+          joined_at: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          faction_id: string
+          id?: string
+          joined_at?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          faction_id?: string
+          id?: string
+          joined_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faction_members_faction_id_fkey"
+            columns: ["faction_id"]
+            isOneToOne: false
+            referencedRelation: "factions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faction_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faction_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faction_xp_log: {
+        Row: {
+          created_at: string | null
+          faction_id: string
+          id: string
+          reason: string
+          reference_id: string | null
+          user_id: string
+          xp_amount: number
+        }
+        Insert: {
+          created_at?: string | null
+          faction_id: string
+          id?: string
+          reason: string
+          reference_id?: string | null
+          user_id: string
+          xp_amount: number
+        }
+        Update: {
+          created_at?: string | null
+          faction_id?: string
+          id?: string
+          reason?: string
+          reference_id?: string | null
+          user_id?: string
+          xp_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faction_xp_log_faction_id_fkey"
+            columns: ["faction_id"]
+            isOneToOne: false
+            referencedRelation: "factions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faction_xp_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faction_xp_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      factions: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          identity_type: string | null
+          identity_value: string | null
+          invite_code: string | null
+          leader_id: string
+          member_count: number
+          name: string
+          total_xp: number
+          updated_at: string | null
+          visibility: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          identity_type?: string | null
+          identity_value?: string | null
+          invite_code?: string | null
+          leader_id: string
+          member_count?: number
+          name: string
+          total_xp?: number
+          updated_at?: string | null
+          visibility?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          identity_type?: string | null
+          identity_value?: string | null
+          invite_code?: string | null
+          leader_id?: string
+          member_count?: number
+          name?: string
+          total_xp?: number
+          updated_at?: string | null
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "factions_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factions_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2083,48 +2472,291 @@ export type Database = {
           },
         ]
       }
-      group_events: {
+      group_chat_messages: {
         Row: {
+          content: string | null
           created_at: string | null
-          event_id: string
           group_id: string
           id: string
-          role: string | null
+          user_id: string
         }
         Insert: {
+          content?: string | null
           created_at?: string | null
-          event_id: string
           group_id: string
           id?: string
-          role?: string | null
+          user_id: string
         }
         Update: {
+          content?: string | null
           created_at?: string | null
-          event_id?: string
           group_id?: string
           id?: string
-          role?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      group_event_invites: {
+        Row: {
+          created_at: string
+          group_event_id: string
+          id: string
+          invitee_id: string
+          inviter_id: string
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          group_event_id: string
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          group_event_id?: string
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          responded_at?: string | null
+          status?: string
         }
         Relationships: [
           {
-            foreignKeyName: "group_events_event_id_fkey"
-            columns: ["event_id"]
+            foreignKeyName: "group_event_invites_group_event_id_fkey"
+            columns: ["group_event_id"]
             isOneToOne: false
-            referencedRelation: "events"
+            referencedRelation: "group_events"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "group_events_event_id_fkey"
-            columns: ["event_id"]
+            foreignKeyName: "group_event_invites_invitee_id_fkey"
+            columns: ["invitee_id"]
             isOneToOne: false
-            referencedRelation: "events_with_privacy"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "group_events_group_id_fkey"
-            columns: ["group_id"]
+            foreignKeyName: "group_event_invites_invitee_id_fkey"
+            columns: ["invitee_id"]
             isOneToOne: false
-            referencedRelation: "party_groups"
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_event_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_event_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_event_members: {
+        Row: {
+          group_event_id: string
+          id: string
+          joined_at: string
+          last_seen_at: string | null
+          role: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          group_event_id: string
+          id?: string
+          joined_at?: string
+          last_seen_at?: string | null
+          role?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          group_event_id?: string
+          id?: string
+          joined_at?: string
+          last_seen_at?: string | null
+          role?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_event_members_group_event_id_fkey"
+            columns: ["group_event_id"]
+            isOneToOne: false
+            referencedRelation: "group_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_event_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_event_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_event_messages: {
+        Row: {
+          created_at: string
+          edited_at: string | null
+          group_event_id: string
+          id: string
+          is_edited: boolean
+          message: string
+          message_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          edited_at?: string | null
+          group_event_id: string
+          id?: string
+          is_edited?: boolean
+          message: string
+          message_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          edited_at?: string | null
+          group_event_id?: string
+          id?: string
+          is_edited?: boolean
+          message?: string
+          message_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_event_messages_group_event_id_fkey"
+            columns: ["group_event_id"]
+            isOneToOne: false
+            referencedRelation: "group_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_event_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_event_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_events: {
+        Row: {
+          chat_enabled: boolean
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          end_time: string | null
+          id: string
+          invited_user_ids: string[] | null
+          is_private: boolean
+          max_members: number | null
+          member_ids: string[]
+          name: string
+          organizer_id: string
+          require_approval: boolean
+          start_time: string
+          status: string
+          tags: string[] | null
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          chat_enabled?: boolean
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          invited_user_ids?: string[] | null
+          is_private?: boolean
+          max_members?: number | null
+          member_ids?: string[]
+          name: string
+          organizer_id: string
+          require_approval?: boolean
+          start_time: string
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          chat_enabled?: boolean
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          invited_user_ids?: string[] | null
+          is_private?: boolean
+          max_members?: number | null
+          member_ids?: string[]
+          name?: string
+          organizer_id?: string
+          require_approval?: boolean
+          start_time?: string
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_events_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_events_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "public_clubs"
             referencedColumns: ["id"]
           },
         ]
@@ -2409,6 +3041,65 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reactions: {
+        Row: {
+          created_at: string | null
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "direct_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moderation_logs: {
+        Row: {
+          categories: Json | null
+          created_at: string | null
+          flagged: boolean
+          id: string
+          submitted_text: string
+          user_id: string | null
+        }
+        Insert: {
+          categories?: Json | null
+          created_at?: string | null
+          flagged: boolean
+          id?: string
+          submitted_text: string
+          user_id?: string | null
+        }
+        Update: {
+          categories?: Json | null
+          created_at?: string | null
+          flagged?: boolean
+          id?: string
+          submitted_text?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       night_recaps: {
         Row: {
           created_at: string
@@ -2534,6 +3225,52 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_group_events: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          group_id: string
+          id: string
+          role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          group_id: string
+          id?: string
+          role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          group_id?: string
+          id?: string
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_events_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "party_groups"
             referencedColumns: ["id"]
           },
         ]
@@ -3158,7 +3895,9 @@ export type Database = {
           date_of_birth: string | null
           didit_session_id: string | null
           display_name: string | null
+          faction_id: string | null
           id: string
+          is_minor: boolean | null
           is_verified: boolean | null
           show_city: boolean | null
           show_connections: boolean | null
@@ -3175,7 +3914,9 @@ export type Database = {
           date_of_birth?: string | null
           didit_session_id?: string | null
           display_name?: string | null
+          faction_id?: string | null
           id: string
+          is_minor?: boolean | null
           is_verified?: boolean | null
           show_city?: boolean | null
           show_connections?: boolean | null
@@ -3192,14 +3933,24 @@ export type Database = {
           date_of_birth?: string | null
           didit_session_id?: string | null
           display_name?: string | null
+          faction_id?: string | null
           id?: string
+          is_minor?: boolean | null
           is_verified?: boolean | null
           show_city?: boolean | null
           show_connections?: boolean | null
           tags?: Json | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_faction_id_fkey"
+            columns: ["faction_id"]
+            isOneToOne: false
+            referencedRelation: "factions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_tokens: {
         Row: {
@@ -3254,6 +4005,48 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      reactions: {
+        Row: {
+          created_at: string | null
+          emoji: string
+          id: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          emoji: string
+          id?: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          emoji?: string
+          id?: string
+          target_id?: string
+          target_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reports: {
         Row: {
@@ -4125,6 +4918,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_public_keys: {
+        Row: {
+          created_at: string | null
+          public_key: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          public_key: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          public_key?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_quest_progress: {
         Row: {
           claimed_at: string | null
@@ -4519,6 +5333,33 @@ export type Database = {
       }
     }
     Views: {
+      event_attendee_profiles: {
+        Row: {
+          avatar_url: string | null
+          city: string | null
+          created_at: string | null
+          display_name: string | null
+          event_id: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_with_privacy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events_with_privacy: {
         Row: {
           actual_rsvp: number | null
@@ -4734,6 +5575,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_member_to_group_event: {
+        Args: { event_id: string; user_id: string }
+        Returns: undefined
+      }
       add_reputation: {
         Args: { p_amount: number; p_reason?: string; p_user_id: string }
         Returns: undefined
@@ -4743,6 +5588,10 @@ export type Database = {
         Returns: undefined
       }
       calculate_rep_level: { Args: { rep_score: number }; Returns: string }
+      can_earn_daily_xp: {
+        Args: { p_faction_id: string; p_user_id: string }
+        Returns: boolean
+      }
       can_view_event_location: {
         Args: { event_row: Database["public"]["Tables"]["events"]["Row"] }
         Returns: boolean
@@ -4768,14 +5617,76 @@ export type Database = {
           }
       cleanup_expired_connections: { Args: never; Returns: undefined }
       cleanup_expired_stories: { Args: never; Returns: undefined }
+      create_daily_check_in: {
+        Args: {
+          p_club_id: string
+          p_latitude?: number
+          p_longitude?: number
+          p_note?: string
+        }
+        Returns: {
+          check_in_day: string | null
+          club_id: string
+          created_at: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          note: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "check_ins"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       delete_bartender_profile: {
         Args: { profile_id: string }
         Returns: boolean
       }
       delete_dj_profile: { Args: { profile_id: string }; Returns: boolean }
-      delete_user_account: {
-        Args: { user_id_to_delete: string }
-        Returns: Json
+      delete_user_account:
+        | { Args: never; Returns: undefined }
+        | { Args: { user_id_to_delete: string }; Returns: Json }
+      get_dm_conversation_previews: {
+        Args: never
+        Returns: {
+          conversation_id: string
+          last_message_created_at: string
+          last_message_encrypted_content_recipient: string
+          last_message_encrypted_content_sender: string
+          last_message_id: string
+          last_message_message_type: string
+          last_message_nonce_recipient: string
+          last_message_nonce_sender: string
+          last_message_sender_id: string
+          participant_1: string
+          participant_2: string
+          unread_count: number
+          updated_at: string
+        }[]
+      }
+      get_event_attendance_summary: {
+        Args: { p_event_id: string }
+        Returns: {
+          attended_count: number
+          cancelled_count: number
+          event_id: string
+          going_count: number
+          interested_count: number
+        }[]
+      }
+      get_my_profile_stats: {
+        Args: never
+        Returns: {
+          current_level: number
+          current_streak: number
+          events_attended: number
+          friends_count: number
+          saved_events: number
+          total_xp: number
+        }[]
       }
       get_user_bartender_profile_id: { Args: { uid: string }; Returns: string }
       get_user_dj_profile_id: { Args: { uid: string }; Returns: string }
@@ -4812,13 +5723,74 @@ export type Database = {
         Returns: undefined
       }
       is_dev_user: { Args: { _user_id: string }; Returns: boolean }
+      is_group_event_full: { Args: { event_id: string }; Returns: boolean }
       record_ghost: {
         Args: { p_event_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      remove_member_from_group_event: {
+        Args: { event_id: string; user_id: string }
         Returns: undefined
       }
       scan_ticket: {
         Args: { p_qr_code: string; p_scanner_id: string }
         Returns: Json
+      }
+      send_direct_message: {
+        Args: {
+          p_client_dedupe_key?: string
+          p_encrypted_content_recipient: string
+          p_encrypted_content_sender: string
+          p_message_type?: string
+          p_nonce_recipient?: string
+          p_nonce_sender?: string
+          p_recipient_id: string
+        }
+        Returns: {
+          client_dedupe_key: string | null
+          conversation_id: string
+          created_at: string
+          edited_at: string | null
+          encrypted_content_recipient: string
+          encrypted_content_sender: string
+          file_mime_type: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          is_deleted: boolean
+          message_type: string
+          nonce_recipient: string
+          nonce_sender: string
+          read_at: string | null
+          sender_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "direct_messages"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_event_saved_state: {
+        Args: { p_event_id: string; p_should_save: boolean }
+        Returns: boolean
+      }
+      upsert_event_rsvp: {
+        Args: { p_event_id: string; p_status: string }
+        Returns: {
+          created_at: string | null
+          event_id: string
+          id: string
+          status: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "event_rsvps"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {
