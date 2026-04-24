@@ -24,6 +24,24 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    // --- AUTH: require a valid JWT ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = userData.user.id;
+
     const oneSignalAppId = Deno.env.get("ONESIGNAL_APP_ID");
     const oneSignalApiKey = Deno.env.get("ONESIGNAL_REST_API_KEY");
 
@@ -34,13 +52,49 @@ serve(async (req) => {
     const { eventId, eventName, eventCity, hostName, startTime } = await req.json();
 
     if (!eventId || !eventName || !eventCity) {
-      throw new Error("Missing required fields: eventId, eventName, eventCity");
+      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- AUTHZ: verify caller owns the event being boosted ---
+    const { data: eventRow, error: evErr } = await supabaseClient
+      .from("events")
+      .select("id, host_id, city, hosts:host_id ( user_id )")
+      .eq("id", eventId)
+      .maybeSingle();
+
+    if (evErr || !eventRow) {
+      return new Response(JSON.stringify({ error: "Event not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // event.hosts may be returned as object or array depending on PostgREST inference
+    const hostUserId = Array.isArray((eventRow as any).hosts)
+      ? (eventRow as any).hosts[0]?.user_id
+      : (eventRow as any).hosts?.user_id;
+
+    // Allow event host or admin
+    let isAdmin = false;
+    const { data: adminCheck } = await supabaseClient.rpc("has_role", {
+      _user_id: callerId,
+      _role: "admin",
+    });
+    isAdmin = !!adminCheck;
+
+    if (hostUserId !== callerId && !isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     logStep("Sending notification for boosted event", { eventId, eventName, eventCity });
 
     // Get all push tokens for users in the same city
-    // We filter by city in the profiles table
     const { data: cityUsers, error: usersError } = await supabaseClient
       .from('profiles')
       .select('id')
@@ -61,7 +115,6 @@ serve(async (req) => {
     const userIds = cityUsers.map(u => u.id);
     logStep("Found users in city", { count: userIds.length });
 
-    // Get push tokens for these users
     const { data: tokens, error: tokensError } = await supabaseClient
       .from('push_tokens')
       .select('token')
@@ -83,20 +136,18 @@ serve(async (req) => {
     const playerIds = tokens.map(t => t.token);
     logStep("Sending to push tokens", { count: playerIds.length });
 
-    // Format the start time nicely
     const eventDate = startTime ? new Date(startTime).toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
     }) : '';
 
-    // Send via OneSignal
     const notificationPayload = {
       app_id: oneSignalAppId,
       include_player_ids: playerIds,
       headings: { en: `🚀 Hot Event in ${eventCity}!` },
-      contents: { 
-        en: `${eventName}${hostName ? ` by ${hostName}` : ''}${eventDate ? ` - ${eventDate}` : ''}` 
+      contents: {
+        en: `${eventName}${hostName ? ` by ${hostName}` : ''}${eventDate ? ` - ${eventDate}` : ''}`
       },
       data: {
         type: 'boosted_event',
@@ -122,8 +173,8 @@ serve(async (req) => {
       throw new Error(`OneSignal error: ${JSON.stringify(oneSignalResult)}`);
     }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
+    return new Response(JSON.stringify({
+      success: true,
       sent: playerIds.length,
       recipients: oneSignalResult.recipients || 0,
     }), {
