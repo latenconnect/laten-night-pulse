@@ -53,3 +53,11 @@ verify_jwt = false
 
 [functions.apple-subscription-webhook]
 verify_jwt = false
+
+# DMCA claim submission — public form, no JWT required
+[functions.submit-dmca-claim]
+verify_jwt = false
+
+# GDPR data export — auth checked in code via Authorization header
+[functions.request-data-export]
+verify_jwt = false
