@@ -26,6 +26,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import EULA from "./pages/EULA";
 import DMCA from "./pages/DMCA";
+import LaunchHungary from "./pages/LaunchHungary";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import ClubDetails from "./pages/ClubDetails";
@@ -113,6 +114,8 @@ const AppContent = () => {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/eula" element={<EULA />} />
         <Route path="/dmca" element={<DMCA />} />
+        <Route path="/hungary" element={<LaunchHungary />} />
+        <Route path="/launch" element={<LaunchHungary />} />
         <Route path="/support" element={<Support />} />
         {/* Subscription routes */}
         <Route path="/subscription/success" element={<SubscriptionSuccess />} />
