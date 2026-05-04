@@ -1,8 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, MapPin, Users, Shield, Music, Calendar, ArrowRight, Apple } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Sparkles, MapPin, Users, Shield, Music, Calendar, Apple } from 'lucide-react';
 
 const cities = [
   'Budapest', 'Debrecen', 'Szeged', 'Pécs', 'Győr', 'Siófok',
