@@ -74,20 +74,10 @@ const LaunchHungary: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="inline-flex items-center gap-3 px-6 py-3 rounded-full border border-border/40 bg-card/40 backdrop-blur-md"
           >
-            <Button asChild size="lg" className="group h-14 px-8 text-base rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all">
-              <Link to="/auth">
-                Join the launch
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="h-14 px-8 text-base rounded-full border-border/50 backdrop-blur-md">
-              <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer">
-                <Apple className="mr-2 w-5 h-5" />
-                Download on iOS
-              </a>
-            </Button>
+            <Apple className="w-5 h-5 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">Coming soon to iOS</span>
           </motion.div>
         </div>
       </section>
