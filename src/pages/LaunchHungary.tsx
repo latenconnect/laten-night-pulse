@@ -1,8 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, MapPin, Users, Shield, Music, Calendar, ArrowRight, Apple } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Sparkles, MapPin, Users, Shield, Music, Calendar, Apple } from 'lucide-react';
 
 const cities = [
   'Budapest', 'Debrecen', 'Szeged', 'Pécs', 'Győr', 'Siófok',
@@ -74,20 +72,10 @@ const LaunchHungary: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="inline-flex items-center gap-3 px-6 py-3 rounded-full border border-border/40 bg-card/40 backdrop-blur-md"
           >
-            <Button asChild size="lg" className="group h-14 px-8 text-base rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all">
-              <Link to="/auth">
-                Join the launch
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="h-14 px-8 text-base rounded-full border-border/50 backdrop-blur-md">
-              <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer">
-                <Apple className="mr-2 w-5 h-5" />
-                Download on iOS
-              </a>
-            </Button>
+            <Apple className="w-5 h-5 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">Coming soon to iOS</span>
           </motion.div>
         </div>
       </section>
@@ -149,24 +137,12 @@ const LaunchHungary: React.FC = () => {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">Tonight starts here.</h2>
           <p className="text-lg text-muted-foreground mb-10">Be among the first to shape Hungary's nightlife platform.</p>
-          <Button asChild size="lg" className="h-14 px-10 text-base rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90">
-            <Link to="/auth">
-              Get started — it's free
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-          </Button>
           <p className="text-xs text-muted-foreground mt-6">18+ only · Verified with Didit · Made in Hungary</p>
         </div>
       </section>
 
       <footer className="px-6 py-8 border-t border-border/30 text-center text-sm text-muted-foreground">
-        <div className="flex flex-wrap justify-center gap-6">
-          <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-          <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-          <Link to="/eula" className="hover:text-foreground transition-colors">EULA</Link>
-          <Link to="/support" className="hover:text-foreground transition-colors">Support</Link>
-        </div>
-        <p className="mt-4">© 2026 Laten · Budapest, Hungary</p>
+        <p>© 2026 Laten · Budapest, Hungary</p>
       </footer>
     </main>
   );
