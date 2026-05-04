@@ -139,24 +139,12 @@ const LaunchHungary: React.FC = () => {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">Tonight starts here.</h2>
           <p className="text-lg text-muted-foreground mb-10">Be among the first to shape Hungary's nightlife platform.</p>
-          <Button asChild size="lg" className="h-14 px-10 text-base rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90">
-            <Link to="/auth">
-              Get started — it's free
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-          </Button>
           <p className="text-xs text-muted-foreground mt-6">18+ only · Verified with Didit · Made in Hungary</p>
         </div>
       </section>
 
       <footer className="px-6 py-8 border-t border-border/30 text-center text-sm text-muted-foreground">
-        <div className="flex flex-wrap justify-center gap-6">
-          <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-          <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-          <Link to="/eula" className="hover:text-foreground transition-colors">EULA</Link>
-          <Link to="/support" className="hover:text-foreground transition-colors">Support</Link>
-        </div>
-        <p className="mt-4">© 2026 Laten · Budapest, Hungary</p>
+        <p>© 2026 Laten · Budapest, Hungary</p>
       </footer>
     </main>
   );
