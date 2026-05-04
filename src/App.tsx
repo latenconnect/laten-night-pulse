@@ -24,6 +24,8 @@ import SavedEvents from "./pages/SavedEvents";
 import CreateEvent from "./pages/CreateEvent";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import EULA from "./pages/EULA";
+import DMCA from "./pages/DMCA";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import ClubDetails from "./pages/ClubDetails";
@@ -109,6 +111,8 @@ const AppContent = () => {
         <Route path="/bartender/dashboard" element={<BartenderDashboard />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/eula" element={<EULA />} />
+        <Route path="/dmca" element={<DMCA />} />
         <Route path="/support" element={<Support />} />
         {/* Subscription routes */}
         <Route path="/subscription/success" element={<SubscriptionSuccess />} />
