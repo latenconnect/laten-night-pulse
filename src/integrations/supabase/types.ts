@@ -4073,16 +4073,22 @@ export type Database = {
           display_name: string | null
           faction_id: string | null
           id: string
+          instagram_handle: string | null
+          is_admin: boolean | null
           is_minor: boolean | null
           is_verified: boolean | null
           minor_consent_acknowledged: boolean | null
           minor_consent_acknowledged_at: string | null
+          music_genres: string[] | null
           parent_email: string | null
           parent_verified: boolean | null
+          profile_tags: string[] | null
           show_city: boolean | null
           show_connections: boolean | null
           tags: Json | null
+          tiktok_handle: string | null
           updated_at: string | null
+          vibe_status: string | null
         }
         Insert: {
           age_verified?: boolean | null
@@ -4096,16 +4102,22 @@ export type Database = {
           display_name?: string | null
           faction_id?: string | null
           id: string
+          instagram_handle?: string | null
+          is_admin?: boolean | null
           is_minor?: boolean | null
           is_verified?: boolean | null
           minor_consent_acknowledged?: boolean | null
           minor_consent_acknowledged_at?: string | null
+          music_genres?: string[] | null
           parent_email?: string | null
           parent_verified?: boolean | null
+          profile_tags?: string[] | null
           show_city?: boolean | null
           show_connections?: boolean | null
           tags?: Json | null
+          tiktok_handle?: string | null
           updated_at?: string | null
+          vibe_status?: string | null
         }
         Update: {
           age_verified?: boolean | null
@@ -4119,16 +4131,22 @@ export type Database = {
           display_name?: string | null
           faction_id?: string | null
           id?: string
+          instagram_handle?: string | null
+          is_admin?: boolean | null
           is_minor?: boolean | null
           is_verified?: boolean | null
           minor_consent_acknowledged?: boolean | null
           minor_consent_acknowledged_at?: string | null
+          music_genres?: string[] | null
           parent_email?: string | null
           parent_verified?: boolean | null
+          profile_tags?: string[] | null
           show_city?: boolean | null
           show_connections?: boolean | null
           tags?: Json | null
+          tiktok_handle?: string | null
           updated_at?: string | null
+          vibe_status?: string | null
         }
         Relationships: [
           {
@@ -5969,6 +5987,13 @@ export type Database = {
         Args: { p_user_id: string; p_xp: number }
         Returns: undefined
       }
+      award_xp: {
+        Args: { p_reason?: string; p_user_id: string; p_xp_amount: number }
+        Returns: {
+          new_level: number
+          total_xp: number
+        }[]
+      }
       calculate_rep_level: { Args: { rep_score: number }; Returns: string }
       can_earn_daily_xp: {
         Args: { p_faction_id: string; p_user_id: string }
@@ -6125,6 +6150,8 @@ export type Database = {
         Args: { event_id: string; user_id: string }
         Returns: undefined
       }
+      reset_monthly_stats: { Args: never; Returns: undefined }
+      reset_weekly_xp: { Args: never; Returns: undefined }
       scan_ticket: {
         Args: { p_qr_code: string; p_scanner_id: string }
         Returns: Json
@@ -6168,6 +6195,13 @@ export type Database = {
       set_event_saved_state: {
         Args: { p_event_id: string; p_should_save: boolean }
         Returns: boolean
+      }
+      update_streak: {
+        Args: { p_user_id: string }
+        Returns: {
+          current_streak: number
+          is_new_record: boolean
+        }[]
       }
       upsert_event_rsvp: {
         Args: { p_event_id: string; p_status: string }
