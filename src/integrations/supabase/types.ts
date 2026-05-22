@@ -53,6 +53,30 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          properties: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          properties?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          properties?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bartender_availability: {
         Row: {
           bartender_profile_id: string
@@ -4349,31 +4373,31 @@ export type Database = {
       }
       reviews: {
         Row: {
-          content: string | null
+          comment: string | null
           created_at: string | null
           id: string
           rating: number | null
-          reviewee_id: string | null
-          reviewee_type: string | null
           reviewer_id: string | null
+          target_id: string | null
+          target_type: string | null
         }
         Insert: {
-          content?: string | null
+          comment?: string | null
           created_at?: string | null
           id?: string
           rating?: number | null
-          reviewee_id?: string | null
-          reviewee_type?: string | null
           reviewer_id?: string | null
+          target_id?: string | null
+          target_type?: string | null
         }
         Update: {
-          content?: string | null
+          comment?: string | null
           created_at?: string | null
           id?: string
           rating?: number | null
-          reviewee_id?: string | null
-          reviewee_type?: string | null
           reviewer_id?: string | null
+          target_id?: string | null
+          target_type?: string | null
         }
         Relationships: [
           {
